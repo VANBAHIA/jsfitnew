@@ -330,147 +330,129 @@ const app = {
         }
     },
 
-    // Modal de configuração rápida (alternativa mais simples)
-    showQuickPlanConfigModal() {
-        const existingModal = document.getElementById('quickPlanConfigModal');
-        if (!existingModal) {
-            console.error('Modal de configuração rápida não encontrado');
-            return;
-        }
-
-        const content = document.getElementById('quickConfigContent');
-        if (!content) return;
-
-        const days = this.selectedDays || this.planTypeConfiguration.days;
-        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-        let html = '<div class="quick-config-grid">';
-
-        for (let i = 0; i < days; i++) {
-            const letter = letters[i];
-            const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
-
-            html += `
+   
+    // Mostrar configuração inline
+showInlineQuickConfig() {
+    const configSection = document.getElementById('inlineQuickConfig');
+    const content = document.getElementById('inlineQuickConfigContent');
+    
+    if (!configSection || !content) return;
+    
+    const days = this.selectedDays || this.planTypeConfiguration.days;
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    
+    let html = '<div class="quick-config-grid">';
+    
+    for (let i = 0; i < days; i++) {
+        const letter = letters[i];
+        const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
+        
+        html += `
             <div class="quick-config-item">
                 <h4>Treino ${letter}</h4>
                 <input type="text" 
                        class="form-input" 
                        placeholder="Nome do treino"
                        value="${config.name}"
-                       onchange="app.updateQuickConfigName('${letter}', this.value)"
+                       onchange="app.updateInlineConfigName('${letter}', this.value)"
                        style="margin-bottom: 15px;">
                 <div class="quick-muscle-groups">
                     ${this.planTypeConfiguration.muscleGroups.map(group => `
                         <label class="quick-muscle-check">
                             <input type="checkbox" 
-                                   name="quick-${letter}" 
+                                   name="inline-${letter}" 
                                    value="${group.id}"
                                    ${config.groups.includes(group.id) ? 'checked' : ''}
-                                   onchange="app.updateQuickConfigGroups()">
+                                   onchange="app.updateInlineConfigGroups()">
                             <span>${group.icon} ${group.name}</span>
                         </label>
                     `).join('')}
                 </div>
             </div>
         `;
-        }
+    }
+    
+    html += '</div>';
+    content.innerHTML = html;
+    
+    // Mostrar seção com animação
+    configSection.style.display = 'block';
+    configSection.scrollIntoView({ behavior: 'smooth' });
+},
 
-        html += '</div>';
-        content.innerHTML = html;
-        existingModal.classList.add('active');
-    },
+// Fechar configuração inline
+closeInlineQuickConfig() {
+    const configSection = document.getElementById('inlineQuickConfig');
+    if (configSection) {
+        configSection.style.display = 'none';
+    }
+},
 
-    // Atualizar nome na configuração rápida
-    updateQuickConfigName(letter, name) {
+// Atualizar nome na configuração inline
+updateInlineConfigName(letter, name) {
+    if (!this.planTypeConfiguration.configuration[letter]) {
+        this.planTypeConfiguration.configuration[letter] = { name: '', groups: [] };
+    }
+    this.planTypeConfiguration.configuration[letter].name = name;
+},
+
+// Atualizar grupos na configuração inline
+updateInlineConfigGroups() {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const days = this.selectedDays || this.planTypeConfiguration.days;
+    
+    for (let i = 0; i < days; i++) {
+        const letter = letters[i];
+        const checkboxes = document.querySelectorAll(`input[name="inline-${letter}"]:checked`);
+        const selectedGroups = Array.from(checkboxes).map(cb => cb.value);
+        
         if (!this.planTypeConfiguration.configuration[letter]) {
-            this.planTypeConfiguration.configuration[letter] = { name: '', groups: [] };
+            this.planTypeConfiguration.configuration[letter] = { name: `Treino ${letter}`, groups: [] };
         }
-        this.planTypeConfiguration.configuration[letter].name = name;
-    },
+        this.planTypeConfiguration.configuration[letter].groups = selectedGroups;
+    }
+},
 
-    // Atualizar grupos na configuração rápida
-    updateQuickConfigGroups() {
-        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const days = this.selectedDays || this.planTypeConfiguration.days;
+// Salvar configuração inline
+saveInlineQuickConfig() {
+    // Validar configuração
+    const letters = Object.keys(this.planTypeConfiguration.configuration);
+    let isValid = true;
+    let emptyWorkouts = [];
 
-        for (let i = 0; i < days; i++) {
-            const letter = letters[i];
-            const checkboxes = document.querySelectorAll(`input[name="quick-${letter}"]:checked`);
-            const selectedGroups = Array.from(checkboxes).map(cb => cb.value);
-
-            if (!this.planTypeConfiguration.configuration[letter]) {
-                this.planTypeConfiguration.configuration[letter] = { name: `Treino ${letter}`, groups: [] };
-            }
-            this.planTypeConfiguration.configuration[letter].groups = selectedGroups;
+    letters.forEach(letter => {
+        const config = this.planTypeConfiguration.configuration[letter];
+        if (!config.groups || config.groups.length === 0) {
+            isValid = false;
+            emptyWorkouts.push(letter);
         }
-    },
+    });
 
-    // Salvar configuração rápida
-    saveQuickPlanConfig() {
-        // Validar se todos os treinos têm pelo menos um grupo
-        const letters = Object.keys(this.planTypeConfiguration.configuration);
-        let isValid = true;
-        let emptyWorkouts = [];
+    if (!isValid) {
+        this.showMessage(`Os treinos ${emptyWorkouts.join(', ')} não têm grupos musculares selecionados!`, 'warning');
+        return;
+    }
 
-        letters.forEach(letter => {
-            const config = this.planTypeConfiguration.configuration[letter];
-            if (!config.groups || config.groups.length === 0) {
-                isValid = false;
-                emptyWorkouts.push(letter);
-            }
-        });
+    // Salvar e aplicar
+    this.savePlanTypeConfiguration();
+    this.closeInlineQuickConfig();
+    this.generateWorkoutEditorWithConfig(this.planTypeConfiguration.days);
+    this.updatePlanConfigIndicators();
+    
+    this.showMessage('Configuração aplicada e treinos gerados!', 'success');
+},
 
-        if (!isValid) {
-            this.showMessage(`⚠️ Os treinos ${emptyWorkouts.join(', ')} não têm grupos musculares selecionados!`, 'warning');
-            return;
-        }
-
-        // Salvar configuração
-        this.savePlanTypeConfiguration();
-
-        // Fechar modal
-        this.closeQuickPlanConfigModal();
-
-        // Gerar treinos baseado na configuração
-        this.generateWorkoutEditorWithConfig(this.planTypeConfiguration.days);
-
-        // Atualizar indicadores
-        this.updatePlanConfigIndicators();
-
-        this.showMessage('✅ Configuração aplicada e treinos gerados!', 'success');
-    },
-
-    // Fechar modal de configuração rápida
-    closeQuickPlanConfigModal() {
-        const modal = document.getElementById('quickPlanConfigModal');
-        if (modal) {
-            modal.classList.remove('active');
-        }
-    },
-
-    // Função selectPlanType atualizada (substitua a existente)
-    selectPlanType(days, letters, element) {
-        // Remove active de todos os botões
-        document.querySelectorAll('.plan-type-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // Adiciona active ao botão clicado
-        element.classList.add('active');
-
-        this.selectedDays = days;
-        this.planTypeConfiguration.days = days;
-
-        // Se não há configuração para este número de dias, usar padrão
-        const currentConfig = Object.keys(this.planTypeConfiguration.configuration).length;
-        if (currentConfig === 0 || this.planTypeConfiguration.days !== days) {
-            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days] || {};
-            this.planTypeConfiguration.days = days;
-        }
-
-        // Mostrar modal de configuração
-        this.showPlanTypeConfigModal();
-    },
+// Carregar configuração padrão inline
+loadInlinePresetConfig() {
+    const days = this.planTypeConfiguration.days;
+    const preset = this.planTypeConfiguration.presetConfigurations[days];
+    
+    if (preset) {
+        this.planTypeConfiguration.configuration = JSON.parse(JSON.stringify(preset));
+        this.showInlineQuickConfig(); // Recarregar interface
+        this.showMessage('Configuração padrão aplicada!', 'success');
+    }
+},
 
     // Método original de geração de treinos (para fallback)
     generateAIWorkoutsOriginal(aiData) {
@@ -2803,28 +2785,7 @@ const app = {
         document.getElementById('currentPlanId').value = '';
     },
 
-    selectPlanType(days, letters, element) {
-        // Remove active de todos os botões
-        document.querySelectorAll('.plan-type-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // Adiciona active ao botão clicado
-        element.classList.add('active');
-
-        this.selectedDays = days;
-        this.planTypeConfiguration.days = days;
-
-        // Se não há configuração para este número de dias, usar padrão
-        const currentConfig = Object.keys(this.planTypeConfiguration.configuration).length;
-        if (currentConfig === 0 || this.planTypeConfiguration.days !== days) {
-            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days] || {};
-            this.planTypeConfiguration.days = days;
-        }
-
-        // Mostrar modal de configuração
-        this.showPlanTypeConfigModal();
-    },
+  
 
 
     // =============================================
@@ -2944,7 +2905,7 @@ const app = {
         this.planTypeConfiguration.days = days;
 
         // Mostrar modal de configuração
-        this.showPlanTypeConfigModal();
+        this.showInlineQuickConfig();
     },
 
     // Criar modal de configuração de tipos de plano
@@ -4095,10 +4056,11 @@ const app = {
                     <p><strong>Treinos:</strong> ${plan.treinos?.length || 0} dias configurados</p>
                     
                     ${isShared ? `
+                        <!--
                         <div class="share-info">
                             <span class="share-badge">✅ Compartilhado</span>
                             <span class="share-id">ID: ${shareInfo[0]}</span>
-                        </div>
+                        </div>-->
                     ` : ''}
                     
                     <div class="plan-card-actions">
@@ -4109,16 +4071,19 @@ const app = {
                             ✏️ Editar
                         </button>
                         ${isShared ? `
+
+                            <!-- 
                             <button class="btn btn-success btn-small" onclick="app.showShareSuccessModal('${shareInfo[0]}', 'local')">
                                 🔗 Ver ID
                             </button>
                             <button class="btn btn-outline btn-small" onclick="app.renewShareId('${shareInfo[0]}')">
                                 🔄 Novo ID
-                            </button>
+                            </button> -->
                         ` : `
+                         <!-- 
                             <button class="btn btn-success btn-small" onclick="app.sharePlan(${plan.id})">
                                 🔗 Compartilhar
-                            </button>
+                            </button> -->
                         `}
                         <button class="btn btn-outline btn-small" onclick="app.exportPlan(${plan.id})">
                             📤 Exportar
@@ -4131,32 +4096,7 @@ const app = {
             `;
         }).join('');
 
-        // Adicionar seção de planos compartilhados se houver
-        const sharedPlansList = this.getSharedPlansList();
-        if (sharedPlansList.length > 0) {
-            container.innerHTML += `
-                <div class="shared-plans-section">
-                    <h3>📤 Planos Compartilhados Recentemente</h3>
-                    ${sharedPlansList.map(shared => `
-                        <div class="shared-plan-item">
-                            <div class="shared-plan-info">
-                                <strong>${shared.planName}</strong>
-                                <span>ID: ${shared.shareId}</span>
-                                <small>Aluno: ${shared.studentName}</small>
-                            </div>
-                            <div class="shared-plan-actions">
-                                <button class="btn btn-outline btn-small" onclick="app.copyShareId('${shared.shareId}')">
-                                    📋 Copiar
-                                </button>
-                                <button class="btn btn-secondary btn-small" onclick="app.shareViaWhatsApp('${shared.shareId}')">
-                                    📱 WhatsApp
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
+        
     },
 
     // =============================================

@@ -405,7 +405,8 @@
     
     .exercise-specs-grid,
     .specs-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
     }
     
     .workout-grid {
@@ -430,6 +431,8 @@
     
     .view-exercise-item {
         grid-column: span 1;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
     }
     
     .btn-view-exercise {
@@ -1198,7 +1201,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-1);
     gap: var(--space-4);
 }
 
@@ -1298,7 +1301,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: var(--space-3);
-    margin: var(--space-4) 0;
+    margin: var(--space-1) 0;
 }
 
 .spec-badge,
@@ -1379,9 +1382,7 @@
     flex: 1;
 }
 
-.exercise-specs-detailed {
-    margin: 16px 0;
-}
+
 
 .exercise-notes {
     background: linear-gradient(135deg, var(--warning-50) 0%, var(--warning-100) 100%);
@@ -1540,20 +1541,19 @@
 .exercise-actions {
     display: flex;
     gap: var(--space-3);
-    margin-top: var(--space-4);
+/*    margin-top: var(--space-4);*/
     flex-wrap: wrap;
 }
 
 .plan-actions .btn,
 .workout-actions .btn,
 .exercise-actions .btn {
-    flex: 1;
     min-width: 120px;
 }
 
 .delete-btn {
     flex: 0 0 auto !important;
-    min-width: 44px !important;
+    min-width: 120px !important;
     padding: var(--space-3) !important;
 }
 

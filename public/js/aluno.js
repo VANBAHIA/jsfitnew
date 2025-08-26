@@ -1465,7 +1465,7 @@ class JSFitStudentApp {
                     <div class="exercise-header">
                         <div class="exercise-main">
                             <div class="exercise-title-row">
-                                <h3 class="exercise-number">${index + 1}. ${exercicio.nome}</h3>
+                                <h3 class="exercise-number">${index + 1}. ${exercicio.nome.charAt(0).toUpperCase() + exercicio.nome.slice(1).toLowerCase()}</h3>
                                 ${exercicio.concluido && isWorkoutActive ? `
                                     <div class="check-icon">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1479,7 +1479,10 @@ class JSFitStudentApp {
                             ${exercicio.descricao ? `
                                 <div class="exercise-description">
                                     <div class="description-label">📝 Descrição:</div>
-                                    <div class="description-text">${exercicio.descricao}</div>
+                                    <div class="description-text">
+                                        ${this.findExerciseByName(exercicio.nome)?.descricao.charAt(0).toUpperCase() + this.findExerciseByName(exercicio.nome)?.descricao.slice(1).toLowerCase()}
+                                    </div>
+
                                 </div>
                             ` : ''}
                             

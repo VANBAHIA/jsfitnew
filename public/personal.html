@@ -10,17 +10,9 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzc5NDVmZiIvPgo8cGF0aCBkPSJtMTYgOGMtNC40MTggMC04IDMuNTgyLTggOHY4YzAgNC40MTggMy41ODIgOCA4IDhzOC0zLjU4MiA4LTh2LThjMC00LjQxOC0zLjU4Mi04LTgtOHoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
+    <link rel="stylesheet" href="css/stylePersonal.css">
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/personal.css">
-    <link rel="stylesheet" href="css/plandetalhes.css">
-    <link rel="stylesheet" href="css/exercicemodal.css">
-
-    <style>
-
-
-
-        </style>
+ 
         
 </head>
 <body>
@@ -293,6 +285,7 @@
             </div>
 
 <!-- Seção de Tipo de Plano Atualizada -->
+<!-- Seção de Tipo de Plano Atualizada -->
 <div class="form-section">
     <h2>📅 Tipo de Plano</h2>
     <p class="form-hint">
@@ -332,9 +325,37 @@
         </div>
     </div>
     
-    <!-- Botão para configuração avançada -->
+    <!-- NOVA SEÇÃO: Configuração Inline Expansível -->
+    <div id="inlineQuickConfig" class="inline-quick-config" style="display: none;">
+        <div class="inline-config-header">
+            <h3>⚙️ Configurar Grupos Musculares</h3>
+            <button class="inline-config-close" onclick="app.closeInlineQuickConfig()">✕</button>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>💡 Configure rapidamente:</strong> Selecione os grupos musculares que cada treino deve trabalhar.
+        </div>
+        
+        <div id="inlineQuickConfigContent" class="inline-config-content">
+            <!-- Conteúdo será gerado dinamicamente -->
+        </div>
+        
+        <div class="inline-config-actions">
+            <button class="btn btn-primary" onclick="app.saveInlineQuickConfig()">
+                ✅ Aplicar Configuração
+            </button>
+            <button class="btn btn-secondary" onclick="app.loadInlinePresetConfig()">
+                📋 Usar Padrão
+            </button>
+            <button class="btn btn-outline" onclick="app.closeInlineQuickConfig()">
+                ❌ Cancelar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Status da configuração -->
     <div class="plan-config-actions" style="text-align: center; margin-top: 15px;">
-        <button class="btn btn-secondary btn-small" onclick="app.showPlanTypeConfiguration()" style="display: none;" id="advancedConfigBtn">
+        <button class="btn btn-secondary btn-small" onclick="app.showInlineQuickConfig()" style="display: none;" id="advancedConfigBtn">
             ⚙️ Configuração Avançada
         </button>
         <div class="form-hint" id="planConfigStatus">
@@ -386,31 +407,7 @@
 </div>
 
 
-<div id="quickPlanConfigModal" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header">
-            <h2>⚙️ Configuração Rápida de Treino</h2>
-            <button class="close-btn" onclick="app.closeQuickPlanConfigModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="alert alert-info">
-                <strong>💡 Configure rapidamente:</strong> Selecione os grupos musculares que cada treino deve trabalhar.
-            </div>
-            
-            <div id="quickConfigContent">
-                <!-- Conteúdo será gerado dinamicamente -->
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary" onclick="app.saveQuickPlanConfig()">
-                ✅ Aplicar
-            </button>
-            <button class="btn btn-outline" onclick="app.closeQuickPlanConfigModal()">
-                ❌ Cancelar
-            </button>
-        </div>
-    </div>
-</div>
+
 
     <!-- Hidden file input -->
     <input type="file" id="importFile" style="display: none;" accept=".json" onchange="app.importPlan(event)">
