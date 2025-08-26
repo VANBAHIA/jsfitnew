@@ -1036,7 +1036,7 @@ class JSFitStudentApp {
                         🔗 Importar Treino
                     </h3>
                     
-                    <!-- Import by ID section -->
+                    <!-- Import by ID section 
                     <div class="import-section1">
                         <div class="server-status ${isOnline ? 'online' : 'offline'}">
                             ${isOnline ? 
@@ -1064,13 +1064,13 @@ class JSFitStudentApp {
                         <div id="importStatus" class="import-status">
                             Peça o ID do seu personal trainer
                         </div>
-                    </div>
+                    </div>-->
 
                     <!-- Import by file section -->
                     <div class="import-section">
-                        <div class="import-divider">
-                            <span>OU</span>
-                        </div>
+                       <!--  <div class="import-divider">
+                            <span>OU</span> 
+                        </div>-->
                         <button class="btn btn-secondary import-file-btn" onclick="app.openFileSelector()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
