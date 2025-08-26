@@ -1,0 +1,183 @@
+{
+    "name": "JS Fit App - Sistema de Treinos",
+    "short_name": "JS Fit App",
+    "description": "Sistema completo de compartilhamento de treinos entre personal trainers e alunos",
+    "version": "2.1.0",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "theme_color": "#667eea",
+    "background_color": "#f2f2f7",
+    "lang": "pt-BR",
+    "dir": "ltr",
+    
+    "categories": [
+        "health",
+        "fitness",
+        "sports",
+        "lifestyle",
+        "productivity"
+    ],
+    
+    "icons": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMTIiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIxMiIgeT0iMTIiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K",
+            "sizes": "48x48",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzIiIGhlaWdodD0iNzIiIHZpZXdCb3g9IjAgMCA3MiA3MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjcyIiBoZWlnaHQ9IjcyIiByeD0iMTgiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIxOCIgeT0iMTgiIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K",
+            "sizes": "72x72",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMjQiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K",
+            "sizes": "96x96",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiByeD0iMzYiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIzNiIgeT0iMzYiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K",
+            "sizes": "144x144",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0NSIgeT0iNDUiIHdpZHRoPSI5MCIgaGVpZ2h0PSI5MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ci8+Cjwvc3ZnPgo8L3N2Zz4K",
+            "sizes": "180x180",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDgiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTI4IiBmaWxsPSIjNjY3ZWVhIi8+CjxzdmcgeD0iMTI4IiB5PSIxMjgiIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiI+CjxwYXRoIGQ9Im02LjMgMjAuMyAyLjMtMi4zYTQgNCAwIDAgMSA1LjY2IDAgNCA0IDAgMCAwIDUuNjYgMGwyLjMgMi4zIi8+CjxwYXRoIGQ9Ik02IDNoMTJhMyAzIDAgMCAxIDMgM3Y2YTMgMyAwIDAgMS0zIDNINmEzIDMgMCAwIDEtMy0zVjZhMyAzIDAgMCAxIDMtM3oiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    
+    "screenshots": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDE0IiBoZWlnaHQ9Ijg5NiIgdmlld0JveD0iMCAwIDQxNCA4OTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MTQiIGhlaWdodD0iODk2IiBmaWxsPSIjZjJmMmY3Ii8+CjxyZWN0IHg9IjIwIiB5PSI4MCIgd2lkdGg9IjM3NCIgaGVpZ2h0PSI2MCIgcng9IjE2IiBmaWxsPSIjNjY3ZWVhIi8+CjxyZWN0IHg9IjIwIiB5PSIxNjAiIHdpZHRoPSIzNzQiIGhlaWdodD0iMTIwIiByeD0iMTYiIGZpbGw9IiMzMGQxNTgiLz4KPHJlY3QgeD0iMjAiIHk9IjMwMCIgd2lkdGg9IjM3NCIgaGVpZ2h0PSIyMDAiIHJ4PSIxNiIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSI0MCIgeT0iMzIwIiB3aWR0aD0iMzM0IiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzY2N2VlYSIvPgo8cmVjdCB4PSI0MCIgeT0iMzgwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iI2U1ZTVlNyIvPgo8cmVjdCB4PSIyMTQiIHk9IjM4MCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSI0MCIgcng9IjgiIGZpbGw9IiNlNWU1ZTciLz4KPHJlY3QgeD0iNDAiIHk9IjQ0MCIgd2lkdGg9IjMzNCIgaGVpZ2h0PSI0MCIgcng9IjgiIGZpbGw9IiMzMGQxNTgiLz4KPC9zdmc+",
+            "sizes": "414x896",
+            "type": "image/svg+xml",
+            "form_factor": "narrow",
+            "label": "Tela principal do app do aluno"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwMCIgaGVpZ2h0PSI5MDAiIHZpZXdCb3g9IjAgMCAxNDAwIDkwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0MDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjZjhmYWZjIi8+CjxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjEzMjAiIGhlaWdodD0iMTAwIiByeD0iMjAiIGZpbGw9IiM3OTQ1ZmYiLz4KPHJlY3QgeD0iNDAiIHk9IjE4MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI2MCIgcng9IjEyIiBmaWxsPSIjNDhiYjc4Ii8+CjxyZWN0IHg9IjM2MCIgeT0iMTgwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjYwIiByeD0iMTIiIGZpbGw9IiNmZjZiNmIiLz4KPHJlY3QgeD0iNjgwIiB5PSIxODAiIHdpZHRoPSIzMDAiIGhlaWdodD0iNjAiIHJ4PSIxMiIgZmlsbD0iIzMwZDE1OCIvPgo8cmVjdCB4PSIxMDIwIiB5PSIxODAiIHdpZHRoPSIzNDAiIGhlaWdodD0iNjAiIHJ4PSIxMiIgZmlsbD0iI2ZmOWYwYSIvPgo8cmVjdCB4PSI0MCIgeT0iMjgwIiB3aWR0aD0iNjQwIiBoZWlnaHQ9IjU2MCIgcng9IjIwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjcyMCIgeT0iMjgwIiB3aWR0aD0iNjQwIiBoZWlnaHQ9IjU2MCIgcng9IjIwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjgwIiB5PSIzMjAiIHdpZHRoPSI1NjAiIGhlaWdodD0iNDAiIHJ4PSIxMCIgZmlsbD0iIzc5NDVmZiIvPgo8cmVjdCB4PSI3NjAiIHk9IjMyMCIgd2lkdGg9IjU2MCIgaGVpZ2h0PSI0MCIgcng9IjEwIiBmaWxsPSIjNzk0NWZmIi8+CjxyZWN0IHg9IjgwIiB5PSI0MDAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNDAiIHJ4PSIxMCIgZmlsbD0iI2U1ZTVlNyIvPgo8cmVjdCB4PSIzODAiIHk9IjQwMCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI0MCIgcng9IjEwIiBmaWxsPSIjZTVlNWU3Ii8+CjxyZWN0IHg9Ijc2MCIgeT0iNDAwIiB3aWR0aD0iMjYwIiBoZWlnaHQ9IjQwIiByeD0iMTAiIGZpbGw9IiNlNWU1ZTciLz4KPHJlY3QgeD0iMTA2MCIgeT0iNDAwIiB3aWR0aD0iMjYwIiBoZWlnaHQ9IjQwIiByeD0iMTAiIGZpbGw9IiNlNWU1ZTciLz4KPC9zdmc+",
+            "sizes": "1400x900",
+            "type": "image/svg+xml",
+            "form_factor": "wide",
+            "label": "Interface do personal trainer - criação de planos"
+        }
+    ],
+    
+    "shortcuts": [
+        {
+            "name": "App do Aluno",
+            "short_name": "Aluno",
+            "description": "Acesso rápido ao app do aluno",
+            "url": "/aluno.html",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMjQiIGZpbGw9IiMzMGQxNTgiLz4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJNMjAgMjF2LTJhNCA0IDAgMCAwLTQtNEg4YTQgNCAwIDAgMC00IDR2MiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+                    "sizes": "96x96",
+                    "type": "image/svg+xml"
+                }
+            ]
+        },
+        {
+            "name": "App do Personal",
+            "short_name": "Personal",
+            "description": "Acesso rápido ao app do personal trainer",
+            "url": "/personal.html",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMjQiIGZpbGw9IiM3OTQ1ZmYiLz4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJNMTYgNGg0YTIgMiAwIDAgMSAyIDJ2MTJIN1Y2YTIgMiAwIDAgMSAyLTJoNCIvPgo8cGF0aCBkPSJNOSA0aDZhMiAyIDAgMCAxIDIgMnYwYTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0ydjBhMiAyIDAgMCAxIDItMnoiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+                    "sizes": "96x96",
+                    "type": "image/svg+xml"
+                }
+            ]
+        },
+        {
+            "name": "Criar Plano com IA",
+            "short_name": "IA",
+            "description": "Criar novo plano usando inteligência artificial",
+            "url": "/personal.html?action=ai",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMjQiIGZpbGw9IiNmZjZiNmIiLz4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMTMgMi01IDkgNCAzdjdhNCA0IDAgMCAxLTQgNGgtNC43bDMuOC00LjJjLjItLjUuMi0xLS4xLTEuNGwtMS44LTJjLS40LS4zLS45LS40LTEuMy0uMWwtMS42IDFhMiAyIDAgMCAxLTIuOC0yLjhsMS0xLjZjLjMtLjQuMi0uOS0uMS0xLjNsLTItMS44Yy0uNC0uMy0uOS0uMy0xLjQtLjEtLjMuMi0zIDEuNy00LjIgMy44SDVhNCA0IDAgMCAxIDQtNGguOWwyLTQgNC0yaDN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K",
+                    "sizes": "96x96",
+                    "type": "image/svg+xml"
+                }
+            ]
+        }
+    ],
+    
+    "share_target": {
+        "action": "/share",
+        "method": "POST",
+        "enctype": "application/json",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    },
+    
+    "file_handlers": [
+        {
+            "action": "/import",
+            "accept": {
+                "application/json": [".json"],
+                "text/plain": [".txt"]
+            }
+        }
+    ],
+    
+    "protocol_handlers": [
+        {
+            "protocol": "web+jsfit",
+            "url": "/import?id=%s"
+        }
+    ],
+    
+    "related_applications": [
+        {
+            "platform": "webapp",
+            "url": "https://jsfitapp.netlify.app/manifest.json"
+        }
+    ],
+    
+    "prefer_related_applications": false,
+    
+    "capture_links": "existing-client-navigate",
+    
+    "launch_handler": {
+        "client_mode": ["focus-existing", "auto"]
+    },
+    
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    
+    "handle_links": "preferred",
+    
+    "iarc_rating_id": "",
+    
+    "scope_extensions": [
+        {
+            "origin": "https://jsfitapp.netlify.app"
+        }
+    ]
+}

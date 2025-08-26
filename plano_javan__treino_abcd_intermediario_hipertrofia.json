@@ -1,0 +1,449 @@
+{
+  "planos": [
+    {
+      "id": 1755716256861,
+      "nome": "JAVAN  - Treino ABCD (Intermediario) Hipertrofia",
+      "aluno": {
+        "nome": "JAVAN ",
+        "dataNascimento": "1985-02-28",
+        "cpf": "02090901276",
+        "idade": 40,
+        "altura": "1,68",
+        "peso": "68"
+      },
+      "dias": 4,
+      "dataInicio": "2025-08-20",
+      "dataFim": "2026-02-16",
+      "perfil": {
+        "idade": 40,
+        "altura": "1,68",
+        "peso": "68",
+        "porte": "médio",
+        "objetivo": "Hipertrofia e ganho de massa muscular"
+      },
+      "treinos": [
+        {
+          "id": "A",
+          "nome": "A - Peito e Tríceps",
+          "foco": "Hipertrofia - peito, triceps",
+          "exercicios": [
+            {
+              "id": 10,
+              "nome": "Esteira",
+              "descricao": "Caminhada moderada para aquecimento geral",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Intensidade moderada",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 11,
+              "nome": "Supino Reto com Barra",
+              "descricao": "Exercício fundamental para desenvolvimento do peitoral, pegada média",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "40-60kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "Executar antes do exercício principal para pré-fadigar o músculo",
+              "tecnica": "pre-exaustao",
+              "concluido": false
+            },
+            {
+              "id": 12,
+              "nome": "Supino Inclinado",
+              "descricao": "Trabalha a parte superior do peitoral, banco a 30-45 graus",
+              "series": 3,
+              "repeticoes": "10-12",
+              "carga": "30-45kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 13,
+              "nome": "Crossover",
+              "descricao": "Movimento de cruz trabalhando definição, contração no final",
+              "series": 3,
+              "repeticoes": "12-15",
+              "carga": "15-25kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 14,
+              "nome": "Tríceps Francês",
+              "descricao": "Exercício clássico para tríceps, halter atrás da cabeça",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "20-30kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "Executar antes do exercício principal para pré-fadigar o músculo",
+              "tecnica": "pre-exaustao",
+              "concluido": false
+            },
+            {
+              "id": 15,
+              "nome": "Tríceps Corda",
+              "descricao": "Maior amplitude de movimento, abertura na contração",
+              "series": 3,
+              "repeticoes": "10-12",
+              "carga": "25-35kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 16,
+              "nome": "Supino Fechado",
+              "descricao": "Exercício composto, pegada fechada, cotovelos próximos",
+              "series": 3,
+              "repeticoes": "8-10",
+              "carga": "30-40kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "Exercício final para esgotamento completo do músculo",
+              "tecnica": "pos-exaustao",
+              "concluido": false
+            },
+            {
+              "id": 17,
+              "nome": "Alongamento",
+              "descricao": "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Peso corporal",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            }
+          ],
+          "concluido": false,
+          "execucoes": 0
+        },
+        {
+          "id": "B",
+          "nome": "B - Costas e Bíceps",
+          "foco": "Hipertrofia - costas, biceps",
+          "exercicios": [
+            {
+              "id": 20,
+              "nome": "Remo Ergômetro",
+              "descricao": "Aquecimento específico para movimentos de puxar",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Intensidade moderada",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 21,
+              "nome": "Puxada Frontal",
+              "descricao": "Desenvolvimento do latíssimo do dorso, pegada média",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "45-60kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "3-4 segundos na descida, 1-2 segundos na subida",
+              "tecnica": "tempo-controlado",
+              "concluido": false
+            },
+            {
+              "id": 22,
+              "nome": "Remada Curvada",
+              "descricao": "Inclinar tronco a 45 graus, remar barra ao abdômen",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "35-50kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 23,
+              "nome": "Pullover",
+              "descricao": "Alongamento e contração do latíssimo, movimento arqueado",
+              "series": 3,
+              "repeticoes": "12-15",
+              "carga": "15-20kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 24,
+              "nome": "Rosca Direta",
+              "descricao": "Foco em força e massa, execução estrita",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "25-35kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "Executar antes do exercício principal para pré-fadigar o músculo",
+              "tecnica": "pre-exaustao",
+              "concluido": false
+            },
+            {
+              "id": 25,
+              "nome": "Rosca Scott",
+              "descricao": "Isolamento do bíceps no banco Scott, amplitude completa",
+              "series": 3,
+              "repeticoes": "10-12",
+              "carga": "20-25kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 26,
+              "nome": "Rosca 21",
+              "descricao": "Método intenso: 7 meias inferiores + 7 superiores + 7 completas",
+              "series": 3,
+              "repeticoes": "21 (7+7+7)",
+              "carga": "15-20kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 27,
+              "nome": "Alongamento",
+              "descricao": "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Peso corporal",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            }
+          ],
+          "concluido": false,
+          "execucoes": 0
+        },
+        {
+          "id": "C",
+          "nome": "C - Ombros",
+          "foco": "Hipertrofia - ombros",
+          "exercicios": [
+            {
+              "id": 30,
+              "nome": "Elíptico",
+              "descricao": "Aquecimento com mobilização de braços",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Intensidade moderada",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 31,
+              "nome": "Desenvolvimento com Barra",
+              "descricao": "Exercício base para ombros, pela frente ou atrás da nuca",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "25-35kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "3-4 segundos na descida, 1-2 segundos na subida",
+              "tecnica": "tempo-controlado",
+              "concluido": false
+            },
+            {
+              "id": 32,
+              "nome": "Elevação Lateral",
+              "descricao": "Definição lateral dos ombros, controle excêntrico",
+              "series": 3,
+              "repeticoes": "12-15",
+              "carga": "6-8kg cada",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 33,
+              "nome": "Elevação Posterior",
+              "descricao": "Trabalha deltoide posterior, inclinado ou na polia",
+              "series": 3,
+              "repeticoes": "12-15",
+              "carga": "4-6kg cada",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 34,
+              "nome": "Alongamento",
+              "descricao": "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Peso corporal",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            }
+          ],
+          "concluido": false,
+          "execucoes": 0
+        },
+        {
+          "id": "D",
+          "nome": "D - Pernas",
+          "foco": "Hipertrofia - quadriceps, posterior, panturrilha",
+          "exercicios": [
+            {
+              "id": 40,
+              "nome": "Bicicleta",
+              "descricao": "Aquecimento específico para membros inferiores em ritmo moderado",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Intensidade moderada",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 41,
+              "nome": "Agachamento Livre",
+              "descricao": "Aumento de carga e intensidade, profundidade adequada",
+              "series": 4,
+              "repeticoes": "8-12",
+              "carga": "40-60kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "3-4 segundos na descida, 1-2 segundos na subida",
+              "tecnica": "tempo-controlado",
+              "concluido": false
+            },
+            {
+              "id": 42,
+              "nome": "Leg Press 45°",
+              "descricao": "Variação angular, pés na posição média",
+              "series": 4,
+              "repeticoes": "10-12",
+              "carga": "120-160kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 43,
+              "nome": "Afundo",
+              "descricao": "Exercício unilateral, trabalha equilíbrio",
+              "series": 3,
+              "repeticoes": "12 cada perna",
+              "carga": "8-12kg cada",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "Exercício final para esgotamento completo do músculo",
+              "tecnica": "pos-exaustao",
+              "concluido": false
+            },
+            {
+              "id": 44,
+              "nome": "Stiff com Barra",
+              "descricao": "Versão mais intensa, manter lombar neutra",
+              "series": 4,
+              "repeticoes": "8-10",
+              "carga": "35-50kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "3-4 segundos na descida, 1-2 segundos na subida",
+              "tecnica": "tempo-controlado",
+              "concluido": false
+            },
+            {
+              "id": 45,
+              "nome": "Mesa Flexora",
+              "descricao": "Isolamento na máquina, evitar compensações",
+              "series": 3,
+              "repeticoes": "10-12",
+              "carga": "30-40kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 46,
+              "nome": "Good Morning",
+              "descricao": "Exercício técnico, flexão apenas do quadril",
+              "series": 3,
+              "repeticoes": "10-12",
+              "carga": "20-30kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 47,
+              "nome": "Panturrilha Sentado",
+              "descricao": "Maior intensidade, pausa de 1 segundo no topo",
+              "series": 4,
+              "repeticoes": "12-15",
+              "carga": "35-45kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "3-4 segundos na descida, 1-2 segundos na subida",
+              "tecnica": "tempo-controlado",
+              "concluido": false
+            },
+            {
+              "id": 48,
+              "nome": "Panturrilha Leg Press",
+              "descricao": "Variação no leg press, apenas dedos na plataforma",
+              "series": 3,
+              "repeticoes": "15-20",
+              "carga": "80-120kg",
+              "descanso": "90-120 segundos",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            },
+            {
+              "id": 49,
+              "nome": "Alongamento",
+              "descricao": "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+              "series": 1,
+              "repeticoes": "8-10 min",
+              "carga": "Peso corporal",
+              "descanso": "0",
+              "observacoesEspeciais": "",
+              "tecnica": "",
+              "concluido": false
+            }
+          ],
+          "concluido": false,
+          "execucoes": 0
+        }
+      ],
+      "observacoes": {
+        "geral": "",
+        "frequencia": "4x por semana",
+        "progressao": "Aumente a carga gradualmente quando conseguir completar todas as repetições",
+        "descanso": "60-90 segundos entre séries",
+        "hidratacao": "Mantenha-se bem hidratado durante todo o treino",
+        "consulta": "Acompanhamento profissional recomendado"
+      },
+      "tecnicas_aplicadas": {
+        "pre-exaustao": "Exercício de isolamento antes do composto para pré-fadigar o músculo alvo",
+        "pos-exaustao": "Exercício de isolamento após o composto para finalizar o músculo",
+        "tempo-controlado": "Execução lenta e controlada (3-4 segundos na fase excêntrica)"
+      }
+    }
+  ]
+}

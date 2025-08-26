@@ -1,0 +1,485 @@
+# =============================================================================
+# JS FIT APP - GITIGNORE OTIMIZADO
+# =============================================================================
+
+# =============================================================================
+# ARQUIVOS DE AMBIENTE E CONFIGURAÇÃO SENSÍVEL
+# =============================================================================
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.example
+
+# Configurações específicas do projeto
+config.json
+config.local.json
+secrets.json
+
+# Credenciais de banco de dados
+
+db-config.json
+
+# =============================================================================
+# ARQUIVOS ESPECÍFICOS DO JS FIT APP
+# =============================================================================
+
+# Scripts de desenvolvimento local (removidos do controle de versão)
+scripts/migrate-local-data.js
+scripts/setup-database.js
+
+# Arquivos de configuração sensível do Netlify
+netlify/functions/env_example.sh
+
+# Configurações locais de desenvolvimento
+local-config.js
+dev-config.json
+*.local.json
+dev-config.*
+local-server.config
+
+# Dados de treinos locais (desenvolvimento)
+data/workouts/*.json
+data/plans/*.json
+public/data/workouts/*.json
+
+# Backups de dados locais
+data-backup-*
+plans-backup-*
+workouts-backup-*
+
+# =============================================================================
+# NODE.JS E NPM
+# =============================================================================
+
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache do npm
+.npm
+.yarn-cache/
+.yarn-integrity
+
+# Arquivos de lock opcionais
+package-lock.json
+yarn.lock
+
+# Diretórios de runtime
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory usado por ferramentas como istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# =============================================================================
+# NETLIFY
+# =============================================================================
+
+# Cache do Netlify
+.netlify/
+
+# Build do Netlify
+dist/
+build/
+
+# Logs do Netlify
+netlify-debug.log
+
+# Cache de funções
+.netlify/functions-serve/
+
+# Configurações locais do Netlify
+.netlify.toml.backup
+
+# =============================================================================
+# LOGS E DEBUGGING
+# =============================================================================
+
+# Logs gerais
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diretório para dados de debug
+.vscode-test
+
+# Logs específicos do JS Fit App
+jsfitapp-*.log
+app-debug-*.log
+
+# =============================================================================
+# SISTEMA OPERACIONAL
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# EDITORES E IDEs
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# ARQUIVOS TEMPORÁRIOS E CACHE
+# =============================================================================
+
+# Cache geral
+.cache/
+.temp/
+.tmp/
+temp/
+tmp/
+
+# Arquivos temporários do sistema
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Cache do navegador para desenvolvimento
+.browser-cache/
+
+# Cache específico do JS Fit App
+.jsfitapp-cache/
+app-cache/
+
+# =============================================================================
+# ARQUIVOS DE BUILD E DISTRIBUIÇÃO
+# =============================================================================
+
+# Diretórios de build
+build/
+dist/
+out/
+public/build/
+
+# Arquivos de bundle
+*.bundle.js
+*.bundle.css
+bundle-analyzer-report.html
+
+# Source maps em produção
+*.map
+
+# =============================================================================
+# TESTES
+# =============================================================================
+
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
+
+# Test artifacts
+test-results/
+.test-output/
+
+# Testes específicos do JS Fit App
+test-data/
+mock-data/
+fixtures/
+
+# =============================================================================
+# DOCUMENTAÇÃO E RELATÓRIOS
+# =============================================================================
+
+# Documentação gerada automaticamente
+docs/generated/
+api-docs/
+
+# Relatórios
+reports/
+lighthouse-report.html
+
+# Documentação removida do controle de versão
+implementation_guide.txt
+dev-notes.md
+internal-docs/
+
+# =============================================================================
+# BANCO DE DADOS LOCAL
+# =============================================================================
+
+# Arquivos de backup do banco
+*.sql.backup
+*.dump
+*.backup
+
+# Arquivos de migração temporários
+migrations/temp/
+
+# SQLite local (se usado para desenvolvimento)
+*.sqlite
+*.sqlite3
+*.db
+
+# Scripts SQL temporários
+temp-*.sql
+debug-*.sql
+
+# =============================================================================
+# UPLOADS E MÍDIA (DESENVOLVIMENTO)
+# =============================================================================
+
+# Uploads de desenvolvimento
+uploads/
+media/
+user-uploads/
+
+# Imagens temporárias
+temp-images/
+cache-images/
+
+# Assets gerados durante desenvolvimento
+generated-assets/
+
+# =============================================================================
+# CERTIFICADOS E CHAVES
+# =============================================================================
+
+# Certificados SSL
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# Chaves SSH
+id_rsa
+id_rsa.pub
+
+# Chaves específicas do projeto
+jwt-*.key
+api-*.key
+
+# =============================================================================
+# ARQUIVOS ESPECÍFICOS DO PROJETO
+# =============================================================================
+
+# Dados de exemplo (manter apenas os essenciais)
+/sample-data/
+/test-data/
+
+# Exports de banco de dados
+db-export-*.sql
+
+# Scripts privados
+scripts/private/
+
+# Configurações locais de desenvolvimento
+local-config.js
+dev-config.json
+
+# =============================================================================
+# ARQUIVOS DE MONITORAMENTO
+# =============================================================================
+
+# Logs de monitoramento
+monitoring/
+*.monitor.log
+
+# Performance reports
+performance/
+*.perf
+
+# Métricas de desenvolvimento
+metrics/
+analytics-debug/
+
+# =============================================================================
+# DEPENDÊNCIAS E VENDORS
+# =============================================================================
+
+# Bibliotecas de terceiros baixadas manualmente
+vendors/
+lib/external/
+
+# =============================================================================
+# ARQUIVOS DE CONFIGURAÇÃO LOCAL
+# =============================================================================
+
+# Configurações específicas do desenvolvedor
+.user-config
+.personal-settings
+
+# Configurações do servidor local
+local-server.config
+
+# Configurações específicas do JS Fit App
+.jsfitapp-config
+personal-trainer-settings.json
+student-app-settings.json
+
+# =============================================================================
+# PWA E SERVICE WORKER (DESENVOLVIMENTO)
+# =============================================================================
+
+# Cache do Service Worker em desenvolvimento
+sw-cache/
+pwa-debug/
+
+# Arquivos temporários do PWA
+pwa-temp/
+manifest-temp.json
+
+# =============================================================================
+# EXCLUSÕES ESPECÍFICAS (MANTER ARQUIVOS IMPORTANTES)
+# =============================================================================
+
+# Manter alguns arquivos importantes mesmo que correspondam aos padrões acima
+!public/.gitkeep
+!docs/README.md
+!scripts/README.md
+
+# Manter exemplos de configuração essenciais
+!.env.example
+!config.example.json
+!netlify.toml
+
+# Manter scripts essenciais de banco (apenas o schema principal)
+!scripts/database_schema.sql
+
+# Manter manifesto PWA e service worker
+!public/manifest.json
+!public/sw.js
+
+# =============================================================================
+# PADRÕES FINAIS
+# =============================================================================
+
+# Qualquer arquivo que termine com .local
+*.local
+
+# Arquivos com informações sensíveis no nome
+*secret*
+*password*
+*private*
+*confidential*
+
+# Arquivos de backup com timestamp
+*backup-*
+*bkp-*
+
+# Compactados temporários
+*.zip.tmp
+*.tar.tmp
+*.gz.tmp
+
+# Arquivos específicos removidos do controle de versão
+implementation_guide.txt
+workout_table_sql.sql
+
+# =============================================================================
+# COMENTÁRIOS IMPORTANTES
+# =============================================================================
+
+# Este .gitignore foi otimizado para o JS Fit App
+# Inclui padrões específicos para:
+# - Aplicação PWA
+# - Sistema de treinos
+# - Backend Netlify Functions
+# - Banco de dados PostgreSQL
+# - Autenticação JWT
+# - Sistema de compartilhamento
+
+# Para desenvolvedores:
+# - Mantenha suas configurações locais em arquivos *.local
+# - Use dev-config.* para configurações de desenvolvimento
+# - Scripts sensíveis devem ir em scripts/private/
+
+# Para deploy:
+# - Apenas arquivos essenciais são incluídos
+# - Dados sensíveis são automaticamente excluídos
+# - Build e cache são ignorados

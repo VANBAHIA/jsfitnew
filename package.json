@@ -1,0 +1,102 @@
+{
+  "name": "js-fit-app",
+  "version": "2.1.0",
+  "description": "Sistema de compartilhamento de treinos entre personal trainers e alunos",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build process required'",
+    "deploy": "netlify deploy --prod",
+    "deploy:preview": "netlify deploy",
+    "test": "echo 'No tests configured yet'",
+    "lint": "echo 'No linting configured yet'",
+    "start": "netlify dev",
+    "db:init": "chmod +x scripts/database_initialization.sh && ./scripts/database_initialization.sh",
+    "db:migrate": "netlify dev:exec drizzle-kit migrate",
+    "db:test": "psql $DATABASE_URL -c 'SELECT version();'",
+    "health": "curl https://jsfitapp.netlify.app/api/health",
+    "logs": "netlify logs",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "netlify dev:exec drizzle-kit studio"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3",
+    "validator": "^13.11.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0",
+    "esbuild": "^0.19.0"
+  },
+  "keywords": [
+    "fitness",
+    "workout",
+    "personal-trainer",
+    "student",
+    "pwa",
+    "netlify",
+    "postgresql",
+    "javascript"
+  ],
+  "author": {
+    "name": "JS Fit App Team",
+    "email": "contato@jsfitapp.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/js-fit-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/js-fit-app/issues"
+  },
+  "homepage": "https://jsfitapp.netlify.app",
+  "netlify": {
+    "functions": {
+      "directory": "netlify/functions",
+      "node_bundler": "esbuild"
+    },
+    "redirects": [
+      {
+        "from": "/api/*",
+        "to": "/.netlify/functions/:splat",
+        "status": 200
+      }
+    ]
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "pwa": {
+    "name": "JS Fit App",
+    "short_name": "JS Fit",
+    "description": "Sistema de compartilhamento de treinos",
+    "theme_color": "#667eea",
+    "background_color": "#f2f2f7",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "start_url": "/",
+    "scope": "/"
+  },
+  "config": {
+    "database": {
+      "host": "ep-red-cloud-acw2aqx0-pooler.sa-east-1.aws.neon.tech",
+      "database": "academiajsfit",
+      "ssl": true
+    },
+    "app": {
+      "version": "2.1.0",
+      "api_version": "v1",
+      "environment": "production"
+    }
+  }
+}

@@ -1,0 +1,416 @@
+{
+  "id": 1755697889757,
+  "nome": "Isa - Treino Avançado II (ABCD) Feminino (Importado)",
+  "aluno": {
+    "nome": "Júlia Miranda Ribeiro",
+    "dataNascimento": "2005-01-23",
+    "cpf": "47318375881",
+    "idade": 20,
+    "altura": "1,73m",
+    "peso": "57,15kg"
+  },
+  "dias": 4,
+  "dataInicio": "2025-08-11",
+  "dataFim": "2025-08-15",
+  "perfil": {
+    "idade": 20,
+    "altura": "1,73m",
+    "peso": "57,15kg",
+    "porte": "médio",
+    "objetivo": "Hipertrofia e ganho de massa muscular"
+  },
+  "treinos": [
+    {
+      "id": "A",
+      "nome": "A - Quadríceps e Panturrilha",
+      "foco": "Quadríceps, glúteos e panturrilhas",
+      "exercicios": [
+        {
+          "id": 1,
+          "nome": "Cadeira Extensora",
+          "descricao": "Isolamento para quadríceps",
+          "series": 2,
+          "repeticoes": "20",
+          "carga": "25kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pre-exaustao"
+        },
+        {
+          "id": 2,
+          "nome": "Agachamento Livre",
+          "descricao": "Exercício principal para pernas",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "30kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pos-exaustao"
+        },
+        {
+          "id": 3,
+          "nome": "Levantamento Terra",
+          "descricao": "Exercício composto para posterior",
+          "series": 4,
+          "repeticoes": 10,
+          "carga": "40kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "rest-pause"
+        },
+        {
+          "id": 4,
+          "nome": "Leg Press 45°",
+          "descricao": "Volume para quadríceps e glúteos",
+          "series": 4,
+          "repeticoes": 15,
+          "carga": "80kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "drop-set"
+        },
+        {
+          "id": 5,
+          "nome": "Agachamento Hack",
+          "descricao": "Variação segura do agachamento",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "50kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "tempo-controlado"
+        },
+        {
+          "id": 6,
+          "nome": "Panturrilha Hack + Livre",
+          "descricao": "Combinação para panturrilhas",
+          "series": 4,
+          "repeticoes": 18,
+          "carga": "40kg + corpo",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "bi-set"
+        },
+        {
+          "id": 7,
+          "nome": "Cadeira Adutora",
+          "descricao": "Isolamento para parte interna da coxa",
+          "series": 3,
+          "repeticoes": 15,
+          "carga": "30kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "serie-queima"
+        }
+      ],
+      "concluido": false,
+      "execucoes": 0
+    },
+    {
+      "id": "B",
+      "nome": "B - Costas e Bíceps",
+      "foco": "Músculos das costas e bíceps",
+      "exercicios": [
+        {
+          "id": 8,
+          "nome": "Pulley Frente Articulado",
+          "descricao": "Exercício principal para costas",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "40kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pre-exaustao"
+        },
+        {
+          "id": 9,
+          "nome": "Pulley Frente Barra Anatômica N.1",
+          "descricao": "Variação para latíssimo",
+          "series": 4,
+          "repeticoes": 10,
+          "carga": "35kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pos-exaustao"
+        },
+        {
+          "id": 10,
+          "nome": "Remada Cavalinho",
+          "descricao": "Exercício para costas média",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "30kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "rest-pause"
+        },
+        {
+          "id": 11,
+          "nome": "Pulldown + Pullface",
+          "descricao": "Combinação para costas e posterior de ombro",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "25kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "bi-set"
+        },
+        {
+          "id": 12,
+          "nome": "Rosca Scott",
+          "descricao": "Exercício específico para bíceps",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "18kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "drop-set"
+        },
+        {
+          "id": 13,
+          "nome": "Rosca Martelo Unilateral Polia",
+          "descricao": "Exercício unilateral para bíceps",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "15kg cada",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "unilateral-alternado"
+        },
+        {
+          "id": 14,
+          "nome": "Rosca Inversa Polia",
+          "descricao": "Exercício para bíceps e antebraço",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "12kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "tempo-controlado"
+        }
+      ],
+      "concluido": false,
+      "execucoes": 0
+    },
+    {
+      "id": "C",
+      "nome": "C - Glúteo e Posterior",
+      "foco": "Glúteos e músculos posteriores da coxa",
+      "exercicios": [
+        {
+          "id": 15,
+          "nome": "Glúteo Coice + Abdução na Polia",
+          "descricao": "Exercício combinado para glúteos",
+          "series": 4,
+          "repeticoes": 15,
+          "carga": "20kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "bi-set"
+        },
+        {
+          "id": 16,
+          "nome": "Elevação Pélvica Máquina",
+          "descricao": "Hip thrust na máquina",
+          "series": 4,
+          "repeticoes": 15,
+          "carga": "40kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pausa-contração"
+        },
+        {
+          "id": 17,
+          "nome": "Agachamento Búlgaro Smith",
+          "descricao": "Exercício unilateral para glúteos",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "20kg cada",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "unilateral-alternado"
+        },
+        {
+          "id": 18,
+          "nome": "Cadeira Abdutora",
+          "descricao": "Isolamento para glúteo médio",
+          "series": 4,
+          "repeticoes": 18,
+          "carga": "35kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "serie-queima"
+        },
+        {
+          "id": 19,
+          "nome": "Stiff",
+          "descricao": "Exercício para posteriores e glúteos",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "25kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "tempo-controlado"
+        },
+        {
+          "id": 20,
+          "nome": "Mesa Flexora",
+          "descricao": "Isolamento para isquiotibiais",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "25kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "drop-set"
+        },
+        {
+          "id": 21,
+          "nome": "Cadeira Flexora",
+          "descricao": "Exercício complementar para posteriores",
+          "series": 3,
+          "repeticoes": 15,
+          "carga": "20kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pos-exaustao"
+        }
+      ],
+      "concluido": false,
+      "execucoes": 0
+    },
+    {
+      "id": "D",
+      "nome": "D - Peito, Ombro e Tríceps",
+      "foco": "Músculos do peitoral, ombros e tríceps",
+      "exercicios": [
+        {
+          "id": 22,
+          "nome": "Supino Inclinado Halter",
+          "descricao": "Exercício para peito superior",
+          "series": 4,
+          "repeticoes": 10,
+          "carga": "15kg cada",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pre-exaustao"
+        },
+        {
+          "id": 23,
+          "nome": "Crucifixo Máquina Fly",
+          "descricao": "Isolamento para peitoral",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "35kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pos-exaustao"
+        },
+        {
+          "id": 24,
+          "nome": "Supino Máquina",
+          "descricao": "Exercício seguro para peito",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "30kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "rest-pause"
+        },
+        {
+          "id": 25,
+          "nome": "Desenvolvimento Halteres + Elevação Frontal",
+          "descricao": "Combinação para ombros",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "10kg cada + 8kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "bi-set"
+        },
+        {
+          "id": 26,
+          "nome": "Tríceps Corda",
+          "descricao": "Exercício para tríceps",
+          "series": 4,
+          "repeticoes": 12,
+          "carga": "25kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "drop-set"
+        },
+        {
+          "id": 27,
+          "nome": "Tríceps Testa Polia + Tríceps Francês Anilha",
+          "descricao": "Combinação para tríceps",
+          "series": 3,
+          "repeticoes": 12,
+          "carga": "20kg + 8kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "tri-set"
+        },
+        {
+          "id": 28,
+          "nome": "Abdominal Máquina",
+          "descricao": "Exercício para core",
+          "series": 3,
+          "repeticoes": 15,
+          "carga": "25kg",
+          "concluido": false,
+          "descanso": "90 segundos",
+          "observacoesEspeciais": "",
+          "tecnica": "pausa-contração"
+        }
+      ],
+      "concluido": false,
+      "execucoes": 0
+    }
+  ],
+  "observacoes": {
+    "geral": "",
+    "frequencia": "4x por semana",
+    "progressao": "Aumente a carga gradualmente quando conseguir completar todas as repetições",
+    "descanso": "60-90 segundos entre séries",
+    "hidratacao": "Mantenha-se bem hidratado durante todo o treino",
+    "consulta": "Acompanhamento profissional recomendado"
+  },
+  "tecnicas_aplicadas": {
+    "pre-exaustao": "Exercício de isolamento antes do composto para pré-fadigar o músculo alvo",
+    "pos-exaustao": "Exercício de isolamento após o composto para finalizar o músculo",
+    "bi-set": "Dois exercícios executados em sequência sem descanso",
+    "tri-set": "Três exercícios executados em sequência sem descanso",
+    "drop-set": "Redução progressiva da carga na mesma série",
+    "rest-pause": "Pause breves durante a série para completar mais repetições",
+    "serie-queima": "Repetições parciais no final da série até a falha",
+    "tempo-controlado": "Execução lenta e controlada (3-4 segundos na fase excêntrica)",
+    "pausa-contração": "Pausa de 1-2 segundos na contração máxima",
+    "unilateral-alternado": "Execução alternada entre membros"
+  }
+}

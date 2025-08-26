@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Meus Treinos - JS Fit App</title>
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Meus Treinos">
+    <meta name="theme-color" content="#2563eb">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9IiMyNTYzZWIiLz4KPHN2ZyB4PSI0NSIgeT0iNDUiIHdpZHRoPSI5MCIgaGVpZ2h0PSI5MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtNi4zIDIwLjMgMi4zLTIuM2E0IDQgMCAwIDEgNS42NiAwIDQgNCAwIDAgMCA1LjY2IDBsMi4zIDIuMyIvPgo8cGF0aCBkPSJNNiAzaDEyYTMgMyAwIDAgMSAzIDN2NmEzIDMgMCAwIDEtMyAzSDZhMyAzIDAgMCAxLTMtM1Y2YTMgMyAwIDAgMSAzLTN6Ii8+Cjwvc3ZnPgo8L3N2Zz4K">
+    <link rel="stylesheet" type="text/css" href="css/aluno.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <div class="connection-status" id="connectionStatus"></div>
+        
+        <!-- Home View -->
+        <div id="homeView" class="view">
+            <div class="header">
+                <div class="header-content">
+                    <h1 class="title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m6.3 20.3 2.3-2.3a4 4 0 0 1 5.66 0 4 4 0 0 0 5.66 0l2.3 2.3"/>
+                            <path d="M6 3h12a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/>
+                        </svg>
+                        Meus Treinos
+                    </h1>
+                </div>
+            </div>
+            <div class="content" id="homeContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Plan View -->
+        <div id="planView" class="view hidden">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn show" onclick="showHome()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m15 18-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="title" id="planTitle">Plano</h1>
+                        <p class="subtitle" id="planSubtitle">Período</p>
+                    </div>
+                </div>
+            </div>
+            <div class="content" id="planContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Workout View -->
+        <div id="workoutView" class="view hidden">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn show" onclick="showPlan()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m15 18-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="title" id="workoutTitle">Treino</h1>
+                        <p class="subtitle" id="workoutSubtitle">Exercícios</p>
+                    </div>
+                </div>
+            </div>
+            <div class="content" id="workoutContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 class="modal-title">Confirmar Exclusão</h3>
+            <p class="modal-message" id="confirmationMessage">
+                Tem certeza de que deseja excluir este plano? Esta ação não pode ser desfeita.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideConfirmation()">Cancelar</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 class="modal-title">✅ Sucesso!</h3>
+            <p class="modal-message" id="successMessage">
+                Operação realizada com sucesso!
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="hideSuccessModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 class="modal-title">❌ Erro</h3>
+            <p class="modal-message" id="errorMessage">
+                Ocorreu um erro inesperado.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="hideErrorModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div style="text-align: center;">
+                <div class="loading-spinner" style="margin: 20px auto;"></div>
+                <h3 class="modal-title">Carregando...</h3>
+                <p class="modal-message" id="loadingMessage">
+                    Aguarde um momento...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Upload Modal -->
+    <div id="fileUploadModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 class="modal-title">📁 Importar Arquivo JSON</h3>
+            <div class="modal-content">
+                <p class="modal-message">
+                    Selecione um arquivo JSON com o plano de treino exportado pelo seu personal trainer.
+                </p>
+                <div class="file-upload-area" id="fileUploadArea">
+                    <input type="file" id="fileInput" accept=".json" class="file-input">
+                    <div class="file-upload-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        <div class="file-upload-text">
+                            <strong>Clique para selecionar</strong> ou arraste o arquivo aqui
+                        </div>
+                        <div class="file-upload-hint">
+                            Apenas arquivos .json são aceitos
+                        </div>
+                    </div>
+                </div>
+                <div id="fileInfo" class="file-info hidden">
+                    <div class="file-name"></div>
+                    <div class="file-size"></div>
+                </div>
+                <div id="fileError" class="file-error hidden"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="app.hideFileUploadModal()">Cancelar</button>
+                <button class="btn btn-primary" id="importFileBtn" onclick="app.handleFileImport()" disabled>
+                    Importar Arquivo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/aluno.js"></script> 
+</body>
+</html>

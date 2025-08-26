@@ -1,0 +1,285 @@
+# =============================================================================
+# JS FIT APP - CONFIGURAÇÃO NETLIFY
+# Arquivo: netlify.toml
+# =============================================================================
+
+[build]
+  # Comando de build (se houver processo de build)
+  command = "echo 'No build process required'"
+  
+  # Diretório de publicação
+  publish = "public"
+  
+  # Diretório das funções
+  functions = "netlify/functions"
+
+# =============================================================================
+# CONFIGURAÇÕES DE FUNÇÕES SERVERLESS
+# =============================================================================
+
+[functions]
+  # Configurações globais para todas as funções
+  node_bundler = "esbuild"
+
+# Configurações específicas por função
+[functions.auth]
+  timeout = 10
+  memory = 1024
+
+[functions.health]
+  timeout = 5
+  memory = 512
+
+[functions.plans]
+  timeout = 10
+  memory = 1024
+
+[functions.share]
+  timeout = 8
+  memory = 768
+
+[functions.workouts]
+  timeout = 8
+  memory = 768
+
+[functions.students]
+  timeout = 8
+  memory = 768
+
+# =============================================================================
+# REDIRECIONAMENTOS E REWRITES
+# =============================================================================
+
+[[redirects]]
+  # API routes - redirecionamento para funções
+  from = "/api/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/plans/*"
+  to = "/.netlify/functions/plans/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/share/*"
+  to = "/.netlify/functions/share/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/workouts/*"
+  to = "/.netlify/functions/workouts/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/students/*"
+  to = "/.netlify/functions/students/:splat"
+  status = 200
+
+# Redirecionamento para páginas principais
+[[redirects]]
+  from = "/personal"
+  to = "/personal.html"
+  status = 200
+
+[[redirects]]
+  from = "/aluno"
+  to = "/aluno.html"
+  status = 200
+
+[[redirects]]
+  from = "/student"
+  to = "/aluno.html"
+  status = 200
+
+# PWA - Suporte para deep linking
+[[redirects]]
+  from = "/share/:shareId"
+  to = "/aluno.html?shareId=:shareId"
+  status = 200
+
+[[redirects]]
+  from = "/plan/:planId"
+  to = "/aluno.html?planId=:planId"
+  status = 200
+
+# SPA Fallback - todas as rotas não encontradas vão para index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# =============================================================================
+# HEADERS DE SEGURANÇA E PERFORMANCE
+# =============================================================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Segurança
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # CORS para desenvolvimento local
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With"
+
+# Headers específicos para API
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    # CORS específico para API
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With"
+    Access-Control-Allow-Credentials = "true"
+    
+    # Sem cache para API
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# Headers para arquivos JavaScript
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=86400"
+
+# Headers para arquivos CSS
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+    Cache-Control = "public, max-age=86400"
+
+# Headers para HTML
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Content-Type = "text/html; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+# Headers para PWA
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "public, max-age=0"
+
+# =============================================================================
+# CONFIGURAÇÕES DE DESENVOLVIMENTO
+# =============================================================================
+
+[context.development]
+  command = "echo 'Development build'"
+  
+  # Variáveis específicas para desenvolvimento
+  [context.development.environment]
+    NODE_ENV = "development"
+    DEBUG = "js-fit-app:*"
+
+[context.deploy-preview]
+  command = "echo 'Deploy preview build'"
+  
+  [context.deploy-preview.environment]
+    NODE_ENV = "staging"
+
+[context.production]
+  command = "echo 'Production build'"
+  
+  [context.production.environment]
+    NODE_ENV = "production"
+
+# =============================================================================
+# CONFIGURAÇÕES DE BUILD
+# =============================================================================
+
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
+# ConfiguraÃ§Ãµes de build environment
+[build.environment]
+  # Versão do Node.js
+  NODE_VERSION = "18"
+  
+  # Configurações de timezone
+  TZ = "America/Sao_Paulo"
+
+# =============================================================================
+# VARIÁVEIS DE AMBIENTE (REFERÊNCIA)
+# =============================================================================
+
+# IMPORTANTE: Não coloque valores reais aqui!
+# Configure no painel do Netlify: Site Settings > Environment Variables
+
+# Obrigatórias:
+# DATABASE_URL = "postgresql://..."
+# JWT_SECRET = "sua-chave-secreta-aqui"
+
+# Opcionais:
+# NODE_ENV = "production"
+# FRONTEND_URL = "https://jsfitapp.netlify.app"
+# JWT_EXPIRES_IN = "7d"
+# BCRYPT_ROUNDS = "12"
+# RATE_LIMIT_MAX_ATTEMPTS = "5"
+# RATE_LIMIT_WINDOW_MS = "900000"
+# LOCKOUT_TIME = "900000"
+# MAX_UPLOAD_SIZE = "10"
+# LOG_LEVEL = "info"
+
+# =============================================================================
+# NOTAS DE CONFIGURAÇÃO
+# =============================================================================
+
+# 1. Este arquivo deve estar na raiz do projeto
+# 2. Qualquer mudança requer novo deploy
+# 3. Variáveis sensíveis devem ser configuradas no painel do Netlify
+# 4. Logs podem ser visualizados no painel de deploy
+# 5. Para debugging, use o console do navegador e logs do Netlify
+
+# =============================================================================
+# TROUBLESHOOTING
+# =============================================================================
+
+# Problemas comuns:
+# 1. Funções com timeout: Aumente o valor em [functions.nome-funcao]
+# 2. CORS errors: Verifique headers [[headers]] 
+# 3. 404 em rotas: Verifique [[redirects]]
+# 4. Build falha: Verifique comando em [build]
+# 5. Variáveis não definidas: Configure no painel
+
+# Para testar localmente:
+# npm install -g netlify-cli
+# netlify dev
+
+# Para deploy manual:
+# netlify deploy --prod

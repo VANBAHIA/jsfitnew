@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="JS Fit App">
+    <title>JS Fit App - Criador de Planos de Treino</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzc5NDVmZiIvPgo8cGF0aCBkPSJtMTYgOGMtNC40MTggMC04IDMuNTgyLTggOHY4YzAgNC40MTggMy41ODIgOCA4IDhzOC0zLjU4MiA4LTh2LThjMC00LjQxOC0zLjU4Mi04LTgtOHoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/personal.css">
+
+    <style>
+
+
+
+        </style>
+        
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🏋️ JS Fit App</h1>
+            <p>Criador de Planos de Treino Personalizados</p>
+            <div class="developer-info">
+                <div class="developer-name">
+                    <svg class="developer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Desenvolvido por Javan Santana
+                </div>
+                <div class="developer-contact">
+                    <svg class="phone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    (15) 99143-7433
+                </div>
+            </div>
+
+            <div class="main-actions">
+                <button class="btn btn-primary" onclick="app.showPlanCreator()">
+                    ➕ Novo Plano
+                </button>
+                <button class="btn btn-secondary" onclick="app.showPlanList()">
+                    📋 Meus Planos
+                </button>
+                <button class="btn btn-ai" onclick="app.showAIPlanCreator()">
+                    🤖 Criar com IA
+                </button>
+                <label class="btn btn-outline" for="importFile">
+                    📂 Importar Plano
+                </label>
+            </div>
+        </header>
+
+        <!-- AI Plan Creator -->
+        <div id="aiPlanCreator" class="content-card" style="display: none;">
+            <div class="ai-form-section">
+                <h3>🤖 Criador de Plano com IA</h3>
+                <p>Preencha as informações básicas e deixe a IA criar um plano personalizado para você!</p>
+            </div>
+
+            <div class="form-section">
+                <h2>👤 Dados do Aluno</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Aluno</label>
+                        <input type="text" id="aiStudentName" class="form-input" placeholder="Digite o nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Nascimento</label>
+                        <input type="date" id="aiStudentBirthDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPF (opcional)</label>
+                        <input type="text" id="aiStudentCpf" class="form-input" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Altura</label>
+                        <input type="text" id="aiStudentHeight" class="form-input" placeholder="1,75m">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Peso</label>
+                        <input type="text" id="aiStudentWeight" class="form-input" placeholder="75kg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>🎯 Configurações do Plano</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Objetivo Principal</label>
+                        <select id="aiPlanObjective" class="form-select">
+                            <option value="Hipertrofia e ganho de massa muscular">Hipertrofia e ganho de massa muscular</option>
+                            <option value="Perda de peso e definição">Perda de peso e definição</option>
+                            <option value="Condicionamento geral">Condicionamento geral</option>
+                            <option value="Força e potência">Força e potência</option>
+                            <option value="Resistência muscular">Resistência muscular</option>
+                            <option value="Reabilitação">Reabilitação</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nível de Experiência</label>
+                        <select id="aiExperienceLevel" class="form-select">
+                            <option value="iniciante">Iniciante (0-6 meses)</option>
+                            <option value="intermediario">Intermediário (6 meses - 2 anos)</option>
+                            <option value="avancado">Avançado (2+ anos)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dias Disponíveis por Semana</label>
+                        <select id="aiAvailableDays" class="form-select">
+                            <option value="2">2 dias</option>
+                            <option value="3" selected>3 dias</option>
+                            <option value="4">4 dias</option>
+                            <option value="5">5 dias</option>
+                            <option value="6">6 dias</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tempo por Sessão (minutos)</label>
+                        <select id="aiSessionTime" class="form-select">
+                            <option value="45">45 minutos</option>
+                            <option value="60" selected>60 minutos</option>
+                            <option value="75">75 minutos</option>
+                            <option value="90">90 minutos</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+            <div class="form-section">
+                <h2>⚙️ Configuração de Grupos Musculares</h2>
+                <div class="form-group">
+                    <label class="form-label">
+                        Personalizar quais músculos trabalhar em cada dia de treino
+                    </label>
+                    <div class="muscle-config-toggle">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="aiUseCustomMuscleConfig" 
+                                   onchange="app.toggleAIMuscleConfig()">
+                            <span>🎯 Ativar configuração personalizada de músculos</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="aiMuscleConfigSection" class="muscle-config-section" style="display: none;">
+                    <div class="config-header">
+                        <h3>🏋️ Configure seus Treinos</h3>
+                        <p>Selecione quais grupos musculares trabalhar em cada dia:</p>
+                    </div>
+                    
+                    <div id="aiWorkoutConfigGrid" class="workout-config-grid">
+                        <!-- Será preenchido dinamicamente pelo JavaScript -->
+                    </div>
+                    
+                    <div class="config-actions">
+                        <button type="button" class="btn btn-secondary btn-small" 
+                                onclick="app.loadAIPresetConfig()">
+                            📋 Usar Configuração Padrão
+                        </button>
+                        <button type="button" class="btn btn-outline btn-small" 
+                                onclick="app.resetAIMuscleConfig()">
+                            🔄 Limpar Tudo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="form-section">
+                <h2>🏋️ Preferências de Treino</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Equipamentos Disponíveis</label>
+                        <select id="aiEquipment" class="form-select">
+                            <option value="academia_completa">Academia Completa</option>
+                            <option value="home_gym">Home Gym (Halteres + Barra)</option>
+                            <option value="peso_corporal">Apenas Peso Corporal</option>
+                            <option value="funcional">Equipamentos Funcionais</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Foco Muscular Preferido</label>
+                        <select id="aiMusclePreference" class="form-select">
+                            <option value="equilibrado">Desenvolvimento Equilibrado</option>
+                            <option value="superior">Foco Membros Superiores</option>
+                            <option value="inferior">Foco Membros Inferiores</option>
+                            <option value="core">Foco Core e Funcional</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Limitações ou Lesões</label>
+                    <textarea id="aiLimitations" class="form-textarea" placeholder="Descreva qualquer limitação física, lesão prévia ou exercício que deve ser evitado..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observações Especiais</label>
+                    <textarea id="aiSpecialNotes" class="form-textarea" placeholder="Exercícios preferidos, horários de treino, metas específicas, etc..."></textarea>
+                </div>
+            </div>
+
+            <div class="generating-indicator" id="generatingIndicator">
+                <div class="spinner"></div>
+                <h3>🤖 IA Criando Seu Plano...</h3>
+                <p>Analisando suas informações e gerando o plano personalizado. Isso pode levar alguns segundos.</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-ai" onclick="app.generateAIPlan()">
+                    🤖 Gerar Plano com IA
+                </button>
+                <button class="btn btn-outline" onclick="app.showPlanList()">
+                    📋 Ver Meus Planos
+                </button>
+            </div>
+        </div>
+
+        <!-- Manual Plan Creator -->
+        <div id="planCreator" class="content-card" style="display: none;">
+            <input type="hidden" id="currentPlanId" value="">
+            <div class="form-section">
+                <h2>👤 Dados do Aluno</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Aluno</label>
+                        <input type="text" id="studentName" class="form-input" placeholder="Digite o nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Nascimento</label>
+                        <input type="date" id="studentBirthDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPF (opcional)</label>
+                        <input type="text" id="studentCpf" class="form-input" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Altura</label>
+                        <input type="text" id="studentHeight" class="form-input" placeholder="1,75m">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Peso</label>
+                        <input type="text" id="studentWeight" class="form-input" placeholder="75kg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>🎯 Configurações do Plano</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Plano</label>
+                        <input type="text" id="planName" class="form-input" placeholder="Plano Hipertrofia 2024">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Objetivo</label>
+                        <select id="planObjective" class="form-select">
+                            <option value="Hipertrofia e ganho de massa muscular">Hipertrofia e ganho de massa muscular</option>
+                            <option value="Condicionamento geral">Condicionamento geral</option>
+                            <option value="Perda de peso">Perda de peso</option>
+                            <option value="Definição muscular">Definição muscular</option>
+                            <option value="Força">Ganho de força</option>
+                            <option value="Resistência">Resistência</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Início</label>
+                        <input type="date" id="planStartDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Fim</label>
+                        <input type="date" id="planEndDate" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Observações Gerais</label>
+                    <textarea id="planObservations" class="form-textarea" placeholder="Digite observações importantes sobre o plano de treino..."></textarea>
+                </div>
+            </div>
+
+<!-- Seção de Tipo de Plano Atualizada -->
+<div class="form-section">
+    <h2>📅 Tipo de Plano</h2>
+    <p class="form-hint">
+        <span>Selecione quantos dias de treino deseja e configure os grupos musculares para cada treino</span>
+    </p>
+    
+    <div class="plan-type-selector" id="planTypeSelector">
+        <div class="plan-type-btn active" onclick="app.selectPlanType(1, 'A', this)">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">A</div>
+            <div style="font-size: 0.9rem;">1 Dia</div>
+            <div class="plan-configured-indicator" style="display: none;"></div>
+        </div>
+        <div class="plan-type-btn" onclick="app.selectPlanType(2, 'AB', this)">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">AB</div>
+            <div style="font-size: 0.9rem;">2 Dias</div>
+            <div class="plan-configured-indicator" style="display: none;"></div>
+        </div>
+        <div class="plan-type-btn" onclick="app.selectPlanType(3, 'ABC', this)">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">ABC</div>
+            <div style="font-size: 0.9rem;">3 Dias</div>
+            <div class="plan-configured-indicator" style="display: none;"></div>
+        </div>
+        <div class="plan-type-btn" onclick="app.selectPlanType(4, 'ABCD', this)">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">ABCD</div>
+            <div style="font-size: 0.9rem;">4 Dias</div>
+            <div class="plan-configured-indicator" style="display: none;"></div>
+        </div>
+        <div class="plan-type-btn" onclick="app.selectPlanType(5, 'ABCDE', this)">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">ABCDE</div>
+            <div style="font-size: 0.9rem;">5 Dias</div>
+            <div class="plan-configured-indicator" style="display: none;"></div>
+        </div>
+        <div class="plan-type-btn" onclick="app.selectPlanType(6, 'ABCDEF', this)">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">ABCDEF</div>
+            <div style="font-size: 0.9rem;">6 Dias</div>
+            <div class="plan-configured-indicator" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <!-- Botão para configuração avançada -->
+    <div class="plan-config-actions" style="text-align: center; margin-top: 15px;">
+        <button class="btn btn-secondary btn-small" onclick="app.showPlanTypeConfiguration()" style="display: none;" id="advancedConfigBtn">
+            ⚙️ Configuração Avançada
+        </button>
+        <div class="form-hint" id="planConfigStatus">
+            <span>💡 Clique em um tipo de plano para configurar os grupos musculares</span>
+        </div>
+    </div>
+</div>
+
+            <div id="workoutEditor">
+                <!-- Workouts will be generated here -->
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="app.savePlan()">
+                    💾 Salvar Plano
+                </button>
+                <button class="btn btn-outline" onclick="app.showPlanList()">
+                    📋 Ver Meus Planos
+                </button>
+                <button class="btn btn-danger" onclick="app.cancelEdit()" style="display: none;" id="cancelEditBtn">
+                    ❌ Cancelar Edição
+                </button>
+            </div>
+        </div>
+
+        <!-- Plan List -->
+        <div id="planList" class="content-card">
+            <h2>📋 Meus Planos de Treino</h2>
+            <div id="planListContent">
+                <div class="plan-card">
+                    <h3>Nenhum plano encontrado</h3>
+                    <p>Crie seu primeiro plano de treino clicando em "Novo Plano" ou "Criar com IA"!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Plan Details -->
+    <div id="planModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="planModalTitle">Detalhes do Plano</h2>
+                <button class="close-btn" onclick="app.closePlanModal()">&times;</button>
+            </div>
+            <div id="planModalContent">
+                <!-- Plan details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+
+<!-- Modal for Exercise Editor -->
+<!-- Modal for Exercise Editor -->
+<div id="exerciseModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>✏️ Editar Exercício</h2>
+            <button class="close-btn" onclick="app.closeExerciseModal()">&times;</button>
+        </div>
+        <div class="form-grid">
+            <!-- NOVO: Filtro por grupo muscular -->
+            <div class="form-group">
+                <label class="form-label">🎯 Filtrar por Grupo Muscular</label>
+                <select id="exerciseGroupFilter" class="form-select" onchange="app.filterExercisesByGroup()">
+                    <option value="todos">📋 Todos os Grupos</option>
+                    <option value="" disabled>Carregando grupos...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nome do Exercício</label>
+                <select id="exerciseName" class="form-select" onchange="app.updateExerciseDescription()">
+                    <option value="custom">✏️ Exercício Personalizado</option>
+                    <option value="" disabled>Carregando exercícios...</option>
+                </select>
+                <!-- Indicador de status -->
+                <div id="exerciseSelectStatus" class="form-hint">
+                    <span id="exerciseCount">Carregando base de exercícios...</span>
+                </div>
+            </div>
+
+            <div class="form-group" id="customExerciseGroup" style="display: none;">
+                <label class="form-label">Nome Personalizado</label>
+                <input type="text" id="customExerciseName" class="form-input" placeholder="Digite o nome do exercício">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Séries</label>
+                <input type="number" id="exerciseSets" class="form-input" placeholder="4" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Repetições</label>
+                <input type="text" id="exerciseReps" class="form-input" placeholder="8-12">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Carga</label>
+                <input type="text" id="exerciseWeight" class="form-input" placeholder="80kg">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Descanso</label>
+                <input type="text" id="exerciseRest" class="form-input" placeholder="90 segundos">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Técnica Avançada</label>
+                <select id="exerciseTechnique" class="form-select" onchange="app.updateTechniqueDescription()">
+                    <option value="">Nenhuma</option>
+                    <optgroup label="Técnicas de Intensidade">
+                        <option value="drop-set">Drop-set</option>
+                        <option value="rest-pause">Rest-pause</option>
+                        <option value="serie-queima">Série Queima</option>
+                        <option value="clusters">Clusters</option>
+                        <option value="negativas">Negativas</option>
+                        <option value="metodo-21">Método 21</option>
+                        <option value="strip-set">Strip-set</option>
+                    </optgroup>
+                    <optgroup label="Técnicas de Pré/Pós-Exaustão">
+                        <option value="pre-exaustao">Pré-exaustão</option>
+                        <option value="pos-exaustao">Pós-exaustão</option>
+                    </optgroup>
+                    <optgroup label="Técnicas Combinadas">
+                        <option value="bi-set">Bi-set</option>
+                        <option value="tri-set">Tri-set</option>
+                    </optgroup>
+                    <optgroup label="Técnicas de Execução">
+                        <option value="tempo-controlado">Tempo Controlado</option>
+                        <option value="pausa-contracao">Pausa na Contração</option>
+                        <option value="isometrico">Isométrico</option>
+                        <option value="unilateral-alternado">Unilateral Alternado</option>
+                    </optgroup>
+                    <optgroup label="Técnicas de Progressão">
+                        <option value="piramide-crescente">Pirâmide Crescente</option>
+                        <option value="piramide-decrescente">Pirâmide Decrescente</option>
+                        <option value="onda">Onda</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="form-group" id="techniqueDescriptionGroup">
+                <textarea id="techniqueDescription" class="form-textarea" readonly></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Descrição/Técnica</label>
+                <textarea id="exerciseDescription" class="form-textarea" placeholder="Instruções técnicas do exercício..."></textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="app.saveExercise()">💾 Salvar</button>
+            <button class="btn btn-outline" onclick="app.closeExerciseModal()">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="quickPlanConfigModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>⚙️ Configuração Rápida de Treino</h2>
+            <button class="close-btn" onclick="app.closeQuickPlanConfigModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-info">
+                <strong>💡 Configure rapidamente:</strong> Selecione os grupos musculares que cada treino deve trabalhar.
+            </div>
+            
+            <div id="quickConfigContent">
+                <!-- Conteúdo será gerado dinamicamente -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="app.saveQuickPlanConfig()">
+                ✅ Aplicar
+            </button>
+            <button class="btn btn-outline" onclick="app.closeQuickPlanConfigModal()">
+                ❌ Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="importFile" style="display: none;" accept=".json" onchange="app.importPlan(event)">
+
+    <!-- JavaScript -->
+    <script src="js/personal.js">
+
+
+
+	</script>
+</body>
+</html>
