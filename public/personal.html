@@ -13,6 +13,8 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/personal.css">
+    <link rel="stylesheet" href="css/plandetalhes.css">
+    <link rel="stylesheet" href="css/exercicemodal.css">
 
     <style>
 
@@ -370,126 +372,19 @@
         </div>
     </div>
 
-    <!-- Modal for Plan Details -->
-    <div id="planModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="planModalTitle">Detalhes do Plano</h2>
-                <button class="close-btn" onclick="app.closePlanModal()">&times;</button>
-            </div>
-            <div id="planModalContent">
-                <!-- Plan details will be loaded here -->
-            </div>
-        </div>
+   <!-- Plan Details View -->
+<div id="planDetails" class="content-card" style="display: none;">
+    <div class="plan-details-header">
+        <button class="btn btn-outline btn-small" onclick="app.backToPlanList()">
+            ← Voltar
+        </button>
+        <h2 id="planDetailsTitle">Detalhes do Plano</h2>
     </div>
-
-
-<!-- Modal for Exercise Editor -->
-<!-- Modal for Exercise Editor -->
-<div id="exerciseModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>✏️ Editar Exercício</h2>
-            <button class="close-btn" onclick="app.closeExerciseModal()">&times;</button>
-        </div>
-        <div class="form-grid">
-            <!-- NOVO: Filtro por grupo muscular -->
-            <div class="form-group">
-                <label class="form-label">🎯 Filtrar por Grupo Muscular</label>
-                <select id="exerciseGroupFilter" class="form-select" onchange="app.filterExercisesByGroup()">
-                    <option value="todos">📋 Todos os Grupos</option>
-                    <option value="" disabled>Carregando grupos...</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Nome do Exercício</label>
-                <select id="exerciseName" class="form-select" onchange="app.updateExerciseDescription()">
-                    <option value="custom">✏️ Exercício Personalizado</option>
-                    <option value="" disabled>Carregando exercícios...</option>
-                </select>
-                <!-- Indicador de status -->
-                <div id="exerciseSelectStatus" class="form-hint">
-                    <span id="exerciseCount">Carregando base de exercícios...</span>
-                </div>
-            </div>
-
-            <div class="form-group" id="customExerciseGroup" style="display: none;">
-                <label class="form-label">Nome Personalizado</label>
-                <input type="text" id="customExerciseName" class="form-input" placeholder="Digite o nome do exercício">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Séries</label>
-                <input type="number" id="exerciseSets" class="form-input" placeholder="4" min="1">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Repetições</label>
-                <input type="text" id="exerciseReps" class="form-input" placeholder="8-12">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Carga</label>
-                <input type="text" id="exerciseWeight" class="form-input" placeholder="80kg">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Descanso</label>
-                <input type="text" id="exerciseRest" class="form-input" placeholder="90 segundos">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Técnica Avançada</label>
-                <select id="exerciseTechnique" class="form-select" onchange="app.updateTechniqueDescription()">
-                    <option value="">Nenhuma</option>
-                    <optgroup label="Técnicas de Intensidade">
-                        <option value="drop-set">Drop-set</option>
-                        <option value="rest-pause">Rest-pause</option>
-                        <option value="serie-queima">Série Queima</option>
-                        <option value="clusters">Clusters</option>
-                        <option value="negativas">Negativas</option>
-                        <option value="metodo-21">Método 21</option>
-                        <option value="strip-set">Strip-set</option>
-                    </optgroup>
-                    <optgroup label="Técnicas de Pré/Pós-Exaustão">
-                        <option value="pre-exaustao">Pré-exaustão</option>
-                        <option value="pos-exaustao">Pós-exaustão</option>
-                    </optgroup>
-                    <optgroup label="Técnicas Combinadas">
-                        <option value="bi-set">Bi-set</option>
-                        <option value="tri-set">Tri-set</option>
-                    </optgroup>
-                    <optgroup label="Técnicas de Execução">
-                        <option value="tempo-controlado">Tempo Controlado</option>
-                        <option value="pausa-contracao">Pausa na Contração</option>
-                        <option value="isometrico">Isométrico</option>
-                        <option value="unilateral-alternado">Unilateral Alternado</option>
-                    </optgroup>
-                    <optgroup label="Técnicas de Progressão">
-                        <option value="piramide-crescente">Pirâmide Crescente</option>
-                        <option value="piramide-decrescente">Pirâmide Decrescente</option>
-                        <option value="onda">Onda</option>
-                    </optgroup>
-                </select>
-            </div>
-            
-            <div class="form-group" id="techniqueDescriptionGroup">
-                <textarea id="techniqueDescription" class="form-textarea" readonly></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Descrição/Técnica</label>
-                <textarea id="exerciseDescription" class="form-textarea" placeholder="Instruções técnicas do exercício..."></textarea>
-            </div>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-primary" onclick="app.saveExercise()">💾 Salvar</button>
-            <button class="btn btn-outline" onclick="app.closeExerciseModal()">❌ Cancelar</button>
-        </div>
+    <div id="planDetailsContent">
+        <!-- Plan details will be loaded here -->
     </div>
 </div>
+
 
 <div id="quickPlanConfigModal" class="modal">
     <div class="modal-content" style="max-width: 600px;">

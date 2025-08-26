@@ -8,7 +8,7 @@ const app = {
     // =============================================
     // CONFIGURAÇÕES E CONSTANTES
     // =============================================
-    
+
     // Configuração da API para compartilhamento
     apiConfig: {
         baseUrl: 'https://jsfitapp.netlify.app/api',
@@ -29,7 +29,7 @@ const app = {
 
     exerciseDatabase: [], // Array que será carregado do DATABASE.JSON
     exerciseDatabaseLoaded: false, // Flag para controlar se foi carregado
-    
+
     // Manter a base hardcoded como fallback
     exerciseDatabaseFallback: {
         peito: {
@@ -86,14 +86,14 @@ const app = {
         basePath: '/images/',
         dimensions: '300x300',
         format: 'gif',
-        
+
         // Função para obter GIF por código
-        getGifByCodigo: function(codigo) {
+        getGifByCodigo: function (codigo) {
             return `${this.basePath}${codigo}.${this.format}`;
         },
-        
+
         // Função para exerciseDescriptions por código
-        findExerciseByCodigo: function(codigo) {
+        findExerciseByCodigo: function (codigo) {
             for (const muscleGroup in exerciseDatabase) {
                 for (const level in exerciseDatabase[muscleGroup]) {
                     const exercise = exerciseDatabase[muscleGroup][level]
@@ -103,9 +103,9 @@ const app = {
             }
             return null;
         },
-        
+
         // Função para listar todos os códigos
-        getAllCodigos: function() {
+        getAllCodigos: function () {
             const codigos = [];
             for (const muscleGroup in exerciseDatabase) {
                 for (const level in exerciseDatabase[muscleGroup]) {
@@ -133,7 +133,7 @@ const app = {
         'Crossover': 'Exercício no cabo, movimento cruzado. Excelente para definição e contração muscular.',
         'Flexão de Braços': 'Exercício básico de peso corporal. Mantenha corpo alinhado, desça até quase tocar o peito no solo.',
         'Mergulho em Paralelas': 'Exercício composto. Nas paralelas, desça flexionando os cotovelos, suba controladamente.',
-        
+
         'Puxada Frontal': 'Exercício básico para latíssimo. Puxe a barra até o peito, retraia as escápulas.',
         'Puxada Atrás da Nuca': 'Variação da puxada, cuidado com a amplitude para evitar lesões no ombro.',
         'Barra Fixa': 'Exercício funcional clássico. Pegada pronada, puxe até o queixo passar da barra.',
@@ -143,7 +143,7 @@ const app = {
         'Remada T-Bar': 'Exercício específico para espessura das costas. Use a máquina ou barra T.',
         'Levantamento Terra': 'Exercício complexo e completo. Técnica perfeita é essencial para evitar lesões.',
         'Pullover': 'Movimento arqueado, trabalha latíssimo e serrátil. Pode ser feito com halter ou barra.',
-        
+
         'Desenvolvimento com Barra': 'Exercício base para ombros. Pode ser feito pela frente ou atrás da nuca.',
         'Desenvolvimento com Halteres': 'Versão com halteres, maior estabilização. Trajetória ligeiramente frontal.',
         'Desenvolvimento Arnold': 'Criado por Arnold Schwarzenegger. Combina rotação com desenvolvimento.',
@@ -152,7 +152,7 @@ const app = {
         'Elevação Posterior': 'Para deltoide posterior. Pode ser feito inclinado ou na polia.',
         'Encolhimento': 'Para trapézio. "Encolha" os ombros carregando peso.',
         'Face Pull': 'Exercício no cabo, puxe até o rosto. Excelente para postura e ombros posteriores.',
-        
+
         'Rosca Direta': 'Exercício básico para bíceps. Pegada supinada, cotovelos fixos.',
         'Rosca Alternada': 'Versão alternada da rosca. Permite melhor concentração em cada braço.',
         'Rosca Martelo': 'Pegada neutra, trabalha bíceps e braquiorradial.',
@@ -161,14 +161,14 @@ const app = {
         'Rosca 21': 'Método especial: 7 parciais inferiores + 7 superiores + 7 completas.',
         'Rosca Spider': 'No banco inclinado invertido, isolamento total.',
         'Rosca no Cabo': 'Versão no cabo, tensão constante durante todo movimento.',
-        
+
         'Tríceps Testa': 'Clássico para tríceps. Flexione apenas antebraços, cotovelos fixos.',
         'Tríceps Francês': 'Com halter atrás da cabeça. Movimento apenas dos antebraços.',
         'Tríceps Pulley': 'No cabo, extensão dos antebraços. Pegada pronada.',
         'Tríceps Corda': 'Com corda, permite abertura na contração final.',
         'Supino Fechado': 'Pegada fechada no supino, trabalha tríceps intensamente.',
         'Mergulho no Banco': 'Mãos no banco, exercício funcional básico.',
-        
+
         'Agachamento Livre': 'Rei dos exercícios. Técnica perfeita é fundamental.',
         'Agachamento Frontal': 'Barra na frente, maior ativação do core e quadríceps.',
         'Leg Press': 'Exercício seguro para iniciantes, permite cargas altas.',
@@ -176,18 +176,18 @@ const app = {
         'Afundo': 'Exercício unilateral, trabalha equilíbrio e coordenação.',
         'Agachamento Búlgaro': 'Versão avançada do afundo, pé traseiro elevado.',
         'Hack Squat': 'Na máquina específica, movimento guiado e seguro.',
-        
+
         'Stiff': 'Para posterior de coxa. Flexione quadril, joelhos levemente flexionados.',
         'Flexão de Pernas': 'Isolamento dos isquiotibiais. Contração forte no topo.',
         'Mesa Flexora': 'Versão deitada da flexão de pernas.',
         'Good Morning': 'Exercício técnico, flexão apenas do quadril.',
         'Hip Thrust': 'Excelente para glúteos, ombros apoiados no banco.',
         'Elevação Pélvica': 'Versão básica do hip thrust, no solo.',
-        
+
         'Panturrilha em Pé': 'Para gastrocnêmio, pernas estendidas.',
         'Panturrilha Sentado': 'Para sóleo, joelhos flexionados.',
         'Panturrilha no Leg Press': 'Variação no leg press, apenas dedos na plataforma.',
-        
+
         'Esteira': 'Aquecimento cardiovascular básico. 5-10 minutos em ritmo moderado.',
         'Bicicleta': 'Aquecimento para membros inferiores. Baixa intensidade inicial.',
         'Elíptico': 'Exercício completo de baixo impacto. Bom para aquecimento geral.',
@@ -198,7 +198,7 @@ const app = {
     // =============================================
     // ESTADO DA APLICAÇÃO
     // =============================================
-    
+
     currentPlan: {
         id: null,
         nome: '',
@@ -223,37 +223,37 @@ const app = {
 
     async init() {
         console.log('🚀 Inicializando JS Fit Personal App...');
-        
+
         // Carregar configurações básicas
         this.loadSavedPlans();
         this.setDefaultDates();
         this.setupEventListeners();
-        
+
         // NOVO: Carregar configuração de tipos de plano
         this.loadPlanTypeConfiguration();
-        
+
         // Carregar base de exercícios
         console.log('📄 Iniciando carregamento da base de exercícios...');
         await this.loadExerciseDatabase();
-        
+
         // Popular select inicial
         this.populateExerciseSelect();
-        
+
         // Mostrar interface
         this.showPlanList();
-        
+
         // Verificar API de compartilhamento em background
         this.checkAPIStatus().then(status => {
             console.log('Status da API de compartilhamento:', status ? 'Online' : 'Offline');
         }).catch(() => {
             console.log('API de compartilhamento não disponível');
         });
-        
+
         // Atualizar indicadores visuais de configuração
         setTimeout(() => {
             this.updatePlanConfigIndicators();
         }, 100);
-        
+
         console.log('✅ Aplicação inicializada com sucesso');
     },
 
@@ -270,9 +270,6 @@ const app = {
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeAllModals();
-            }
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
                 this.savePlan();
@@ -298,127 +295,62 @@ const app = {
         if (techniqueSelect) {
             techniqueSelect.addEventListener('change', this.updateTechniqueDescription.bind(this));
         }
+    },
 
-        // NOVO: Observer para modal de exercício
-        const exerciseModal = document.getElementById('exerciseModal');
-        if (exerciseModal) {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        if (exerciseModal.classList.contains('active')) {
-                            // Aguardar um pouco para garantir que o modal esteja visível
-                            setTimeout(() => {
-                                this.populateGroupFilter();      // NOVO
-                                this.populateExerciseSelect();
-                            }, 100);
-                        }
-                    }
-                });
+
+    // Função para atualizar indicadores visuais
+    updatePlanConfigIndicators() {
+        const hasConfig = Object.keys(this.planTypeConfiguration.configuration).length > 0;
+        const days = this.planTypeConfiguration.days;
+
+        // Atualizar botão de configuração avançada
+        const advancedBtn = document.getElementById('advancedConfigBtn');
+        const statusElement = document.getElementById('planConfigStatus');
+
+        if (hasConfig && advancedBtn && statusElement) {
+            advancedBtn.style.display = 'inline-flex';
+            statusElement.innerHTML = '<span>✅ Configuração personalizada ativa</span>';
+            statusElement.className = 'form-hint success';
+
+            // Mostrar indicador no botão ativo
+            const buttons = document.querySelectorAll('.plan-type-btn');
+            buttons.forEach((btn, index) => {
+                const indicator = btn.querySelector('.plan-configured-indicator');
+                if (indicator) {
+                    indicator.style.display = (index + 1) === days ? 'flex' : 'none';
+                }
             });
-            observer.observe(exerciseModal, { attributes: true });
-        }
-    },
+        } else if (statusElement) {
+            statusElement.innerHTML = '<span>💡 Clique em um tipo de plano para configurar os grupos musculares</span>';
+            statusElement.className = 'form-hint';
 
-    closeAllModals() {
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => modal.classList.remove('active'));
-    },
-
-    // =============================================
-// FUNÇÕES COMPLEMENTARES PARA INTEGRAÇÃO
-// Adicione estas funções ao seu app object em personal.js
-// =============================================
-
-// Inicialização atualizada (substitua a função init existente)
-async init() {
-    console.log('🚀 Inicializando JS Fit Personal App...');
-    
-    // Carregar configurações básicas
-    this.loadSavedPlans();
-    this.setDefaultDates();
-    this.setupEventListeners();
-    
-    // NOVO: Carregar configuração de tipos de plano
-    this.loadPlanTypeConfiguration();
-    
-    // Carregar base de exercícios
-    console.log('📄 Iniciando carregamento da base de exercícios...');
-    await this.loadExerciseDatabase();
-    
-    // Popular select inicial
-    this.populateExerciseSelect();
-    
-    // Mostrar interface
-    this.showPlanList();
-    
-    // Verificar API de compartilhamento em background
-    this.checkAPIStatus().then(status => {
-        console.log('Status da API de compartilhamento:', status ? 'Online' : 'Offline');
-    }).catch(() => {
-        console.log('API de compartilhamento não disponível');
-    });
-    
-    // Atualizar indicadores visuais de configuração
-    setTimeout(() => {
-        this.updatePlanConfigIndicators();
-    }, 100);
-    
-    console.log('✅ Aplicação inicializada com sucesso');
-},
-
-// Função para atualizar indicadores visuais
-updatePlanConfigIndicators() {
-    const hasConfig = Object.keys(this.planTypeConfiguration.configuration).length > 0;
-    const days = this.planTypeConfiguration.days;
-    
-    // Atualizar botão de configuração avançada
-    const advancedBtn = document.getElementById('advancedConfigBtn');
-    const statusElement = document.getElementById('planConfigStatus');
-    
-    if (hasConfig && advancedBtn && statusElement) {
-        advancedBtn.style.display = 'inline-flex';
-        statusElement.innerHTML = '<span>✅ Configuração personalizada ativa</span>';
-        statusElement.className = 'form-hint success';
-        
-        // Mostrar indicador no botão ativo
-        const buttons = document.querySelectorAll('.plan-type-btn');
-        buttons.forEach((btn, index) => {
-            const indicator = btn.querySelector('.plan-configured-indicator');
-            if (indicator) {
-                indicator.style.display = (index + 1) === days ? 'flex' : 'none';
+            if (advancedBtn) {
+                advancedBtn.style.display = 'none';
             }
-        });
-    } else if (statusElement) {
-        statusElement.innerHTML = '<span>💡 Clique em um tipo de plano para configurar os grupos musculares</span>';
-        statusElement.className = 'form-hint';
-        
-        if (advancedBtn) {
-            advancedBtn.style.display = 'none';
         }
-    }
-},
+    },
 
-// Modal de configuração rápida (alternativa mais simples)
-showQuickPlanConfigModal() {
-    const existingModal = document.getElementById('quickPlanConfigModal');
-    if (!existingModal) {
-        console.error('Modal de configuração rápida não encontrado');
-        return;
-    }
+    // Modal de configuração rápida (alternativa mais simples)
+    showQuickPlanConfigModal() {
+        const existingModal = document.getElementById('quickPlanConfigModal');
+        if (!existingModal) {
+            console.error('Modal de configuração rápida não encontrado');
+            return;
+        }
 
-    const content = document.getElementById('quickConfigContent');
-    if (!content) return;
+        const content = document.getElementById('quickConfigContent');
+        if (!content) return;
 
-    const days = this.selectedDays || this.planTypeConfiguration.days;
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    let html = '<div class="quick-config-grid">';
-    
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
-        
-        html += `
+        const days = this.selectedDays || this.planTypeConfiguration.days;
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        let html = '<div class="quick-config-grid">';
+
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
+
+            html += `
             <div class="quick-config-item">
                 <h4>Treino ${letter}</h4>
                 <input type="text" 
@@ -441,473 +373,473 @@ showQuickPlanConfigModal() {
                 </div>
             </div>
         `;
-    }
-    
-    html += '</div>';
-    content.innerHTML = html;
-    existingModal.classList.add('active');
-},
+        }
 
-// Atualizar nome na configuração rápida
-updateQuickConfigName(letter, name) {
-    if (!this.planTypeConfiguration.configuration[letter]) {
-        this.planTypeConfiguration.configuration[letter] = { name: '', groups: [] };
-    }
-    this.planTypeConfiguration.configuration[letter].name = name;
-},
+        html += '</div>';
+        content.innerHTML = html;
+        existingModal.classList.add('active');
+    },
 
-// Atualizar grupos na configuração rápida
-updateQuickConfigGroups() {
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const days = this.selectedDays || this.planTypeConfiguration.days;
-    
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        const checkboxes = document.querySelectorAll(`input[name="quick-${letter}"]:checked`);
-        const selectedGroups = Array.from(checkboxes).map(cb => cb.value);
-        
+    // Atualizar nome na configuração rápida
+    updateQuickConfigName(letter, name) {
         if (!this.planTypeConfiguration.configuration[letter]) {
-            this.planTypeConfiguration.configuration[letter] = { name: `Treino ${letter}`, groups: [] };
+            this.planTypeConfiguration.configuration[letter] = { name: '', groups: [] };
         }
-        this.planTypeConfiguration.configuration[letter].groups = selectedGroups;
-    }
-},
+        this.planTypeConfiguration.configuration[letter].name = name;
+    },
 
-// Salvar configuração rápida
-saveQuickPlanConfig() {
-    // Validar se todos os treinos têm pelo menos um grupo
-    const letters = Object.keys(this.planTypeConfiguration.configuration);
-    let isValid = true;
-    let emptyWorkouts = [];
+    // Atualizar grupos na configuração rápida
+    updateQuickConfigGroups() {
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const days = this.selectedDays || this.planTypeConfiguration.days;
 
-    letters.forEach(letter => {
-        const config = this.planTypeConfiguration.configuration[letter];
-        if (!config.groups || config.groups.length === 0) {
-            isValid = false;
-            emptyWorkouts.push(letter);
-        }
-    });
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            const checkboxes = document.querySelectorAll(`input[name="quick-${letter}"]:checked`);
+            const selectedGroups = Array.from(checkboxes).map(cb => cb.value);
 
-    if (!isValid) {
-        this.showMessage(`⚠️ Os treinos ${emptyWorkouts.join(', ')} não têm grupos musculares selecionados!`, 'warning');
-        return;
-    }
-
-    // Salvar configuração
-    this.savePlanTypeConfiguration();
-    
-    // Fechar modal
-    this.closeQuickPlanConfigModal();
-    
-    // Gerar treinos baseado na configuração
-    this.generateWorkoutEditorWithConfig(this.planTypeConfiguration.days);
-    
-    // Atualizar indicadores
-    this.updatePlanConfigIndicators();
-    
-    this.showMessage('✅ Configuração aplicada e treinos gerados!', 'success');
-},
-
-// Fechar modal de configuração rápida
-closeQuickPlanConfigModal() {
-    const modal = document.getElementById('quickPlanConfigModal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-},
-
-// Função selectPlanType atualizada (substitua a existente)
-selectPlanType(days, letters, element) {
-    // Remove active de todos os botões
-    document.querySelectorAll('.plan-type-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Adiciona active ao botão clicado
-    element.classList.add('active');
-    
-    this.selectedDays = days;
-    this.planTypeConfiguration.days = days;
-    
-    // Se não há configuração para este número de dias, usar padrão
-    const currentConfig = Object.keys(this.planTypeConfiguration.configuration).length;
-    if (currentConfig === 0 || this.planTypeConfiguration.days !== days) {
-        this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days] || {};
-        this.planTypeConfiguration.days = days;
-    }
-    
-    // Mostrar modal de configuração
-    this.showPlanTypeConfigModal();
-},
-
-// Método original de geração de treinos (para fallback)
-generateAIWorkoutsOriginal(aiData) {
-    const workouts = [];
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    const workoutSplits = {
-        2: [
-            { nome: 'A - Membros Superiores', grupos: ['peito', 'costas', 'ombros', 'biceps', 'triceps'] },
-            { nome: 'B - Membros Inferiores e Core', grupos: ['quadriceps', 'posterior', 'panturrilha'] }
-        ],
-        3: [
-            { nome: 'A - Peito e Tríceps', grupos: ['peito', 'triceps'] },
-            { nome: 'B - Costas e Bíceps', grupos: ['costas', 'biceps'] },
-            { nome: 'C - Pernas e Ombros', grupos: ['quadriceps', 'posterior', 'ombros', 'panturrilha'] }
-        ],
-        4: [
-            { nome: 'A - Peito e Tríceps', grupos: ['peito', 'triceps'] },
-            { nome: 'B - Costas e Bíceps', grupos: ['costas', 'biceps'] },
-            { nome: 'C - Ombros', grupos: ['ombros'] },
-            { nome: 'D - Pernas', grupos: ['quadriceps', 'posterior', 'panturrilha'] }
-        ],
-        5: [
-            { nome: 'A - Peito e Tríceps', grupos: ['peito', 'triceps'] },
-            { nome: 'B - Costas e Bíceps', grupos: ['costas', 'biceps'] },
-            { nome: 'C - Ombros e Trapézio', grupos: ['ombros'] },
-            { nome: 'D - Pernas (Quadríceps e Glúteos)', grupos: ['quadriceps'] },
-            { nome: 'E - Posterior de Coxa e Core', grupos: ['posterior', 'panturrilha'] }
-        ],
-        6: [
-            { nome: 'A - Peito', grupos: ['peito'] },
-            { nome: 'B - Costas', grupos: ['costas'] },
-            { nome: 'C - Ombros', grupos: ['ombros'] },
-            { nome: 'D - Braços', grupos: ['biceps', 'triceps'] },
-            { nome: 'E - Pernas (Quadríceps)', grupos: ['quadriceps'] },
-            { nome: 'F - Posterior e Core', grupos: ['posterior', 'panturrilha'] }
-        ]
-    };
-
-    const split = workoutSplits[aiData.dias];
-    
-    split.forEach((workout, index) => {
-        const exercises = this.generateExercisesForMuscleGroups(
-            workout.grupos, 
-            aiData.nivel, 
-            aiData.objetivo,
-            aiData.equipamentos,
-            index + 1
-        );
-
-        workouts.push({
-            id: letters[index],
-            nome: workout.nome,
-            foco: `Hipertrofia - ${workout.grupos.join(', ')}`,
-            exercicios: exercises,
-            concluido: false,
-            execucoes: 0
-        });
-    });
-
-    return workouts;
-},
-
-// Função para resetar configuração de tipos de plano
-resetPlanTypeConfiguration() {
-    if (confirm('Tem certeza que deseja resetar a configuração de tipos de plano?')) {
-        this.planTypeConfiguration.configuration = {};
-        this.planTypeConfiguration.days = 3;
-        
-        // Remover do localStorage
-        localStorage.removeItem('jsfitapp_plan_configuration');
-        
-        // Atualizar interface
-        this.updatePlanConfigIndicators();
-        
-        this.showMessage('🔄 Configuração de tipos de plano resetada!', 'info');
-    }
-},
-
-// Função para exportar configuração de tipos de plano
-exportPlanTypeConfiguration() {
-    const config = {
-        days: this.planTypeConfiguration.days,
-        configuration: this.planTypeConfiguration.configuration,
-        muscleGroups: this.planTypeConfiguration.muscleGroups,
-        exportedAt: new Date().toISOString(),
-        version: '1.0'
-    };
-
-    const dataStr = JSON.stringify(config, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `plan_configuration_${config.days}dias.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    this.showMessage('📤 Configuração exportada com sucesso!', 'success');
-},
-
-// Função para importar configuração de tipos de plano
-importPlanTypeConfiguration(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const importedConfig = JSON.parse(e.target.result);
-            
-            // Validar estrutura
-            if (!importedConfig.days || !importedConfig.configuration) {
-                throw new Error('Arquivo de configuração inválido');
+            if (!this.planTypeConfiguration.configuration[letter]) {
+                this.planTypeConfiguration.configuration[letter] = { name: `Treino ${letter}`, groups: [] };
             }
-            
-            // Aplicar configuração importada
-            this.planTypeConfiguration.days = importedConfig.days;
-            this.planTypeConfiguration.configuration = importedConfig.configuration;
-            
-            // Salvar
-            this.savePlanTypeConfiguration();
-            
+            this.planTypeConfiguration.configuration[letter].groups = selectedGroups;
+        }
+    },
+
+    // Salvar configuração rápida
+    saveQuickPlanConfig() {
+        // Validar se todos os treinos têm pelo menos um grupo
+        const letters = Object.keys(this.planTypeConfiguration.configuration);
+        let isValid = true;
+        let emptyWorkouts = [];
+
+        letters.forEach(letter => {
+            const config = this.planTypeConfiguration.configuration[letter];
+            if (!config.groups || config.groups.length === 0) {
+                isValid = false;
+                emptyWorkouts.push(letter);
+            }
+        });
+
+        if (!isValid) {
+            this.showMessage(`⚠️ Os treinos ${emptyWorkouts.join(', ')} não têm grupos musculares selecionados!`, 'warning');
+            return;
+        }
+
+        // Salvar configuração
+        this.savePlanTypeConfiguration();
+
+        // Fechar modal
+        this.closeQuickPlanConfigModal();
+
+        // Gerar treinos baseado na configuração
+        this.generateWorkoutEditorWithConfig(this.planTypeConfiguration.days);
+
+        // Atualizar indicadores
+        this.updatePlanConfigIndicators();
+
+        this.showMessage('✅ Configuração aplicada e treinos gerados!', 'success');
+    },
+
+    // Fechar modal de configuração rápida
+    closeQuickPlanConfigModal() {
+        const modal = document.getElementById('quickPlanConfigModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    },
+
+    // Função selectPlanType atualizada (substitua a existente)
+    selectPlanType(days, letters, element) {
+        // Remove active de todos os botões
+        document.querySelectorAll('.plan-type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Adiciona active ao botão clicado
+        element.classList.add('active');
+
+        this.selectedDays = days;
+        this.planTypeConfiguration.days = days;
+
+        // Se não há configuração para este número de dias, usar padrão
+        const currentConfig = Object.keys(this.planTypeConfiguration.configuration).length;
+        if (currentConfig === 0 || this.planTypeConfiguration.days !== days) {
+            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days] || {};
+            this.planTypeConfiguration.days = days;
+        }
+
+        // Mostrar modal de configuração
+        this.showPlanTypeConfigModal();
+    },
+
+    // Método original de geração de treinos (para fallback)
+    generateAIWorkoutsOriginal(aiData) {
+        const workouts = [];
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        const workoutSplits = {
+            2: [
+                { nome: 'A - Membros Superiores', grupos: ['peito', 'costas', 'ombros', 'biceps', 'triceps'] },
+                { nome: 'B - Membros Inferiores e Core', grupos: ['quadriceps', 'posterior', 'panturrilha'] }
+            ],
+            3: [
+                { nome: 'A - Peito e Tríceps', grupos: ['peito', 'triceps'] },
+                { nome: 'B - Costas e Bíceps', grupos: ['costas', 'biceps'] },
+                { nome: 'C - Pernas e Ombros', grupos: ['quadriceps', 'posterior', 'ombros', 'panturrilha'] }
+            ],
+            4: [
+                { nome: 'A - Peito e Tríceps', grupos: ['peito', 'triceps'] },
+                { nome: 'B - Costas e Bíceps', grupos: ['costas', 'biceps'] },
+                { nome: 'C - Ombros', grupos: ['ombros'] },
+                { nome: 'D - Pernas', grupos: ['quadriceps', 'posterior', 'panturrilha'] }
+            ],
+            5: [
+                { nome: 'A - Peito e Tríceps', grupos: ['peito', 'triceps'] },
+                { nome: 'B - Costas e Bíceps', grupos: ['costas', 'biceps'] },
+                { nome: 'C - Ombros e Trapézio', grupos: ['ombros'] },
+                { nome: 'D - Pernas (Quadríceps e Glúteos)', grupos: ['quadriceps'] },
+                { nome: 'E - Posterior de Coxa e Core', grupos: ['posterior', 'panturrilha'] }
+            ],
+            6: [
+                { nome: 'A - Peito', grupos: ['peito'] },
+                { nome: 'B - Costas', grupos: ['costas'] },
+                { nome: 'C - Ombros', grupos: ['ombros'] },
+                { nome: 'D - Braços', grupos: ['biceps', 'triceps'] },
+                { nome: 'E - Pernas (Quadríceps)', grupos: ['quadriceps'] },
+                { nome: 'F - Posterior e Core', grupos: ['posterior', 'panturrilha'] }
+            ]
+        };
+
+        const split = workoutSplits[aiData.dias];
+
+        split.forEach((workout, index) => {
+            const exercises = this.generateExercisesForMuscleGroups(
+                workout.grupos,
+                aiData.nivel,
+                aiData.objetivo,
+                aiData.equipamentos,
+                index + 1
+            );
+
+            workouts.push({
+                id: letters[index],
+                nome: workout.nome,
+                foco: `Hipertrofia - ${workout.grupos.join(', ')}`,
+                exercicios: exercises,
+                concluido: false,
+                execucoes: 0
+            });
+        });
+
+        return workouts;
+    },
+
+    // Função para resetar configuração de tipos de plano
+    resetPlanTypeConfiguration() {
+        if (confirm('Tem certeza que deseja resetar a configuração de tipos de plano?')) {
+            this.planTypeConfiguration.configuration = {};
+            this.planTypeConfiguration.days = 3;
+
+            // Remover do localStorage
+            localStorage.removeItem('jsfitapp_plan_configuration');
+
             // Atualizar interface
             this.updatePlanConfigIndicators();
-            
-            // Selecionar o tipo de plano correto
-            const planTypeBtn = document.querySelector(`.plan-type-btn:nth-child(${importedConfig.days})`);
-            if (planTypeBtn) {
-                document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
-                planTypeBtn.classList.add('active');
-                this.selectedDays = importedConfig.days;
+
+            this.showMessage('🔄 Configuração de tipos de plano resetada!', 'info');
+        }
+    },
+
+    // Função para exportar configuração de tipos de plano
+    exportPlanTypeConfiguration() {
+        const config = {
+            days: this.planTypeConfiguration.days,
+            configuration: this.planTypeConfiguration.configuration,
+            muscleGroups: this.planTypeConfiguration.muscleGroups,
+            exportedAt: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        const dataStr = JSON.stringify(config, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+        const exportFileDefaultName = `plan_configuration_${config.days}dias.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+
+        this.showMessage('📤 Configuração exportada com sucesso!', 'success');
+    },
+
+    // Função para importar configuração de tipos de plano
+    importPlanTypeConfiguration(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedConfig = JSON.parse(e.target.result);
+
+                // Validar estrutura
+                if (!importedConfig.days || !importedConfig.configuration) {
+                    throw new Error('Arquivo de configuração inválido');
+                }
+
+                // Aplicar configuração importada
+                this.planTypeConfiguration.days = importedConfig.days;
+                this.planTypeConfiguration.configuration = importedConfig.configuration;
+
+                // Salvar
+                this.savePlanTypeConfiguration();
+
+                // Atualizar interface
+                this.updatePlanConfigIndicators();
+
+                // Selecionar o tipo de plano correto
+                const planTypeBtn = document.querySelector(`.plan-type-btn:nth-child(${importedConfig.days})`);
+                if (planTypeBtn) {
+                    document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+                    planTypeBtn.classList.add('active');
+                    this.selectedDays = importedConfig.days;
+                }
+
+                this.showMessage('📥 Configuração importada com sucesso!', 'success');
+
+            } catch (error) {
+                console.error('Erro ao importar configuração:', error);
+                this.showMessage('❌ Erro ao importar configuração. Verifique o arquivo.', 'error');
             }
-            
-            this.showMessage('📥 Configuração importada com sucesso!', 'success');
-            
-        } catch (error) {
-            console.error('Erro ao importar configuração:', error);
-            this.showMessage('❌ Erro ao importar configuração. Verifique o arquivo.', 'error');
-        }
-    };
-    reader.readAsText(file);
-    
-    // Limpar input
-    event.target.value = '';
-},
+        };
+        reader.readAsText(file);
 
-// Função para duplicar configuração entre tipos de plano
-duplicatePlanConfiguration(fromDays, toDays) {
-    const fromConfig = this.planTypeConfiguration.presetConfigurations[fromDays];
-    if (!fromConfig) return;
-    
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const newConfig = {};
-    
-    // Duplicar configuração existente
-    for (let i = 0; i < Math.min(fromDays, toDays); i++) {
-        const letter = letters[i];
-        if (fromConfig[letter]) {
-            newConfig[letter] = { ...fromConfig[letter] };
-        }
-    }
-    
-    // Adicionar treinos extras se necessário
-    if (toDays > fromDays) {
-        const remainingGroups = ['abdome', 'antebraco'];
-        for (let i = fromDays; i < toDays; i++) {
+        // Limpar input
+        event.target.value = '';
+    },
+
+    // Função para duplicar configuração entre tipos de plano
+    duplicatePlanConfiguration(fromDays, toDays) {
+        const fromConfig = this.planTypeConfiguration.presetConfigurations[fromDays];
+        if (!fromConfig) return;
+
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const newConfig = {};
+
+        // Duplicar configuração existente
+        for (let i = 0; i < Math.min(fromDays, toDays); i++) {
             const letter = letters[i];
-            newConfig[letter] = {
-                name: `Treino ${letter}`,
-                groups: remainingGroups.slice(0, 1) || ['corpo']
-            };
+            if (fromConfig[letter]) {
+                newConfig[letter] = { ...fromConfig[letter] };
+            }
         }
-    }
-    
-    this.planTypeConfiguration.configuration = newConfig;
-    this.planTypeConfiguration.days = toDays;
-    this.savePlanTypeConfiguration();
-},
 
-// Função para validar configuração antes de gerar treinos
-validatePlanConfiguration() {
-    const config = this.planTypeConfiguration.configuration;
-    const days = this.planTypeConfiguration.days;
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    const errors = [];
-    const warnings = [];
-    
-    // Verificar se há configuração para todos os dias
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        if (!config[letter]) {
-            errors.push(`Configuração faltando para Treino ${letter}`);
-            continue;
+        // Adicionar treinos extras se necessário
+        if (toDays > fromDays) {
+            const remainingGroups = ['abdome', 'antebraco'];
+            for (let i = fromDays; i < toDays; i++) {
+                const letter = letters[i];
+                newConfig[letter] = {
+                    name: `Treino ${letter}`,
+                    groups: remainingGroups.slice(0, 1) || ['corpo']
+                };
+            }
         }
-        
-        // Verificar se há grupos selecionados
-        if (!config[letter].groups || config[letter].groups.length === 0) {
-            errors.push(`Treino ${letter} não tem grupos musculares selecionados`);
-        }
-        
-        // Verificar se há nome
-        if (!config[letter].name || config[letter].name.trim() === '') {
-            warnings.push(`Treino ${letter} não tem nome definido`);
-        }
-    }
-    
-    // Verificar sobreposição de grupos
-    const allGroups = [];
-    Object.values(config).forEach(c => {
-        if (c.groups) {
-            allGroups.push(...c.groups);
-        }
-    });
-    
-    const groupCount = {};
-    allGroups.forEach(group => {
-        groupCount[group] = (groupCount[group] || 0) + 1;
-    });
-    
-    Object.entries(groupCount).forEach(([group, count]) => {
-        if (count > Math.ceil(days / 2)) {
-            warnings.push(`Grupo ${group} está sendo trabalhado em muitos treinos (${count}/${days})`);
-        }
-    });
-    
-    return { errors, warnings, isValid: errors.length === 0 };
-},
 
-// Função para otimizar automaticamente a configuração
-optimizePlanConfiguration() {
-    const days = this.planTypeConfiguration.days;
-    const config = { ...this.planTypeConfiguration.configuration };
-    
-    // Aplicar otimizações baseadas em boas práticas
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    // Regras de otimização
-    const optimizationRules = {
-        2: {
-            A: { preferredGroups: ['peito', 'ombro', 'triceps'], avoid: ['perna'] },
-            B: { preferredGroups: ['perna', 'gluteo', 'costas', 'biceps'], avoid: ['peito'] }
-        },
-        3: {
-            A: { preferredGroups: ['peito', 'triceps'], avoid: ['costas', 'biceps'] },
-            B: { preferredGroups: ['costas', 'biceps'], avoid: ['peito', 'triceps'] },
-            C: { preferredGroups: ['perna', 'gluteo', 'ombro'], avoid: [] }
-        },
-        4: {
-            A: { preferredGroups: ['peito', 'triceps'], avoid: ['costas', 'biceps'] },
-            B: { preferredGroups: ['costas', 'biceps'], avoid: ['peito', 'triceps'] },
-            C: { preferredGroups: ['ombro'], avoid: [] },
-            D: { preferredGroups: ['perna', 'gluteo'], avoid: [] }
+        this.planTypeConfiguration.configuration = newConfig;
+        this.planTypeConfiguration.days = toDays;
+        this.savePlanTypeConfiguration();
+    },
+
+    // Função para validar configuração antes de gerar treinos
+    validatePlanConfiguration() {
+        const config = this.planTypeConfiguration.configuration;
+        const days = this.planTypeConfiguration.days;
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        const errors = [];
+        const warnings = [];
+
+        // Verificar se há configuração para todos os dias
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            if (!config[letter]) {
+                errors.push(`Configuração faltando para Treino ${letter}`);
+                continue;
+            }
+
+            // Verificar se há grupos selecionados
+            if (!config[letter].groups || config[letter].groups.length === 0) {
+                errors.push(`Treino ${letter} não tem grupos musculares selecionados`);
+            }
+
+            // Verificar se há nome
+            if (!config[letter].name || config[letter].name.trim() === '') {
+                warnings.push(`Treino ${letter} não tem nome definido`);
+            }
         }
-    };
-    
-    const rules = optimizationRules[days];
-    if (!rules) return;
-    
-    // Aplicar regras
-    Object.entries(rules).forEach(([letter, rule]) => {
-        if (config[letter]) {
-            // Remover grupos que devem ser evitados
-            config[letter].groups = config[letter].groups.filter(
-                group => !rule.avoid.includes(group)
-            );
-            
-            // Adicionar grupos preferidos se não existirem
-            rule.preferredGroups.forEach(preferredGroup => {
-                if (!config[letter].groups.includes(preferredGroup)) {
-                    // Verificar se não está em outro treino incompatível
-                    const canAdd = true; // Lógica mais complexa pode ser adicionada aqui
-                    if (canAdd) {
-                        config[letter].groups.push(preferredGroup);
+
+        // Verificar sobreposição de grupos
+        const allGroups = [];
+        Object.values(config).forEach(c => {
+            if (c.groups) {
+                allGroups.push(...c.groups);
+            }
+        });
+
+        const groupCount = {};
+        allGroups.forEach(group => {
+            groupCount[group] = (groupCount[group] || 0) + 1;
+        });
+
+        Object.entries(groupCount).forEach(([group, count]) => {
+            if (count > Math.ceil(days / 2)) {
+                warnings.push(`Grupo ${group} está sendo trabalhado em muitos treinos (${count}/${days})`);
+            }
+        });
+
+        return { errors, warnings, isValid: errors.length === 0 };
+    },
+
+    // Função para otimizar automaticamente a configuração
+    optimizePlanConfiguration() {
+        const days = this.planTypeConfiguration.days;
+        const config = { ...this.planTypeConfiguration.configuration };
+
+        // Aplicar otimizações baseadas em boas práticas
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        // Regras de otimização
+        const optimizationRules = {
+            2: {
+                A: { preferredGroups: ['peito', 'ombro', 'triceps'], avoid: ['perna'] },
+                B: { preferredGroups: ['perna', 'gluteo', 'costas', 'biceps'], avoid: ['peito'] }
+            },
+            3: {
+                A: { preferredGroups: ['peito', 'triceps'], avoid: ['costas', 'biceps'] },
+                B: { preferredGroups: ['costas', 'biceps'], avoid: ['peito', 'triceps'] },
+                C: { preferredGroups: ['perna', 'gluteo', 'ombro'], avoid: [] }
+            },
+            4: {
+                A: { preferredGroups: ['peito', 'triceps'], avoid: ['costas', 'biceps'] },
+                B: { preferredGroups: ['costas', 'biceps'], avoid: ['peito', 'triceps'] },
+                C: { preferredGroups: ['ombro'], avoid: [] },
+                D: { preferredGroups: ['perna', 'gluteo'], avoid: [] }
+            }
+        };
+
+        const rules = optimizationRules[days];
+        if (!rules) return;
+
+        // Aplicar regras
+        Object.entries(rules).forEach(([letter, rule]) => {
+            if (config[letter]) {
+                // Remover grupos que devem ser evitados
+                config[letter].groups = config[letter].groups.filter(
+                    group => !rule.avoid.includes(group)
+                );
+
+                // Adicionar grupos preferidos se não existirem
+                rule.preferredGroups.forEach(preferredGroup => {
+                    if (!config[letter].groups.includes(preferredGroup)) {
+                        // Verificar se não está em outro treino incompatível
+                        const canAdd = true; // Lógica mais complexa pode ser adicionada aqui
+                        if (canAdd) {
+                            config[letter].groups.push(preferredGroup);
+                        }
+                    }
+                });
+            }
+        });
+
+        this.planTypeConfiguration.configuration = config;
+        this.savePlanTypeConfiguration();
+        this.showMessage('🔧 Configuração otimizada automaticamente!', 'success');
+    },
+
+    // Função para obter sugestões de configuração
+    getPlanConfigurationSuggestions(days) {
+        const suggestions = {
+            1: [
+                {
+                    name: 'Corpo Inteiro Básico',
+                    description: 'Treino completo para iniciantes',
+                    config: {
+                        A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro'] }
+                    }
+                },
+                {
+                    name: 'Corpo Inteiro Avançado',
+                    description: 'Treino completo com todos os grupos',
+                    config: {
+                        A: { name: 'Treino Completo', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps', 'abdome'] }
                     }
                 }
-            });
-        }
-    });
-    
-    this.planTypeConfiguration.configuration = config;
-    this.savePlanTypeConfiguration();
-    this.showMessage('🔧 Configuração otimizada automaticamente!', 'success');
-},
+            ],
+            2: [
+                {
+                    name: 'Superior/Inferior',
+                    description: 'Divisão clássica entre membros superiores e inferiores',
+                    config: {
+                        A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
+                        B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
+                    }
+                },
+                {
+                    name: 'Push/Pull',
+                    description: 'Divisão por padrões de movimento',
+                    config: {
+                        A: { name: 'Empurrar + Pernas', groups: ['peito', 'ombro', 'triceps', 'perna'] },
+                        B: { name: 'Puxar + Core', groups: ['costas', 'biceps', 'abdome', 'gluteo'] }
+                    }
+                }
+            ],
+            3: [
+                {
+                    name: 'Push/Pull/Legs',
+                    description: 'Divisão clássica de 3 dias',
+                    config: {
+                        A: { name: 'Empurrar', groups: ['peito', 'ombro', 'triceps'] },
+                        B: { name: 'Puxar', groups: ['costas', 'biceps'] },
+                        C: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+                    }
+                },
+                {
+                    name: 'Peito-Costas-Pernas',
+                    description: 'Foco nos grandes grupos musculares',
+                    config: {
+                        A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
+                        B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
+                        C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
+                    }
+                }
+            ]
+        };
 
-// Função para obter sugestões de configuração
-getPlanConfigurationSuggestions(days) {
-    const suggestions = {
-        1: [
-            {
-                name: 'Corpo Inteiro Básico',
-                description: 'Treino completo para iniciantes',
-                config: {
-                    A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro'] }
-                }
-            },
-            {
-                name: 'Corpo Inteiro Avançado',
-                description: 'Treino completo com todos os grupos',
-                config: {
-                    A: { name: 'Treino Completo', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps', 'abdome'] }
-                }
-            }
-        ],
-        2: [
-            {
-                name: 'Superior/Inferior',
-                description: 'Divisão clássica entre membros superiores e inferiores',
-                config: {
-                    A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
-                    B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
-                }
-            },
-            {
-                name: 'Push/Pull',
-                description: 'Divisão por padrões de movimento',
-                config: {
-                    A: { name: 'Empurrar + Pernas', groups: ['peito', 'ombro', 'triceps', 'perna'] },
-                    B: { name: 'Puxar + Core', groups: ['costas', 'biceps', 'abdome', 'gluteo'] }
-                }
-            }
-        ],
-        3: [
-            {
-                name: 'Push/Pull/Legs',
-                description: 'Divisão clássica de 3 dias',
-                config: {
-                    A: { name: 'Empurrar', groups: ['peito', 'ombro', 'triceps'] },
-                    B: { name: 'Puxar', groups: ['costas', 'biceps'] },
-                    C: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
-                }
-            },
-            {
-                name: 'Peito-Costas-Pernas',
-                description: 'Foco nos grandes grupos musculares',
-                config: {
-                    A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-                    B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-                    C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
-                }
-            }
-        ]
-    };
-    
-    return suggestions[days] || [];
-},
+        return suggestions[days] || [];
+    },
 
-// Função para aplicar sugestão de configuração
-applySuggestedConfiguration(suggestion) {
-    if (!suggestion || !suggestion.config) return;
-    
-    this.planTypeConfiguration.configuration = { ...suggestion.config };
-    this.savePlanTypeConfiguration();
-    this.updatePlanConfigIndicators();
-    
-    this.showMessage(`✅ Configuração "${suggestion.name}" aplicada!`, 'success');
-},
+    // Função para aplicar sugestão de configuração
+    applySuggestedConfiguration(suggestion) {
+        if (!suggestion || !suggestion.config) return;
+
+        this.planTypeConfiguration.configuration = { ...suggestion.config };
+        this.savePlanTypeConfiguration();
+        this.updatePlanConfigIndicators();
+
+        this.showMessage(`✅ Configuração "${suggestion.name}" aplicada!`, 'success');
+    },
 
 
     setDefaultDates() {
         const today = new Date();
         const endDate = new Date();
         endDate.setMonth(endDate.getMonth() + 6);
-        
+
         const startInput = document.getElementById('planStartDate');
         const endInput = document.getElementById('planEndDate');
-        
+
         if (startInput) startInput.value = today.toISOString().split('T')[0];
         if (endInput) endInput.value = endDate.toISOString().split('T')[0];
     },
@@ -919,58 +851,58 @@ applySuggestedConfiguration(suggestion) {
     async loadExerciseDatabase() {
         try {
             console.log('📄 Carregando base de dados de exercícios...');
-            
+
             // Tentar carregar DATABASE.JSON
             const response = await fetch('data/DATABASE.JSON');
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             const data = await response.json();
-            
+
             // Validar estrutura do arquivo
             if (!Array.isArray(data)) {
                 throw new Error('DATABASE.JSON deve ser um array de exercícios');
             }
-            
+
             // Validar se tem exercícios
             if (data.length === 0) {
                 throw new Error('DATABASE.JSON está vazio');
             }
-            
+
             // Validar estrutura básica de cada exercício
-            const invalidExercises = data.filter(ex => 
+            const invalidExercises = data.filter(ex =>
                 !ex.nome || !ex.Column4 || !ex.grupo
             );
-            
+
             if (invalidExercises.length > 0) {
                 console.warn(`⚠️ ${invalidExercises.length} exercícios com dados incompletos encontrados`);
             }
-            
+
             this.exerciseDatabase = data;
             this.exerciseDatabaseLoaded = true;
             console.log(`✅ ${data.length} exercícios carregados com sucesso`);
-            
+
             // Mostrar estatísticas
             this.logDatabaseStats();
-            
+
             return true;
-            
+
         } catch (error) {
             console.error('❌ Erro ao carregar DATABASE.JSON:', error);
-            
+
             // Fallback: usar base hardcoded
             console.warn('🔄 Usando base de exercícios hardcoded como fallback');
             this.exerciseDatabase = this.convertHardcodedToArray();
             this.exerciseDatabaseLoaded = false;
-            
+
             // Mostrar notificação para o usuário
             this.showMessage(
                 '⚠️ Erro ao carregar base de exercícios atualizada. Usando dados locais.',
                 'warning'
             );
-            
+
             return false;
         }
     },
@@ -979,7 +911,7 @@ applySuggestedConfiguration(suggestion) {
     convertHardcodedToArray() {
         const exerciseArray = [];
         let id = 1;
-        
+
         Object.entries(this.exerciseDatabaseFallback).forEach(([grupo, niveis]) => {
             Object.entries(niveis).forEach(([nivel, exercicios]) => {
                 exercicios.forEach(ex => {
@@ -998,21 +930,21 @@ applySuggestedConfiguration(suggestion) {
                 });
             });
         });
-        
+
         return exerciseArray;
     },
 
     // Mostrar estatísticas da base
     logDatabaseStats() {
         if (this.exerciseDatabase.length === 0) return;
-        
+
         // Contar exercícios por grupo
         const groupStats = {};
         this.exerciseDatabase.forEach(ex => {
             const grupo = ex.grupo || 'Sem grupo';
             groupStats[grupo] = (groupStats[grupo] || 0) + 1;
         });
-        
+
         console.log('📊 Estatísticas da base de exercícios:');
         console.log(`   Total: ${this.exerciseDatabase.length} exercícios`);
         console.log('   Por grupo:');
@@ -1031,8 +963,8 @@ applySuggestedConfiguration(suggestion) {
             // Fallback para base hardcoded
             return this.exerciseDatabaseFallback[grupo]?.[nivel] || [];
         }
-        
-        return this.exerciseDatabase.filter(ex => 
+
+        return this.exerciseDatabase.filter(ex =>
             ex.grupo.toLowerCase() === grupo.toLowerCase() &&
             (ex.nivel?.toLowerCase() === nivel.toLowerCase() || !ex.nivel)
         );
@@ -1045,8 +977,8 @@ applySuggestedConfiguration(suggestion) {
         }
 
         const normalizedName = exerciseName.trim().toLowerCase();
-        
-        return this.exerciseDatabase.find(exercise => 
+
+        return this.exerciseDatabase.find(exercise =>
             exercise.nome.toLowerCase() === normalizedName
         );
     },
@@ -1063,7 +995,7 @@ applySuggestedConfiguration(suggestion) {
                 groups.add(exercise.grupo);
             }
         });
-        
+
         return Array.from(groups).sort();
     },
 
@@ -1086,26 +1018,26 @@ applySuggestedConfiguration(suggestion) {
     populateGroupFilter() {
         const groupFilter = document.getElementById('exerciseGroupFilter');
         if (!groupFilter) return;
-        
+
         console.log('🎯 Populando filtro de grupos...');
-        
+
         // Salvar valor atual
         const currentValue = groupFilter.value;
-        
+
         // Limpar opções (exceto "todos")
         groupFilter.innerHTML = '<option value="todos">📋 Todos os Grupos</option>';
-        
+
         if (this.exerciseDatabaseLoaded && this.exerciseDatabase.length > 0) {
             // Obter grupos únicos da base dinâmica
             const groups = [...new Set(this.exerciseDatabase.map(ex => ex.grupo))].filter(Boolean).sort();
-            
+
             groups.forEach(grupo => {
                 const option = document.createElement('option');
                 option.value = grupo.toLowerCase();
                 option.textContent = `💪 ${this.capitalizeFirstLetter(grupo)}`;
                 groupFilter.appendChild(option);
             });
-            
+
             console.log(`✅ ${groups.length} grupos carregados no filtro`);
         } else {
             // Fallback para base hardcoded
@@ -1117,7 +1049,7 @@ applySuggestedConfiguration(suggestion) {
                 groupFilter.appendChild(option);
             });
         }
-        
+
         // Adicionar opção de carregamento se necessário
         if (!this.exerciseDatabaseLoaded) {
             const loadingOption = document.createElement('option');
@@ -1126,7 +1058,7 @@ applySuggestedConfiguration(suggestion) {
             loadingOption.textContent = '⏳ Carregando grupos...';
             groupFilter.appendChild(loadingOption);
         }
-        
+
         // Restaurar valor se ainda existe
         if (currentValue && currentValue !== '') {
             const optionExists = Array.from(groupFilter.options).some(opt => opt.value === currentValue);
@@ -1140,9 +1072,9 @@ applySuggestedConfiguration(suggestion) {
     filterExercisesByGroup() {
         const groupFilter = document.getElementById('exerciseGroupFilter');
         const selectedGroup = groupFilter ? groupFilter.value : 'todos';
-        
+
         console.log(`🔍 Filtrando exercícios por grupo: ${selectedGroup}`);
-        
+
         // Atualizar select de exercícios baseado no filtro
         this.populateExerciseSelect(selectedGroup);
     },
@@ -1151,37 +1083,37 @@ applySuggestedConfiguration(suggestion) {
     populateExerciseSelect(filterGroup = 'todos') {
         const exerciseSelect = document.getElementById('exerciseName');
         if (!exerciseSelect) return;
-        
+
         console.log(`🔄 Populando select de exercícios (filtro: ${filterGroup})...`);
 
         // NOVO: Suporte ao modo contextual
         if (filterGroup === 'contextual') {
             exercisesToShow = this.getExercisesForContextualFilter();
-            }
+        }
 
-        
+
         // Salvar opção custom e valor atual
         const currentValue = exerciseSelect.value;
-        
+
         // Limpar todas as opções
         exerciseSelect.innerHTML = '';
-        
+
         // Recriar opção custom
         const newCustomOption = document.createElement('option');
         newCustomOption.value = 'custom';
         newCustomOption.textContent = '✏️ Exercício Personalizado';
         exerciseSelect.appendChild(newCustomOption);
-        
+
         if (this.exerciseDatabaseLoaded && this.exerciseDatabase.length > 0) {
             // Filtrar exercícios baseado no grupo selecionado
             let exercisesToShow = this.exerciseDatabase;
-            
+
             if (filterGroup && filterGroup !== 'todos') {
-                exercisesToShow = this.exerciseDatabase.filter(ex => 
+                exercisesToShow = this.exerciseDatabase.filter(ex =>
                     ex.grupo && ex.grupo.toLowerCase() === filterGroup.toLowerCase()
                 );
             }
-            
+
             if (filterGroup === 'todos') {
                 // Mostrar agrupado quando "todos" estiver selecionado
                 const groupedExercises = {};
@@ -1192,90 +1124,90 @@ applySuggestedConfiguration(suggestion) {
                     }
                     groupedExercises[grupo].push(ex);
                 });
-                
+
                 // Ordenar grupos
                 const sortedGroups = Object.keys(groupedExercises).sort();
-                
+
                 sortedGroups.forEach(grupo => {
                     const optgroup = document.createElement('optgroup');
                     optgroup.label = this.capitalizeFirstLetter(grupo);
-                    
-                    const exercicios = groupedExercises[grupo].sort((a, b) => 
+
+                    const exercicios = groupedExercises[grupo].sort((a, b) =>
                         a.nome.localeCompare(b.nome, 'pt-BR')
                     );
-                    
+
                     exercicios.forEach(ex => {
                         const option = document.createElement('option');
                         option.value = ex.nome;
                         option.textContent = ex.nome;
-                        
+
                         if (ex.nivel) {
                             option.textContent += ` (${ex.nivel})`;
                         }
-                        
+
                         optgroup.appendChild(option);
                     });
-                    
+
                     exerciseSelect.appendChild(optgroup);
                 });
             } else {
                 // Mostrar apenas exercícios do grupo selecionado (sem agrupamento)
-                const sortedExercises = exercisesToShow.sort((a, b) => 
+                const sortedExercises = exercisesToShow.sort((a, b) =>
                     a.nome.localeCompare(b.nome, 'pt-BR')
                 );
-                
+
                 sortedExercises.forEach(ex => {
                     const option = document.createElement('option');
                     option.value = ex.nome;
                     option.textContent = ex.nome;
-                    
+
                     if (ex.nivel) {
                         option.textContent += ` (${ex.nivel})`;
                     }
-                    
+
                     exerciseSelect.appendChild(option);
                 });
             }
-   // NOVO: Indicador contextual nos optgroups
-if (filterGroup === 'contextual') {
-    // Adicionar 🎯 aos labels dos optgroups
-    const optgroups = exerciseSelect.querySelectorAll('optgroup');
-    optgroups.forEach(optgroup => {
-        if (!optgroup.label.includes('🎯')) {
-            optgroup.label += ' 🎯';
-        }
-    });
-}         
+            // NOVO: Indicador contextual nos optgroups
+            if (filterGroup === 'contextual') {
+                // Adicionar 🎯 aos labels dos optgroups
+                const optgroups = exerciseSelect.querySelectorAll('optgroup');
+                optgroups.forEach(optgroup => {
+                    if (!optgroup.label.includes('🎯')) {
+                        optgroup.label += ' 🎯';
+                    }
+                });
+            }
             console.log(`✅ ${exercisesToShow.length} exercícios carregados (filtro: ${filterGroup})`);
-            
+
         } else {
             console.warn('⚠️ Base dinâmica não disponível, usando fallback hardcoded');
-            
+
             // Fallback para base hardcoded com filtro
             if (filterGroup === 'todos') {
                 // Mostrar todos os grupos
                 Object.entries(this.exerciseDatabaseFallback || {}).forEach(([grupo, niveis]) => {
                     const optgroup = document.createElement('optgroup');
                     optgroup.label = this.capitalizeFirstLetter(grupo);
-                    
+
                     const allExercises = [];
                     Object.values(niveis).forEach(exercicios => {
                         allExercises.push(...exercicios);
                     });
-                    
-                    const uniqueExercises = allExercises.filter((ex, index, arr) => 
+
+                    const uniqueExercises = allExercises.filter((ex, index, arr) =>
                         arr.findIndex(item => item.nome === ex.nome) === index
                     );
-                    
+
                     uniqueExercises.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-                    
+
                     uniqueExercises.forEach(ex => {
                         const option = document.createElement('option');
                         option.value = ex.nome;
                         option.textContent = ex.nome;
                         optgroup.appendChild(option);
                     });
-                    
+
                     exerciseSelect.appendChild(optgroup);
                 });
             } else {
@@ -1286,13 +1218,13 @@ if (filterGroup === 'contextual') {
                     Object.values(groupData).forEach(exercicios => {
                         allExercises.push(...exercicios);
                     });
-                    
-                    const uniqueExercises = allExercises.filter((ex, index, arr) => 
+
+                    const uniqueExercises = allExercises.filter((ex, index, arr) =>
                         arr.findIndex(item => item.nome === ex.nome) === index
                     );
-                    
+
                     uniqueExercises.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-                    
+
                     uniqueExercises.forEach(ex => {
                         const option = document.createElement('option');
                         option.value = ex.nome;
@@ -1302,7 +1234,7 @@ if (filterGroup === 'contextual') {
                 }
             }
         }
-        
+
         // Adicionar opção de carregamento se necessário
         if (!this.exerciseDatabaseLoaded) {
             const loadingOption = document.createElement('option');
@@ -1311,7 +1243,7 @@ if (filterGroup === 'contextual') {
             loadingOption.textContent = '⏳ Aguardando carregamento da base...';
             exerciseSelect.appendChild(loadingOption);
         }
-        
+
         // Restaurar valor anterior se ainda existe
         if (currentValue && currentValue !== '') {
             const optionExists = Array.from(exerciseSelect.options).some(opt => opt.value === currentValue);
@@ -1319,39 +1251,39 @@ if (filterGroup === 'contextual') {
                 exerciseSelect.value = currentValue;
             }
         }
-        
+
         // Atualizar indicador de status
         this.updateExerciseSelectStatus(filterGroup);
-   
+
     },
 
 
     getExercisesForContextualFilter() {
         if (this.currentWorkoutIndex === null) return this.exerciseDatabase;
-        
+
         const workout = this.currentPlan.treinos[this.currentWorkoutIndex];
         const configuredGroups = this.getConfiguredGroupsForWorkout(this.currentWorkoutIndex, workout);
-        
+
         if (configuredGroups.length === 0) return this.exerciseDatabase;
-        
+
         const contextualExercises = [];
-        
+
         configuredGroups.forEach(groupId => {
-            const mappedGroup = this.mapCustomGroupToSystemGroup ? 
-                               this.mapCustomGroupToSystemGroup(groupId) : groupId;
-            const groupExercises = this.exerciseDatabase.filter(ex => 
+            const mappedGroup = this.mapCustomGroupToSystemGroup ?
+                this.mapCustomGroupToSystemGroup(groupId) : groupId;
+            const groupExercises = this.exerciseDatabase.filter(ex =>
                 ex.grupo && ex.grupo.toLowerCase() === mappedGroup.toLowerCase()
             );
             contextualExercises.push(...groupExercises);
         });
-        
+
         // Remover duplicatas
-        const uniqueExercises = contextualExercises.filter((ex, index, arr) => 
+        const uniqueExercises = contextualExercises.filter((ex, index, arr) =>
             arr.findIndex(item => item.nome === ex.nome) === index
         );
-        
+
         console.log(`🎯 Filtro contextual: ${uniqueExercises.length} exercícios`);
-        
+
         return uniqueExercises;
     },
 
@@ -1359,22 +1291,22 @@ if (filterGroup === 'contextual') {
     updateExerciseSelectStatus(filterGroup = 'todos') {
         const statusElement = document.getElementById('exerciseSelectStatus');
         const countElement = document.getElementById('exerciseCount');
-        
+
         if (!statusElement || !countElement) return;
-        
+
         if (this.exerciseDatabaseLoaded && this.exerciseDatabase.length > 0) {
             let exerciseCount = this.exerciseDatabase.length;
             let groupCount = this.getAllExerciseGroups().length;
-            
+
             // Calcular contagem filtrada
             if (filterGroup && filterGroup !== 'todos') {
-                const filteredExercises = this.exerciseDatabase.filter(ex => 
+                const filteredExercises = this.exerciseDatabase.filter(ex =>
                     ex.grupo && ex.grupo.toLowerCase() === filterGroup.toLowerCase()
                 );
                 exerciseCount = filteredExercises.length;
                 groupCount = 1;
             }
-            
+
             statusElement.className = 'form-hint success';
             if (filterGroup === 'todos') {
                 countElement.textContent = `✅ ${exerciseCount} exercícios em ${groupCount} grupos`;
@@ -1399,9 +1331,9 @@ if (filterGroup === 'contextual') {
             'quadriceps': 'Quadríceps',
             'panturrilha': 'Panturrilha'
         };
-        
-        return exceptions[string.toLowerCase()] || 
-               string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+
+        return exceptions[string.toLowerCase()] ||
+            string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     },
 
     // =============================================
@@ -1464,14 +1396,14 @@ if (filterGroup === 'contextual') {
 
         // Verificar se API está disponível
         const apiAvailable = await this.checkAPIStatus();
-        
+
         this.sharingState.isSharing = true;
         this.showMessage('Preparando plano para compartilhamento...', 'info');
 
         try {
             // Gerar ID único
             const shareId = this.generateShareId();
-            
+
             // Preparar dados para compartilhamento
             const shareData = {
                 shareId: shareId,
@@ -1571,10 +1503,10 @@ if (filterGroup === 'contextual') {
                         <h3>ID do Plano:</h3>
                         <div class="share-id-code">${shareId}</div>
                         <p class="share-id-subtitle">
-                            ${source === 'server' ? 
-                                '🌐 Armazenado no servidor' : 
-                                '💾 Armazenado localmente'
-                            }
+                            ${source === 'server' ?
+                '🌐 Armazenado no servidor' :
+                '💾 Armazenado localmente'
+            }
                         </p>
                     </div>
                     
@@ -1656,15 +1588,15 @@ if (filterGroup === 'contextual') {
     shareViaWhatsApp(shareId) {
         const planName = this.sharingState.lastSharedPlan?.nome || 'Plano de Treino';
         const studentName = this.sharingState.lastSharedPlan?.aluno?.nome || 'Aluno';
-        
+
         const message = `🏋️ *${planName}*\n\n` +
-                       `Olá ${studentName}! Seu plano de treino está pronto!\n\n` +
-                       `📱 Para importar:\n` +
-                       `1. Abra o JS Fit App (Aluno)\n` +
-                       `2. Clique em "Importar por ID"\n` +
-                       `3. Digite o código: *${shareId}*\n\n` +
-                       `💪 Bons treinos!`;
-        
+            `Olá ${studentName}! Seu plano de treino está pronto!\n\n` +
+            `📱 Para importar:\n` +
+            `1. Abra o JS Fit App (Aluno)\n` +
+            `2. Clique em "Importar por ID"\n` +
+            `3. Digite o código: *${shareId}*\n\n` +
+            `💪 Bons treinos!`;
+
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
     },
@@ -1684,17 +1616,17 @@ if (filterGroup === 'contextual') {
     async renewShareId(oldShareId) {
         const sharedPlans = this.getSharedPlansFromStorage();
         const planData = sharedPlans[oldShareId];
-        
+
         if (!planData) {
             this.showMessage('Plano compartilhado não encontrado', 'error');
             return;
         }
 
         const newShareId = this.generateShareId();
-        
+
         try {
             const apiAvailable = await this.checkAPIStatus();
-            
+
             if (apiAvailable) {
                 const response = await this.makeAPIRequest(
                     `${this.apiConfig.baseUrl}${this.apiConfig.endpoints.shareWorkout}`,
@@ -1716,14 +1648,14 @@ if (filterGroup === 'contextual') {
                 ...planData,
                 sharedAt: new Date().toISOString()
             };
-            
+
             delete sharedPlans[oldShareId];
-            
+
             localStorage.setItem('jsfitapp_shared_plans', JSON.stringify(sharedPlans));
-            
+
             this.showMessage(`✅ Novo ID gerado: ${newShareId}`, 'success');
             this.showShareSuccessModal(newShareId, apiAvailable ? 'server' : 'local');
-            
+
         } catch (error) {
             console.error('Erro ao renovar compartilhamento:', error);
             this.showMessage('Erro ao renovar compartilhamento', 'error');
@@ -1736,23 +1668,23 @@ if (filterGroup === 'contextual') {
 
     getTecnicaForExercise(exerciseIndex, nivel, grupo) {
         const tecnicasDisponiveis = this.tecnicasPorNivel[nivel] || this.tecnicasPorNivel.intermediario;
-        
+
         if (exerciseIndex === 0) {
             return Math.random() > 0.7 ? 'pre-exaustao' : 'tempo-controlado';
         } else if (exerciseIndex === 1) {
             return nivel === 'avancado' && Math.random() > 0.5 ? 'rest-pause' : '';
         } else {
-            const tecnicasFinais = tecnicasDisponiveis.filter(t => 
+            const tecnicasFinais = tecnicasDisponiveis.filter(t =>
                 ['pos-exaustao', 'drop-set', 'serie-queima', 'bi-set'].includes(t)
             );
-            return Math.random() > 0.6 ? 
+            return Math.random() > 0.6 ?
                 tecnicasFinais[Math.floor(Math.random() * tecnicasFinais.length)] || '' : '';
         }
     },
 
     getObservacaoEspecial(tecnica, nomeExercicio) {
         if (!tecnica) return '';
-        
+
         const observacoes = {
             'pre-exaustao': `Executar antes do exercício principal para pré-fadigar o músculo`,
             'pos-exaustao': `Exercício final para esgotamento completo do músculo`,
@@ -1768,13 +1700,13 @@ if (filterGroup === 'contextual') {
             'negativas': `Enfatizar fase excêntrica com 4-6 segundos`,
             'clusters': `Dividir série em mini-séries de 3-4 reps com 15s pausa`
         };
-        
+
         return observacoes[tecnica] || '';
     },
 
     getTecnicasAplicadasFromPlan(treinos) {
         const tecnicasUsadas = new Set();
-        
+
         treinos.forEach(treino => {
             if (treino.exercicios) {
                 treino.exercicios.forEach(ex => {
@@ -1784,25 +1716,25 @@ if (filterGroup === 'contextual') {
                 });
             }
         });
-        
+
         const tecnicasAplicadas = {};
         tecnicasUsadas.forEach(tecnica => {
             tecnicasAplicadas[tecnica] = this.tecnicasDatabase[tecnica];
         });
-        
+
         return tecnicasAplicadas;
     },
 
     getUsedTechniques(nivel) {
         const tecnicasUsadas = {};
         const tecnicasDisponiveis = this.tecnicasPorNivel[nivel] || this.tecnicasPorNivel.intermediario;
-        
+
         tecnicasDisponiveis.forEach(tecnica => {
             if (this.tecnicasDatabase[tecnica]) {
                 tecnicasUsadas[tecnica] = this.tecnicasDatabase[tecnica];
             }
         });
-        
+
         return tecnicasUsadas;
     },
 
@@ -1814,17 +1746,9 @@ if (filterGroup === 'contextual') {
         document.getElementById('aiPlanCreator').style.display = 'block';
         document.getElementById('planCreator').style.display = 'none';
         document.getElementById('planList').style.display = 'none';
-        
-        const form = document.getElementById('aiPlanCreator');
-        const inputs = form.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            if (input.type !== 'number') {
-                input.value = '';
-            }
-        });
-        
-        document.getElementById('aiAvailableDays').value = '3';
-        document.getElementById('aiSessionTime').value = '60';
+        document.getElementById('planDetails').style.display = 'none'; // NOVA LINHA
+
+        // ... resto da função permanece igual
     },
 
     calculateAge(birthDate) {
@@ -1832,614 +1756,633 @@ if (filterGroup === 'contextual') {
         const birth = new Date(birthDate);
         let age = today.getFullYear() - birth.getFullYear();
         const monthDiff = today.getMonth() - birth.getMonth();
-        
+
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
             age--;
         }
-        
+
         return age;
     },
 
-// SUBSTITUIR a função enerateAIPlan() existente por esta versão atualizada:
+    // SUBSTITUIR a função enerateAIPlan() existente por esta versão atualizada:
 
-generateAIPlan() {
-    const aiData = {
-        nome: document.getElementById('aiStudentName').value,
-        dataNascimento: document.getElementById('aiStudentBirthDate').value,
-        cpf: document.getElementById('aiStudentCpf').value,
-        altura: document.getElementById('aiStudentHeight').value || '1,75m',
-        peso: document.getElementById('aiStudentWeight').value || '75kg',
-        objetivo: document.getElementById('aiPlanObjective').value,
-        nivel: document.getElementById('aiExperienceLevel').value,
-        dias: parseInt(document.getElementById('aiAvailableDays').value),
-        tempo: parseInt(document.getElementById('aiSessionTime').value),
-        equipamentos: document.getElementById('aiEquipment').value,
-        foco: document.getElementById('aiMusclePreference').value,
-        limitacoes: document.getElementById('aiLimitations').value,
-        observacoes: document.getElementById('aiSpecialNotes').value
-    };
+    generateAIPlan() {
+        const aiData = {
+            nome: document.getElementById('aiStudentName').value,
+            dataNascimento: document.getElementById('aiStudentBirthDate').value,
+            cpf: document.getElementById('aiStudentCpf').value,
+            altura: document.getElementById('aiStudentHeight').value || '1,75m',
+            peso: document.getElementById('aiStudentWeight').value || '75kg',
+            objetivo: document.getElementById('aiPlanObjective').value,
+            nivel: document.getElementById('aiExperienceLevel').value,
+            dias: parseInt(document.getElementById('aiAvailableDays').value),
+            tempo: parseInt(document.getElementById('aiSessionTime').value),
+            equipamentos: document.getElementById('aiEquipment').value,
+            foco: document.getElementById('aiMusclePreference').value,
+            limitacoes: document.getElementById('aiLimitations').value,
+            observacoes: document.getElementById('aiSpecialNotes').value
+        };
 
-    aiData.idade = aiData.dataNascimento ? this.calculateAge(aiData.dataNascimento) : 25;
+        aiData.idade = aiData.dataNascimento ? this.calculateAge(aiData.dataNascimento) : 25;
 
-    if (!aiData.nome) {
-        this.showMessage('Por favor, preencha o nome do aluno', 'error');
-        return;
-    }
-
-    // NOVA VALIDAÇÃO: Verificar se configuração personalizada está habilitada
-    if (this.aiMuscleConfig.enabled) {
-        if (!this.validateAICompleteConfig()) {
-            return; // Interrompe se configuração inválida
+        if (!aiData.nome) {
+            this.showMessage('Por favor, preencha o nome do aluno', 'error');
+            return;
         }
-        
-        console.log('🎯 Usando configuração personalizada de músculos na IA');
-        
-        // Aplicar configuração personalizada ao sistema
-        this.planTypeConfiguration.days = aiData.dias;
-        this.planTypeConfiguration.configuration = { ...this.aiMuscleConfig.workouts };
-        this.savePlanTypeConfiguration();
-        
-    } else {
-        // Lógica original: usar configuração padrão baseada no número de dias
-        const hasCustomConfig = this.planTypeConfiguration.days === aiData.dias && 
-                               Object.keys(this.planTypeConfiguration.configuration).length > 0;
 
-        if (!hasCustomConfig) {
-            console.log(`📋 Criando configuração padrão para ${aiData.dias} dias`);
+        // NOVA VALIDAÇÃO: Verificar se configuração personalizada está habilitada
+        if (this.aiMuscleConfig.enabled) {
+            if (!this.validateAICompleteConfig()) {
+                return; // Interrompe se configuração inválida
+            }
+
+            console.log('🎯 Usando configuração personalizada de músculos na IA');
+
+            // Aplicar configuração personalizada ao sistema
             this.planTypeConfiguration.days = aiData.dias;
-            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[aiData.dias] || {};
+            this.planTypeConfiguration.configuration = { ...this.aiMuscleConfig.workouts };
             this.savePlanTypeConfiguration();
-        }
-    }
 
-    // Mostrar indicador de progresso
-    const indicator = document.getElementById('generatingIndicator');
-    const progressFill = document.getElementById('progressFill');
-    indicator.classList.add('active');
+        } else {
+            // Lógica original: usar configuração padrão baseada no número de dias
+            const hasCustomConfig = this.planTypeConfiguration.days === aiData.dias &&
+                Object.keys(this.planTypeConfiguration.configuration).length > 0;
 
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 90) progress = 90;
-        progressFill.style.width = progress + '%';
-    }, 200);
-
-    // Simular processamento da IA
-    setTimeout(() => {
-        clearInterval(progressInterval);
-        progressFill.style.width = '100%';
-
-        try {
-            const aiGeneratedPlan = this.createAIPlanWithCustomConfig(aiData);
-            
-            // Adicionar informação sobre configuração personalizada usada
-            if (this.aiMuscleConfig.enabled) {
-                aiGeneratedPlan.configuracao_personalizada_ia = {
-                    habilitada: true,
-                    configuracao_aplicada: { ...this.aiMuscleConfig.workouts },
-                    gerado_em: new Date().toISOString()
-                };
+            if (!hasCustomConfig) {
+                console.log(`📋 Criando configuração padrão para ${aiData.dias} dias`);
+                this.planTypeConfiguration.days = aiData.dias;
+                this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[aiData.dias] || {};
+                this.savePlanTypeConfiguration();
             }
-            
-            const existingIndex = this.savedPlans.findIndex(p => p.id === aiGeneratedPlan.id);
-            if (existingIndex >= 0) {
-                this.savedPlans[existingIndex] = { ...aiGeneratedPlan };
-            } else {
-                this.savedPlans.push({ ...aiGeneratedPlan });
-            }
-
-            this.savePlansToStorage();
-            
-            indicator.classList.remove('active');
-            
-            // Resetar configuração temporária se foi usada
-            if (this.aiMuscleConfig.enabled) {
-                this.resetAIMuscleConfigAfterGeneration();
-            }
-            
-            this.showMessage('Plano gerado com sucesso pela IA! ✨', 'success');
-            
-            setTimeout(() => {
-                this.showPlanList();
-            }, 1500);
-
-        } catch (error) {
-            console.error('Erro ao gerar plano:', error);
-            indicator.classList.remove('active');
-            this.showMessage('Erro ao gerar plano. Tente novamente.', 'error');
         }
 
-    }, 2000 + Math.random() * 2000);
-},
+        // Mostrar indicador de progresso
+        const indicator = document.getElementById('generatingIndicator');
+        const progressFill = document.getElementById('progressFill');
+        indicator.classList.add('active');
 
-// Resetar configuração de músculos após geração
-resetAIMuscleConfigAfterGeneration() {
-    const checkbox = document.getElementById('aiUseCustomMuscleConfig');
-    const section = document.getElementById('aiMuscleConfigSection');
-    
-    if (checkbox) checkbox.checked = false;
-    if (section) {
-        section.style.display = 'none';
-        section.classList.remove('active');
-    }
-    
-    this.aiMuscleConfig.enabled = false;
-    this.aiMuscleConfig.workouts = {};
-    
-    console.log('🔄 Configuração de músculos IA resetada após geração');
-},
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressFill.style.width = progress + '%';
+        }, 200);
 
+        // Simular processamento da IA
+        setTimeout(() => {
+            clearInterval(progressInterval);
+            progressFill.style.width = '100%';
 
-// Adicionar na função setupEventListeners() existente:
+            try {
+                const aiGeneratedPlan = this.createAIPlanWithCustomConfig(aiData);
 
-setupEventListeners() {
-    // ... código existente ...
-
-    // NOVO: Event listener para mudança no número de dias na IA
-    const aiAvailableDays = document.getElementById('aiAvailableDays');
-    if (aiAvailableDays) {
-        aiAvailableDays.addEventListener('change', () => {
-            if (this.aiMuscleConfig.enabled) {
-                console.log('🔄 Número de dias alterado, regenerando interface...');
-                this.generateAIMuscleConfigInterface();
-            }
-        });
-    }
-
-    // NOVO: Event listener para mostrar/ocultar seção IA quando voltar à tela
-    const aiPlanCreator = document.getElementById('aiPlanCreator');
-    if (aiPlanCreator) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    if (aiPlanCreator.style.display === 'block') {
-                        // Resetar estado quando voltar à tela IA
-                        this.resetAIMuscleConfigState();
-                    }
+                // Adicionar informação sobre configuração personalizada usada
+                if (this.aiMuscleConfig.enabled) {
+                    aiGeneratedPlan.configuracao_personalizada_ia = {
+                        habilitada: true,
+                        configuracao_aplicada: { ...this.aiMuscleConfig.workouts },
+                        gerado_em: new Date().toISOString()
+                    };
                 }
-            });
-        });
-        observer.observe(aiPlanCreator, { attributes: true });
-    }
 
-    // ... resto do código existente ...
-},
+                const existingIndex = this.savedPlans.findIndex(p => p.id === aiGeneratedPlan.id);
+                if (existingIndex >= 0) {
+                    this.savedPlans[existingIndex] = { ...aiGeneratedPlan };
+                } else {
+                    this.savedPlans.push({ ...aiGeneratedPlan });
+                }
 
-// Resetar estado da configuração de músculos
-resetAIMuscleConfigState() {
-    const checkbox = document.getElementById('aiUseCustomMuscleConfig');
-    const section = document.getElementById('aiMuscleConfigSection');
-    
-    if (checkbox && !checkbox.checked) {
-        this.aiMuscleConfig.enabled = false;
-        this.aiMuscleConfig.workouts = {};
-        
+                this.savePlansToStorage();
+
+                indicator.classList.remove('active');
+
+                // Resetar configuração temporária se foi usada
+                if (this.aiMuscleConfig.enabled) {
+                    this.resetAIMuscleConfigAfterGeneration();
+                }
+
+                this.showMessage('Plano gerado com sucesso pela IA! ✨', 'success');
+
+                setTimeout(() => {
+                    this.showPlanList();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Erro ao gerar plano:', error);
+                indicator.classList.remove('active');
+                this.showMessage('Erro ao gerar plano. Tente novamente.', 'error');
+            }
+
+        }, 2000 + Math.random() * 2000);
+    },
+
+    // Resetar configuração de músculos após geração
+    resetAIMuscleConfigAfterGeneration() {
+        const checkbox = document.getElementById('aiUseCustomMuscleConfig');
+        const section = document.getElementById('aiMuscleConfigSection');
+
+        if (checkbox) checkbox.checked = false;
         if (section) {
             section.style.display = 'none';
             section.classList.remove('active');
         }
-    }
-},
+
+        this.aiMuscleConfig.enabled = false;
+        this.aiMuscleConfig.workouts = {};
+
+        console.log('🔄 Configuração de músculos IA resetada após geração');
+    },
+
+    // 2.  closeAllModals()
+    closeAllModals() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => modal.classList.remove('active'));
+
+        // Fechar editor inline se estiver aberto
+        this.closeInlineEditor();
+    },
+
+
+    // 1.  setupEventListeners() completo
+    setupEventListeners() {
+        // Close modal when clicking outside (apenas para outros modais)
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeAllModals();
+            }
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                this.savePlan();
+            }
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                this.showPlanCreator();
+            }
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                this.showAIPlanCreator();
+            }
+        });
+
+        // NOVO: Event listener para mudança no número de dias na IA
+        const aiAvailableDays = document.getElementById('aiAvailableDays');
+        if (aiAvailableDays) {
+            aiAvailableDays.addEventListener('change', () => {
+                if (this.aiMuscleConfig.enabled) {
+                    console.log('🔄 Número de dias alterado, regenerando interface...');
+                    this.generateAIMuscleConfigInterface();
+                }
+            });
+        }
+
+        // REMOVIDO: Observer para exerciseModal (não existe mais)
+    },
+
+    // Resetar estado da configuração de músculos
+    resetAIMuscleConfigState() {
+        const checkbox = document.getElementById('aiUseCustomMuscleConfig');
+        const section = document.getElementById('aiMuscleConfigSection');
+
+        if (checkbox && !checkbox.checked) {
+            this.aiMuscleConfig.enabled = false;
+            this.aiMuscleConfig.workouts = {};
+
+            if (section) {
+                section.style.display = 'none';
+                section.classList.remove('active');
+            }
+        }
+    },
 
     // =============================================
-// NOVA FUNÇÃO: createAIPlanWithCustomConfig
-// Cria plano com integração completa ao sistema de configuração
-// =============================================
+    // NOVA FUNÇÃO: createAIPlanWithCustomConfig
+    // Cria plano com integração completa ao sistema de configuração
+    // =============================================
 
-createAIPlanWithCustomConfig(aiData) {
-    const plan = {
-        id: Date.now(),
-        nome: `${aiData.nome} - Treino ${this.getWorkoutLetters(aiData.dias)} (${aiData.nivel.charAt(0).toUpperCase() + aiData.nivel.slice(1)}) ${aiData.objetivo.split(' ')[0]}`,
-        aluno: {
-            nome: aiData.nome,
-            dataNascimento: aiData.dataNascimento,
-            cpf: aiData.cpf,
-            idade: aiData.idade,
-            altura: aiData.altura,
-            peso: aiData.peso
-        },
-        dias: aiData.dias,
-        dataInicio: new Date().toISOString().split('T')[0],
-        dataFim: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        perfil: {
-            idade: aiData.idade,
-            altura: aiData.altura,
-            peso: aiData.peso,
-            porte: this.calculateBodyType(aiData.altura, aiData.peso),
-            objetivo: aiData.objetivo
-        },
-        treinos: this.generateAIWorkoutsWithCustomConfig(aiData),
-        observacoes: this.generateObservations(aiData),
-        tecnicas_aplicadas: this.getUsedTechniques(aiData.nivel),
-        // NOVO: Salvar configuração utilizada
-        configuracao_utilizada: {
-            ...this.planTypeConfiguration.configuration,
+    createAIPlanWithCustomConfig(aiData) {
+        const plan = {
+            id: Date.now(),
+            nome: `${aiData.nome} - Treino ${this.getWorkoutLetters(aiData.dias)} (${aiData.nivel.charAt(0).toUpperCase() + aiData.nivel.slice(1)}) ${aiData.objetivo.split(' ')[0]}`,
+            aluno: {
+                nome: aiData.nome,
+                dataNascimento: aiData.dataNascimento,
+                cpf: aiData.cpf,
+                idade: aiData.idade,
+                altura: aiData.altura,
+                peso: aiData.peso
+            },
             dias: aiData.dias,
-            gerado_em: new Date().toISOString()
-        }
-    };
+            dataInicio: new Date().toISOString().split('T')[0],
+            dataFim: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            perfil: {
+                idade: aiData.idade,
+                altura: aiData.altura,
+                peso: aiData.peso,
+                porte: this.calculateBodyType(aiData.altura, aiData.peso),
+                objetivo: aiData.objetivo
+            },
+            treinos: this.generateAIWorkoutsWithCustomConfig(aiData),
+            observacoes: this.generateObservations(aiData),
+            tecnicas_aplicadas: this.getUsedTechniques(aiData.nivel),
+            // NOVO: Salvar configuração utilizada
+            configuracao_utilizada: {
+                ...this.planTypeConfiguration.configuration,
+                dias: aiData.dias,
+                gerado_em: new Date().toISOString()
+            }
+        };
 
-    return plan;
-},
+        return plan;
+    },
 
-// =============================================
-// NOVA FUNÇÃO: createAIPlanWithCustomConfig
-// Cria plano com integração completa ao sistema de configuração
-// =============================================
+    // =============================================
+    // NOVA FUNÇÃO: createAIPlanWithCustomConfig
+    // Cria plano com integração completa ao sistema de configuração
+    // =============================================
 
-createAIPlanWithCustomConfig(aiData) {
-    const plan = {
-        id: Date.now(),
-        nome: `${aiData.nome} - Treino ${this.getWorkoutLetters(aiData.dias)} (${aiData.nivel.charAt(0).toUpperCase() + aiData.nivel.slice(1)}) ${aiData.objetivo.split(' ')[0]}`,
-        aluno: {
-            nome: aiData.nome,
-            dataNascimento: aiData.dataNascimento,
-            cpf: aiData.cpf,
-            idade: aiData.idade,
-            altura: aiData.altura,
-            peso: aiData.peso
-        },
-        dias: aiData.dias,
-        dataInicio: new Date().toISOString().split('T')[0],
-        dataFim: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        perfil: {
-            idade: aiData.idade,
-            altura: aiData.altura,
-            peso: aiData.peso,
-            porte: this.calculateBodyType(aiData.altura, aiData.peso),
-            objetivo: aiData.objetivo
-        },
-        treinos: this.generateAIWorkoutsWithCustomConfig(aiData),
-        observacoes: this.generateObservations(aiData),
-        tecnicas_aplicadas: this.getUsedTechniques(aiData.nivel),
-        // NOVO: Salvar configuração utilizada
-        configuracao_utilizada: {
-            ...this.planTypeConfiguration.configuration,
+    createAIPlanWithCustomConfig(aiData) {
+        const plan = {
+            id: Date.now(),
+            nome: `${aiData.nome} - Treino ${this.getWorkoutLetters(aiData.dias)} (${aiData.nivel.charAt(0).toUpperCase() + aiData.nivel.slice(1)}) ${aiData.objetivo.split(' ')[0]}`,
+            aluno: {
+                nome: aiData.nome,
+                dataNascimento: aiData.dataNascimento,
+                cpf: aiData.cpf,
+                idade: aiData.idade,
+                altura: aiData.altura,
+                peso: aiData.peso
+            },
             dias: aiData.dias,
-            gerado_em: new Date().toISOString()
-        }
-    };
+            dataInicio: new Date().toISOString().split('T')[0],
+            dataFim: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            perfil: {
+                idade: aiData.idade,
+                altura: aiData.altura,
+                peso: aiData.peso,
+                porte: this.calculateBodyType(aiData.altura, aiData.peso),
+                objetivo: aiData.objetivo
+            },
+            treinos: this.generateAIWorkoutsWithCustomConfig(aiData),
+            observacoes: this.generateObservations(aiData),
+            tecnicas_aplicadas: this.getUsedTechniques(aiData.nivel),
+            // NOVO: Salvar configuração utilizada
+            configuracao_utilizada: {
+                ...this.planTypeConfiguration.configuration,
+                dias: aiData.dias,
+                gerado_em: new Date().toISOString()
+            }
+        };
 
-    return plan;
-},
+        return plan;
+    },
 
-// =============================================
-// FUNÇÃO ATUALIZADA: generateAIWorkoutsWithCustomConfig
-// Gera treinos baseado na configuração personalizada
-// =============================================
+    // =============================================
+    // FUNÇÃO ATUALIZADA: generateAIWorkoutsWithCustomConfig
+    // Gera treinos baseado na configuração personalizada
+    // =============================================
 
-generateAIWorkoutsWithCustomConfig(aiData) {
-    const workouts = [];
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const config = this.planTypeConfiguration.configuration;
-    
-    console.log(`🎯 Gerando treinos IA com configuração personalizada para ${aiData.dias} dias`);
-    console.log('📋 Configuração utilizada:', config);
+    generateAIWorkoutsWithCustomConfig(aiData) {
+        const workouts = [];
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const config = this.planTypeConfiguration.configuration;
 
-    // Iterar sobre cada dia configurado
-    for (let i = 0; i < aiData.dias; i++) {
-        const letter = letters[i];
-        const workoutConfig = config[letter];
-        
-        if (!workoutConfig) {
-            console.warn(`⚠️ Configuração não encontrada para treino ${letter}`);
-            continue;
-        }
+        console.log(`🎯 Gerando treinos IA com configuração personalizada para ${aiData.dias} dias`);
+        console.log('📋 Configuração utilizada:', config);
 
-        console.log(`🏋️ Criando treino ${letter}: ${workoutConfig.name}`);
-        console.log(`💪 Grupos musculares: ${workoutConfig.groups.join(', ')}`);
+        // Iterar sobre cada dia configurado
+        for (let i = 0; i < aiData.dias; i++) {
+            const letter = letters[i];
+            const workoutConfig = config[letter];
 
-        const exercises = this.generateExercisesForAIWithCustomGroups(
-            workoutConfig.groups,
-            aiData.nivel,
-            aiData.objetivo,
-            aiData.equipamentos,
-            aiData.foco,
-            aiData.limitacoes,
-            i + 1
-        );
+            if (!workoutConfig) {
+                console.warn(`⚠️ Configuração não encontrada para treino ${letter}`);
+                continue;
+            }
 
-        workouts.push({
-            id: letter,
-            nome: workoutConfig.name,
-            foco: this.generateWorkoutFocusFromGroups(workoutConfig.groups),
-            exercicios: exercises,
-            gruposMusculares: workoutConfig.groups, // Manter referência dos grupos
-            configuracao_original: workoutConfig, // Para referência futura
-            concluido: false,
-            execucoes: 0
-        });
-    }
+            console.log(`🏋️ Criando treino ${letter}: ${workoutConfig.name}`);
+            console.log(`💪 Grupos musculares: ${workoutConfig.groups.join(', ')}`);
 
-    console.log(`✅ ${workouts.length} treinos gerados com sucesso`);
-    return workouts;
-},
-
-// =============================================
-// NOVA FUNÇÃO: generateExercisesForAIWithCustomGroups
-// Gera exercícios inteligentes baseados nos grupos personalizados
-// =============================================
-
-generateExercisesForAIWithCustomGroups(customGroups, nivel, objetivo, equipamentos, foco, limitacoes, workoutNumber) {
-    const exercises = [];
-    let exerciseId = workoutNumber * 10;
-
-    console.log(`🎯 Gerando exercícios para grupos: ${customGroups.join(', ')}`);
-
-    // 1. AQUECIMENTO ESPECÍFICO
-    exercises.push({
-        id: exerciseId++,
-        nome: this.getSmartWarmupForGroups(customGroups, equipamentos),
-        descricao: this.getWarmupDescriptionForGroups(customGroups),
-        series: 1,
-        repeticoes: "8-10 min",
-        carga: this.getWarmupIntensity(),
-        descanso: '0',
-        observacoesEspeciais: 'Aquecimento progressivo e específico',
-        tecnica: '',
-        concluido: false,
-        categoria: 'aquecimento'
-    });
-
-    // 2. EXERCÍCIOS PRINCIPAIS POR GRUPO
-    const exerciseDistribution = this.calculateExerciseDistribution(customGroups, objetivo, foco);
-    
-    customGroups.forEach((grupoId, index) => {
-        const mappedGroup = this.mapCustomGroupToSystemGroup(grupoId);
-        const numExercises = exerciseDistribution[grupoId] || 2;
-        
-        console.log(`💪 Adicionando ${numExercises} exercícios para ${grupoId} (${mappedGroup})`);
-        
-        // Obter exercícios do grupo
-        const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, nivel);
-        
-        if (groupExercises.length > 0) {
-            // Selecionar exercícios de forma inteligente
-            const selectedExercises = this.selectSmartExercises(
-                groupExercises, 
-                numExercises, 
-                objetivo, 
-                equipamentos,
-                limitacoes,
-                index === 0 // Primeiro grupo = exercício principal
+            const exercises = this.generateExercisesForAIWithCustomGroups(
+                workoutConfig.groups,
+                aiData.nivel,
+                aiData.objetivo,
+                aiData.equipamentos,
+                aiData.foco,
+                aiData.limitacoes,
+                i + 1
             );
 
-            selectedExercises.forEach((baseExercise, exIndex) => {
-                const tecnicaSelecionada = this.getTecnicaForExercise(
-                    exercises.length - 1, // Posição atual na sequência
-                    nivel, 
-                    mappedGroup
-                );
-                
-                exercises.push({
-                    id: exerciseId++,
-                    nome: baseExercise.nome,
-                    descricao: this.findExerciseByName(baseExercise.nome) || 'Descrição não disponível',
-                    series: this.getSmartSeries(baseExercise, objetivo, nivel, exIndex === 0),
-                    repeticoes: this.getSmartReps(baseExercise, objetivo, nivel),
-                    carga: this.adjustLoadForLevel(baseExercise.carga || 'A definir', nivel),
-                    descanso: this.getSmartRest(objetivo, tecnicaSelecionada),
-                    observacoesEspeciais: this.getObservacaoEspecial(tecnicaSelecionada, baseExercise.nome),
-                    tecnica: tecnicaSelecionada,
-                    concluido: false,
-                    grupo_muscular: grupoId,
-                    categoria: exIndex === 0 ? 'principal' : 'auxiliar'
-                });
-            });
-        } else {
-            console.warn(`⚠️ Nenhum exercício encontrado para grupo ${mappedGroup}`);
-            
-            // Exercício fallback
-            exercises.push({
-                id: exerciseId++,
-                nome: this.getFallbackExercise(grupoId),
-                descricao: `Exercício básico para ${grupoId}`,
-                series: 3,
-                repeticoes: '10-12',
-                carga: 'A definir',
-                descanso: this.getRestByObjective(objetivo),
-                observacoesEspeciais: 'Exercício substituto - ajustar conforme necessário',
-                tecnica: '',
+            workouts.push({
+                id: letter,
+                nome: workoutConfig.name,
+                foco: this.generateWorkoutFocusFromGroups(workoutConfig.groups),
+                exercicios: exercises,
+                gruposMusculares: workoutConfig.groups, // Manter referência dos grupos
+                configuracao_original: workoutConfig, // Para referência futura
                 concluido: false,
-                grupo_muscular: grupoId,
-                categoria: 'substituto'
+                execucoes: 0
             });
         }
-    });
 
-    // 3. ALONGAMENTO ESPECÍFICO
-    if (exercises.length > 1) {
+        console.log(`✅ ${workouts.length} treinos gerados com sucesso`);
+        return workouts;
+    },
+
+    // =============================================
+    // NOVA FUNÇÃO: generateExercisesForAIWithCustomGroups
+    // Gera exercícios inteligentes baseados nos grupos personalizados
+    // =============================================
+
+    generateExercisesForAIWithCustomGroups(customGroups, nivel, objetivo, equipamentos, foco, limitacoes, workoutNumber) {
+        const exercises = [];
+        let exerciseId = workoutNumber * 10;
+
+        console.log(`🎯 Gerando exercícios para grupos: ${customGroups.join(', ')}`);
+
+        // 1. AQUECIMENTO ESPECÍFICO
         exercises.push({
             id: exerciseId++,
-            nome: this.getSmartCooldownForGroups(customGroups),
-            descricao: "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+            nome: this.getSmartWarmupForGroups(customGroups, equipamentos),
+            descricao: this.getWarmupDescriptionForGroups(customGroups),
             series: 1,
             repeticoes: "8-10 min",
-            carga: "Peso corporal",
+            carga: this.getWarmupIntensity(),
             descanso: '0',
-            observacoesEspeciais: 'Foco nos grupos trabalhados no treino',
+            observacoesEspeciais: 'Aquecimento progressivo e específico',
             tecnica: '',
             concluido: false,
-            categoria: 'alongamento'
+            categoria: 'aquecimento'
         });
-    }
 
-    console.log(`✅ ${exercises.length} exercícios criados (${exercises.filter(e => e.categoria === 'principal').length} principais)`);
-    return exercises;
-},
+        // 2. EXERCÍCIOS PRINCIPAIS POR GRUPO
+        const exerciseDistribution = this.calculateExerciseDistribution(customGroups, objetivo, foco);
 
-// =============================================
-// FUNÇÕES AUXILIARES INTELIGENTES
-// =============================================
+        customGroups.forEach((grupoId, index) => {
+            const mappedGroup = this.mapCustomGroupToSystemGroup(grupoId);
+            const numExercises = exerciseDistribution[grupoId] || 2;
 
-// Calcular distribuição inteligente de exercícios
-calculateExerciseDistribution(groups, objetivo, foco) {
-    const distribution = {};
-    const totalGroups = groups.length;
-    
-    // Base: 2-4 exercícios por grupo dependendo do total
-    let baseExercises = totalGroups <= 2 ? 4 : totalGroups <= 3 ? 3 : 2;
-    
-    // Ajustar baseado no objetivo
-    if (objetivo.includes('Hipertrofia')) {
-        baseExercises = Math.max(baseExercises, 3);
-    } else if (objetivo.includes('Força')) {
-        baseExercises = Math.max(baseExercises, 2);
-    }
-    
-    groups.forEach(group => {
-        distribution[group] = baseExercises;
-        
-        // Ajustes específicos por foco
-        if (foco === 'superior' && ['peito', 'costas', 'ombro', 'biceps', 'triceps'].includes(group)) {
-            distribution[group] += 1;
-        } else if (foco === 'inferior' && ['perna', 'gluteo'].includes(group)) {
-            distribution[group] += 1;
+            console.log(`💪 Adicionando ${numExercises} exercícios para ${grupoId} (${mappedGroup})`);
+
+            // Obter exercícios do grupo
+            const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, nivel);
+
+            if (groupExercises.length > 0) {
+                // Selecionar exercícios de forma inteligente
+                const selectedExercises = this.selectSmartExercises(
+                    groupExercises,
+                    numExercises,
+                    objetivo,
+                    equipamentos,
+                    limitacoes,
+                    index === 0 // Primeiro grupo = exercício principal
+                );
+
+                selectedExercises.forEach((baseExercise, exIndex) => {
+                    const tecnicaSelecionada = this.getTecnicaForExercise(
+                        exercises.length - 1, // Posição atual na sequência
+                        nivel,
+                        mappedGroup
+                    );
+
+                    exercises.push({
+                        id: exerciseId++,
+                        nome: baseExercise.nome,
+                        descricao: this.findExerciseByName(baseExercise.nome) || 'Descrição não disponível',
+                        series: this.getSmartSeries(baseExercise, objetivo, nivel, exIndex === 0),
+                        repeticoes: this.getSmartReps(baseExercise, objetivo, nivel),
+                        carga: this.adjustLoadForLevel(baseExercise.carga || 'A definir', nivel),
+                        descanso: this.getSmartRest(objetivo, tecnicaSelecionada),
+                        observacoesEspeciais: this.getObservacaoEspecial(tecnicaSelecionada, baseExercise.nome),
+                        tecnica: tecnicaSelecionada,
+                        concluido: false,
+                        grupo_muscular: grupoId,
+                        categoria: exIndex === 0 ? 'principal' : 'auxiliar'
+                    });
+                });
+            } else {
+                console.warn(`⚠️ Nenhum exercício encontrado para grupo ${mappedGroup}`);
+
+                // Exercício fallback
+                exercises.push({
+                    id: exerciseId++,
+                    nome: this.getFallbackExercise(grupoId),
+                    descricao: `Exercício básico para ${grupoId}`,
+                    series: 3,
+                    repeticoes: '10-12',
+                    carga: 'A definir',
+                    descanso: this.getRestByObjective(objetivo),
+                    observacoesEspeciais: 'Exercício substituto - ajustar conforme necessário',
+                    tecnica: '',
+                    concluido: false,
+                    grupo_muscular: grupoId,
+                    categoria: 'substituto'
+                });
+            }
+        });
+
+        // 3. ALONGAMENTO ESPECÍFICO
+        if (exercises.length > 1) {
+            exercises.push({
+                id: exerciseId++,
+                nome: this.getSmartCooldownForGroups(customGroups),
+                descricao: "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+                series: 1,
+                repeticoes: "8-10 min",
+                carga: "Peso corporal",
+                descanso: '0',
+                observacoesEspeciais: 'Foco nos grupos trabalhados no treino',
+                tecnica: '',
+                concluido: false,
+                categoria: 'alongamento'
+            });
         }
-        
-        // Grupos grandes merecem mais exercícios
-        if (['peito', 'costas', 'perna'].includes(group)) {
-            distribution[group] = Math.max(distribution[group], 3);
-        }
-    });
-    
-    return distribution;
-},
 
-// Seleção inteligente de exercícios
-selectSmartExercises(availableExercises, numNeeded, objetivo, equipamentos, limitacoes, isPrimaryGroup) {
-    let selected = [];
-    const limitations = limitacoes ? limitacoes.toLowerCase() : '';
-    
-    // Filtrar exercícios baseado em limitações
-    let filteredExercises = availableExercises.filter(ex => {
-        if (!limitations) return true;
-        
-        const exerciseName = ex.nome.toLowerCase();
-        // Lógica de filtro baseada em limitações comuns
-        if (limitations.includes('joelho') && exerciseName.includes('agachamento')) return false;
-        if (limitations.includes('ombro') && exerciseName.includes('desenvolvimento')) return false;
-        if (limitations.includes('lombar') && exerciseName.includes('terra')) return false;
-        
-        return true;
-    });
-    
-    if (filteredExercises.length === 0) filteredExercises = availableExercises;
-    
-    // Priorizar exercícios compostos para grupo principal
-    if (isPrimaryGroup) {
-        const compostos = filteredExercises.filter(ex => 
-            ex.nome.includes('Supino') || ex.nome.includes('Agachamento') || 
-            ex.nome.includes('Terra') || ex.nome.includes('Remada') ||
-            ex.nome.includes('Desenvolvimento')
+        console.log(`✅ ${exercises.length} exercícios criados (${exercises.filter(e => e.categoria === 'principal').length} principais)`);
+        return exercises;
+    },
+
+    // =============================================
+    // FUNÇÕES AUXILIARES INTELIGENTES
+    // =============================================
+
+    // Calcular distribuição inteligente de exercícios
+    calculateExerciseDistribution(groups, objetivo, foco) {
+        const distribution = {};
+        const totalGroups = groups.length;
+
+        // Base: 2-4 exercícios por grupo dependendo do total
+        let baseExercises = totalGroups <= 2 ? 4 : totalGroups <= 3 ? 3 : 2;
+
+        // Ajustar baseado no objetivo
+        if (objetivo.includes('Hipertrofia')) {
+            baseExercises = Math.max(baseExercises, 3);
+        } else if (objetivo.includes('Força')) {
+            baseExercises = Math.max(baseExercises, 2);
+        }
+
+        groups.forEach(group => {
+            distribution[group] = baseExercises;
+
+            // Ajustes específicos por foco
+            if (foco === 'superior' && ['peito', 'costas', 'ombro', 'biceps', 'triceps'].includes(group)) {
+                distribution[group] += 1;
+            } else if (foco === 'inferior' && ['perna', 'gluteo'].includes(group)) {
+                distribution[group] += 1;
+            }
+
+            // Grupos grandes merecem mais exercícios
+            if (['peito', 'costas', 'perna'].includes(group)) {
+                distribution[group] = Math.max(distribution[group], 3);
+            }
+        });
+
+        return distribution;
+    },
+
+    // Seleção inteligente de exercícios
+    selectSmartExercises(availableExercises, numNeeded, objetivo, equipamentos, limitacoes, isPrimaryGroup) {
+        let selected = [];
+        const limitations = limitacoes ? limitacoes.toLowerCase() : '';
+
+        // Filtrar exercícios baseado em limitações
+        let filteredExercises = availableExercises.filter(ex => {
+            if (!limitations) return true;
+
+            const exerciseName = ex.nome.toLowerCase();
+            // Lógica de filtro baseada em limitações comuns
+            if (limitations.includes('joelho') && exerciseName.includes('agachamento')) return false;
+            if (limitations.includes('ombro') && exerciseName.includes('desenvolvimento')) return false;
+            if (limitations.includes('lombar') && exerciseName.includes('terra')) return false;
+
+            return true;
+        });
+
+        if (filteredExercises.length === 0) filteredExercises = availableExercises;
+
+        // Priorizar exercícios compostos para grupo principal
+        if (isPrimaryGroup) {
+            const compostos = filteredExercises.filter(ex =>
+                ex.nome.includes('Supino') || ex.nome.includes('Agachamento') ||
+                ex.nome.includes('Terra') || ex.nome.includes('Remada') ||
+                ex.nome.includes('Desenvolvimento')
+            );
+
+            if (compostos.length > 0) {
+                selected.push(compostos[0]);
+                numNeeded--;
+            }
+        }
+
+        // Adicionar exercícios restantes variando os tipos
+        const remaining = filteredExercises.filter(ex =>
+            !selected.some(sel => sel.nome === ex.nome)
         );
-        
-        if (compostos.length > 0) {
-            selected.push(compostos[0]);
-            numNeeded--;
+
+        for (let i = 0; i < Math.min(numNeeded, remaining.length); i++) {
+            selected.push(remaining[i]);
         }
-    }
-    
-    // Adicionar exercícios restantes variando os tipos
-    const remaining = filteredExercises.filter(ex => 
-        !selected.some(sel => sel.nome === ex.nome)
-    );
-    
-    for (let i = 0; i < Math.min(numNeeded, remaining.length); i++) {
-        selected.push(remaining[i]);
-    }
-    
-    return selected;
-},
 
-// Séries inteligentes
-getSmartSeries(exercise, objetivo, nivel, isPrimary) {
-    let baseSeries = exercise.series || 3;
-    
-    if (objetivo.includes('Força')) {
-        baseSeries = isPrimary ? 5 : 3;
-    } else if (objetivo.includes('Hipertrofia')) {
-        baseSeries = isPrimary ? 4 : 3;
-    } else if (objetivo.includes('Resistência')) {
-        baseSeries = 2;
-    }
-    
-    // Ajuste por nível
-    if (nivel === 'iniciante') {
-        baseSeries = Math.max(2, baseSeries - 1);
-    } else if (nivel === 'avancado') {
-        baseSeries = Math.min(5, baseSeries + 1);
-    }
-    
-    return baseSeries;
-},
+        return selected;
+    },
 
-// Repetições inteligentes
-getSmartReps(exercise, objetivo, nivel) {
-    if (objetivo.includes('Força')) {
-        return nivel === 'iniciante' ? '6-8' : '4-6';
-    } else if (objetivo.includes('Hipertrofia')) {
-        return '8-12';
-    } else if (objetivo.includes('Resistência')) {
-        return '12-15';
-    } else if (objetivo.includes('Perda de peso')) {
-        return '10-15';
-    }
-    
-    return exercise.repeticoes || '10-12';
-},
+    // Séries inteligentes
+    getSmartSeries(exercise, objetivo, nivel, isPrimary) {
+        let baseSeries = exercise.series || 3;
 
-// Descanso inteligente
-getSmartRest(objetivo, tecnica) {
-    let baseRest = this.getRestByObjective(objetivo);
-    
-    // Ajustar baseado na técnica
-    if (tecnica && ['drop-set', 'rest-pause', 'bi-set', 'tri-set'].includes(tecnica)) {
-        return '120-180 segundos';
-    }
-    
-    return baseRest;
-},
+        if (objetivo.includes('Força')) {
+            baseSeries = isPrimary ? 5 : 3;
+        } else if (objetivo.includes('Hipertrofia')) {
+            baseSeries = isPrimary ? 4 : 3;
+        } else if (objetivo.includes('Resistência')) {
+            baseSeries = 2;
+        }
 
-// Aquecimento inteligente
-getSmartWarmupForGroups(groups, equipamentos) {
-    if (groups.includes('perna') || groups.includes('gluteo')) {
-        return equipamentos === 'peso_corporal' ? 'Aquecimento Dinâmico de Pernas' : 'Bicicleta Ergométrica';
-    } else if (groups.includes('costas')) {
-        return equipamentos === 'peso_corporal' ? 'Mobilização de Ombros' : 'Remo Ergômetro';
-    } else if (groups.includes('peito')) {
-        return equipamentos === 'peso_corporal' ? 'Aquecimento Dinâmico Superior' : 'Esteira';
-    }
-    
-    return equipamentos === 'peso_corporal' ? 'Aquecimento Dinâmico Geral' : 'Esteira';
-},
+        // Ajuste por nível
+        if (nivel === 'iniciante') {
+            baseSeries = Math.max(2, baseSeries - 1);
+        } else if (nivel === 'avancado') {
+            baseSeries = Math.min(5, baseSeries + 1);
+        }
 
-// Alongamento inteligente
-getSmartCooldownForGroups(groups) {
-    const groupNames = groups.map(g => {
-        const group = this.planTypeConfiguration.muscleGroups.find(mg => mg.id === g);
-        return group ? group.name.toLowerCase() : g;
-    });
-    
-    return `Alongamento - ${groupNames.join(', ')}`;
-},
+        return baseSeries;
+    },
 
-// Exercício de fallback
-getFallbackExercise(grupoId) {
-    const fallbacks = {
-        'peito': 'Flexão de Braços',
-        'costas': 'Remada com Elástico',
-        'ombro': 'Elevação Lateral',
-        'biceps': 'Rosca Direta',
-        'triceps': 'Tríceps Pulley',
-        'perna': 'Agachamento Livre',
-        'gluteo': 'Hip Thrust',
-        'abdome': 'Abdominal Tradicional',
-        'antebraco': 'Rosca Punho'
-    };
-    
-    return fallbacks[grupoId] || 'Exercício Personalizado';
-},
+    // Repetições inteligentes
+    getSmartReps(exercise, objetivo, nivel) {
+        if (objetivo.includes('Força')) {
+            return nivel === 'iniciante' ? '6-8' : '4-6';
+        } else if (objetivo.includes('Hipertrofia')) {
+            return '8-12';
+        } else if (objetivo.includes('Resistência')) {
+            return '12-15';
+        } else if (objetivo.includes('Perda de peso')) {
+            return '10-15';
+        }
+
+        return exercise.repeticoes || '10-12';
+    },
+
+    // Descanso inteligente
+    getSmartRest(objetivo, tecnica) {
+        let baseRest = this.getRestByObjective(objetivo);
+
+        // Ajustar baseado na técnica
+        if (tecnica && ['drop-set', 'rest-pause', 'bi-set', 'tri-set'].includes(tecnica)) {
+            return '120-180 segundos';
+        }
+
+        return baseRest;
+    },
+
+    // Aquecimento inteligente
+    getSmartWarmupForGroups(groups, equipamentos) {
+        if (groups.includes('perna') || groups.includes('gluteo')) {
+            return equipamentos === 'peso_corporal' ? 'Aquecimento Dinâmico de Pernas' : 'Bicicleta Ergométrica';
+        } else if (groups.includes('costas')) {
+            return equipamentos === 'peso_corporal' ? 'Mobilização de Ombros' : 'Remo Ergômetro';
+        } else if (groups.includes('peito')) {
+            return equipamentos === 'peso_corporal' ? 'Aquecimento Dinâmico Superior' : 'Esteira';
+        }
+
+        return equipamentos === 'peso_corporal' ? 'Aquecimento Dinâmico Geral' : 'Esteira';
+    },
+
+    // Alongamento inteligente
+    getSmartCooldownForGroups(groups) {
+        const groupNames = groups.map(g => {
+            const group = this.planTypeConfiguration.muscleGroups.find(mg => mg.id === g);
+            return group ? group.name.toLowerCase() : g;
+        });
+
+        return `Alongamento - ${groupNames.join(', ')}`;
+    },
+
+    // Exercício de fallback
+    getFallbackExercise(grupoId) {
+        const fallbacks = {
+            'peito': 'Flexão de Braços',
+            'costas': 'Remada com Elástico',
+            'ombro': 'Elevação Lateral',
+            'biceps': 'Rosca Direta',
+            'triceps': 'Tríceps Pulley',
+            'perna': 'Agachamento Livre',
+            'gluteo': 'Hip Thrust',
+            'abdome': 'Abdominal Tradicional',
+            'antebraco': 'Rosca Punho'
+        };
+
+        return fallbacks[grupoId] || 'Exercício Personalizado';
+    },
 
 
     createAIPlan(aiData) {
@@ -2481,7 +2424,7 @@ getFallbackExercise(grupoId) {
         const height = parseFloat(altura.replace('m', '').replace(',', '.'));
         const weight = parseFloat(peso.replace('kg', ''));
         const imc = weight / (height * height);
-        
+
         if (imc < 18.5) return 'pequeno';
         if (imc < 25) return 'médio';
         return 'grande';
@@ -2490,7 +2433,7 @@ getFallbackExercise(grupoId) {
     generateAIWorkouts(aiData) {
         const workouts = [];
         const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        
+
         const workoutSplits = {
             2: [
                 { nome: 'A - Membros Superiores', grupos: ['peito', 'costas', 'ombros', 'biceps', 'triceps'] },
@@ -2525,11 +2468,11 @@ getFallbackExercise(grupoId) {
         };
 
         const split = workoutSplits[aiData.dias];
-        
+
         split.forEach((workout, index) => {
             const exercises = this.generateExercisesForMuscleGroups(
-                workout.grupos, 
-                aiData.nivel, 
+                workout.grupos,
+                aiData.nivel,
                 aiData.objetivo,
                 aiData.equipamentos,
                 index + 1
@@ -2570,14 +2513,14 @@ getFallbackExercise(grupoId) {
         grupos.forEach(grupo => {
             // NOVA IMPLEMENTAÇÃO: Usar base dinâmica
             const groupExercises = this.getExercisesByGroupAndLevel(grupo, nivel);
-            
+
             if (groupExercises.length > 0) {
                 const numExercises = grupos.length <= 2 ? 4 : (grupos.length <= 3 ? 3 : 2);
-                
+
                 for (let i = 0; i < Math.min(numExercises, groupExercises.length); i++) {
                     const baseExercise = groupExercises[i];
                     const tecnicaSelecionada = this.getTecnicaForExercise(i, nivel, grupo);
-                    
+
                     exercises.push({
                         id: exerciseId++,
                         nome: baseExercise.nome,
@@ -2643,15 +2586,15 @@ getFallbackExercise(grupoId) {
 
     adjustLoadForLevel(baseCarga, nivel) {
         if (typeof baseCarga !== 'string') return baseCarga;
-        
+
         const multipliers = {
             iniciante: 0.7,
             intermediario: 1.0,
             avancado: 1.3
         };
-        
+
         const multiplier = multipliers[nivel] || 1.0;
-        
+
         return baseCarga.replace(/(\d+)/g, (match) => {
             const num = parseInt(match);
             const adjusted = Math.round(num * multiplier);
@@ -2712,27 +2655,31 @@ getFallbackExercise(grupoId) {
     // =============================================
     // FUNÇÕES DE INTERFACE - CRIAÇÃO MANUAL
     // =============================================
-
     showPlanCreator(planId = null) {
         document.getElementById('planCreator').style.display = 'block';
         document.getElementById('aiPlanCreator').style.display = 'none';
         document.getElementById('planList').style.display = 'none';
-        
+        document.getElementById('planDetails').style.display = 'none';
+
+        // Se um planId foi fornecido, carregar para edição
         if (planId) {
             this.loadPlanForEditing(planId);
         } else {
+            // Novo plano - resetar o formulário
             this.resetPlanForm();
-            this.selectPlanType(1, 'A', document.querySelector('.plan-type-btn'));
         }
     },
-
     loadPlanForEditing(planId) {
         const plan = this.savedPlans.find(p => p.id === planId);
-        if (!plan) return;
+        if (!plan) {
+            this.showMessage('Plano não encontrado', 'error');
+            return;
+        }
 
         this.isEditing = true;
         this.currentPlan = { ...plan };
-        
+
+        // Preencher campos do formulário
         document.getElementById('currentPlanId').value = planId;
         document.getElementById('studentName').value = plan.aluno?.nome || '';
         document.getElementById('studentBirthDate').value = plan.aluno?.dataNascimento || '';
@@ -2744,27 +2691,41 @@ getFallbackExercise(grupoId) {
         document.getElementById('planStartDate').value = plan.dataInicio || '';
         document.getElementById('planEndDate').value = plan.dataFim || '';
         document.getElementById('planObservations').value = plan.observacoes?.geral || '';
-        
+
+        // Configurar tipo de plano
         this.selectedDays = plan.dias;
         this.selectPlanTypeForEdit(plan.dias);
-        
+
+        // Mostrar botão de cancelar edição
         document.getElementById('cancelEditBtn').style.display = 'inline-flex';
-        
-        this.showMessage('Modo de edição ativado 📝', 'success');
+
+        this.showMessage('Modo de edição ativado', 'success');
     },
+
 
     selectPlanTypeForEdit(days) {
         document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.plan-type-btn')[days - 1]?.classList.add('active');
-        
+
         this.selectedDays = days;
+        this.generateWorkoutEditorForEdit(days);
+    },
+
+    selectPlanTypeForEdit(days) {
+        // Ativar botão correto
+        document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.plan-type-btn')[days - 1]?.classList.add('active');
+
+        this.selectedDays = days;
+
+        // Gerar editor com os treinos existentes
         this.generateWorkoutEditorForEdit(days);
     },
 
     generateWorkoutEditorForEdit(days) {
         const editor = document.getElementById('workoutEditor');
         let html = '<div class="form-section"><h2>🏋️ Treinos</h2>';
-        
+
         for (let i = 0; i < days; i++) {
             const workout = this.currentPlan.treinos[i] || {
                 id: String.fromCharCode(65 + i),
@@ -2772,13 +2733,13 @@ getFallbackExercise(grupoId) {
                 foco: 'Treino geral',
                 exercicios: []
             };
-            
+
             if (workout.exercicios) {
                 workout.exercicios.forEach(ex => {
                     if (!ex.tecnica) ex.tecnica = '';
                 });
             }
-            
+
             html += `
                 <div class="workout-editor">
                     <div class="workout-header">
@@ -2793,7 +2754,7 @@ getFallbackExercise(grupoId) {
                 </div>
             `;
         }
-        
+
         html += '</div>';
         editor.innerHTML = html;
     },
@@ -2819,6 +2780,7 @@ getFallbackExercise(grupoId) {
     showPlanList() {
         document.getElementById('planCreator').style.display = 'none';
         document.getElementById('aiPlanCreator').style.display = 'none';
+        document.getElementById('planDetails').style.display = 'none'; // NOVA LINHA
         document.getElementById('planList').style.display = 'block';
         this.renderPlanList();
     },
@@ -2832,7 +2794,7 @@ getFallbackExercise(grupoId) {
                 input.value = '';
             }
         });
-        
+
         this.setDefaultDates();
         this.currentPlan.treinos = [];
         this.selectedDays = 1;
@@ -2846,156 +2808,156 @@ getFallbackExercise(grupoId) {
         document.querySelectorAll('.plan-type-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        
+
         // Adiciona active ao botão clicado
         element.classList.add('active');
-        
+
         this.selectedDays = days;
         this.planTypeConfiguration.days = days;
-        
+
         // Se não há configuração para este número de dias, usar padrão
         const currentConfig = Object.keys(this.planTypeConfiguration.configuration).length;
         if (currentConfig === 0 || this.planTypeConfiguration.days !== days) {
             this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days] || {};
             this.planTypeConfiguration.days = days;
         }
-        
+
         // Mostrar modal de configuração
         this.showPlanTypeConfigModal();
     },
 
 
     // =============================================
-// EXTENSÕES PARA TIPOS DE PLANO CONFIGURÁVEIS
-// Adicione estas funções ao seu app object em personal.js
-// =============================================
+    // EXTENSÕES PARA TIPOS DE PLANO CONFIGURÁVEIS
+    // Adicione estas funções ao seu app object em personal.js
+    // =============================================
 
-// Configurações de tipos de plano
-planTypeConfiguration: {
-    days: 3,
-    configuration: {},
-    muscleGroups: [
-        { id: 'antebraco', name: 'ANTEBRAÇO', icon: '💪' },
-        { id: 'abdome', name: 'ABDOME', icon: '🎯' },
-        { id: 'biceps', name: 'BÍCEPS', icon: '💪' },
-        { id: 'triceps', name: 'TRÍCEPS', icon: '🔥' },
-        { id: 'peito', name: 'PEITO', icon: '💥' },
-        { id: 'perna', name: 'PERNA', icon: '🦵' },
-        { id: 'gluteo', name: 'GLÚTEO', icon: '🍑' },
-        { id: 'costas', name: 'COSTAS', icon: '🏔️' },
-        { id: 'ombro', name: 'OMBRO', icon: '👐' },
-        { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
-    ],
-    
+    // Configurações de tipos de plano
+    planTypeConfiguration: {
+        days: 3,
+        configuration: {},
+        muscleGroups: [
+            { id: 'antebraco', name: 'ANTEBRAÇO', icon: '💪' },
+            { id: 'abdome', name: 'ABDOME', icon: '🎯' },
+            { id: 'biceps', name: 'BÍCEPS', icon: '💪' },
+            { id: 'triceps', name: 'TRÍCEPS', icon: '🔥' },
+            { id: 'peito', name: 'PEITO', icon: '💥' },
+            { id: 'perna', name: 'PERNA', icon: '🦵' },
+            { id: 'gluteo', name: 'GLÚTEO', icon: '🍑' },
+            { id: 'costas', name: 'COSTAS', icon: '🏔️' },
+            { id: 'ombro', name: 'OMBRO', icon: '👐' },
+            { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
+        ],
+
         // Modelos pré-definidos
-    presetConfigurations: {
-        1: {
-            A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps'] }
-        },
-        2: {
-            A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
-            B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
-        },
-        3: {
-            A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-            B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-            C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
-        },
-        4: {
-            A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-            B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-            C: { name: 'Ombros e Abdome', groups: ['ombro', 'abdome'] },
-            D: { name: 'Pernas e Glúteos', groups: ['perna', 'gluteo'] }
-        },
-        5: {
-            A: { name: 'Peito', groups: ['peito'] },
-            B: { name: 'Costas', groups: ['costas'] },
-            C: { name: 'Ombros', groups: ['ombro'] },
-            D: { name: 'Braços', groups: ['biceps', 'triceps', 'antebraco'] },
-            E: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
-        },
-        6: {
-            A: { name: 'Peito', groups: ['peito'] },
-            B: { name: 'Costas', groups: ['costas'] },
-            C: { name: 'Ombros', groups: ['ombro'] },
-            D: { name: 'Bíceps', groups: ['biceps', 'antebraco'] },
-            E: { name: 'Tríceps', groups: ['triceps'] },
-            F: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+        presetConfigurations: {
+            1: {
+                A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps'] }
+            },
+            2: {
+                A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
+                B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
+            },
+            3: {
+                A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
+                B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
+                C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
+            },
+            4: {
+                A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
+                B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
+                C: { name: 'Ombros e Abdome', groups: ['ombro', 'abdome'] },
+                D: { name: 'Pernas e Glúteos', groups: ['perna', 'gluteo'] }
+            },
+            5: {
+                A: { name: 'Peito', groups: ['peito'] },
+                B: { name: 'Costas', groups: ['costas'] },
+                C: { name: 'Ombros', groups: ['ombro'] },
+                D: { name: 'Braços', groups: ['biceps', 'triceps', 'antebraco'] },
+                E: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+            },
+            6: {
+                A: { name: 'Peito', groups: ['peito'] },
+                B: { name: 'Costas', groups: ['costas'] },
+                C: { name: 'Ombros', groups: ['ombro'] },
+                D: { name: 'Bíceps', groups: ['biceps', 'antebraco'] },
+                E: { name: 'Tríceps', groups: ['triceps'] },
+                F: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+            }
         }
-    }
-},
+    },
 
-// Carregar configuração de tipos de plano
-loadPlanTypeConfiguration() {
-    try {
-        const saved = localStorage.getItem('jsfitapp_plan_configuration');
-        if (saved) {
-            const config = JSON.parse(saved);
-            this.planTypeConfiguration.days = config.days;
-            this.planTypeConfiguration.configuration = config.configuration;
-            console.log('✅ Configuração de tipos de plano carregada');
-        } else {
-            // Usar configuração padrão
+    // Carregar configuração de tipos de plano
+    loadPlanTypeConfiguration() {
+        try {
+            const saved = localStorage.getItem('jsfitapp_plan_configuration');
+            if (saved) {
+                const config = JSON.parse(saved);
+                this.planTypeConfiguration.days = config.days;
+                this.planTypeConfiguration.configuration = config.configuration;
+                console.log('✅ Configuração de tipos de plano carregada');
+            } else {
+                // Usar configuração padrão
+                this.planTypeConfiguration.days = 3;
+                this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[3];
+                console.log('📋 Usando configuração padrão para tipos de plano');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar configuração de tipos de plano:', error);
             this.planTypeConfiguration.days = 3;
             this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[3];
-            console.log('📋 Usando configuração padrão para tipos de plano');
         }
-    } catch (error) {
-        console.error('Erro ao carregar configuração de tipos de plano:', error);
-        this.planTypeConfiguration.days = 3;
-        this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[3];
-    }
-},
+    },
 
-// Salvar configuração de tipos de plano
-savePlanTypeConfiguration() {
-    try {
-        const configToSave = {
-            days: this.planTypeConfiguration.days,
-            configuration: this.planTypeConfiguration.configuration,
-            savedAt: new Date().toISOString()
-        };
-        localStorage.setItem('jsfitapp_plan_configuration', JSON.stringify(configToSave));
-        console.log('💾 Configuração de tipos de plano salva');
-    } catch (error) {
-        console.error('Erro ao salvar configuração de tipos de plano:', error);
-    }
-},
+    // Salvar configuração de tipos de plano
+    savePlanTypeConfiguration() {
+        try {
+            const configToSave = {
+                days: this.planTypeConfiguration.days,
+                configuration: this.planTypeConfiguration.configuration,
+                savedAt: new Date().toISOString()
+            };
+            localStorage.setItem('jsfitapp_plan_configuration', JSON.stringify(configToSave));
+            console.log('💾 Configuração de tipos de plano salva');
+        } catch (error) {
+            console.error('Erro ao salvar configuração de tipos de plano:', error);
+        }
+    },
 
-// Abrir modal de configuração de tipos de plano
-showPlanTypeConfiguration() {
-    this.showPlanTypeConfigModal();
-},
+    // Abrir modal de configuração de tipos de plano
+    showPlanTypeConfiguration() {
+        this.showPlanTypeConfigModal();
+    },
 
-// Mostrar modal de configuração (substitui o selectPlanType original)
-selectPlanType(days, letters, element) {
-    // Se não há configuração personalizada, usar padrão
-    if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
-        this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
+    // Mostrar modal de configuração (substitui o selectPlanType original)
+    selectPlanType(days, letters, element) {
+        // Se não há configuração personalizada, usar padrão
+        if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
+            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
+            this.planTypeConfiguration.days = days;
+        }
+
+        document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+
+        this.selectedDays = days;
         this.planTypeConfiguration.days = days;
-    }
 
-    document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
-    element.classList.add('active');
-    
-    this.selectedDays = days;
-    this.planTypeConfiguration.days = days;
-    
-    // Mostrar modal de configuração
-    this.showPlanTypeConfigModal();
-},
+        // Mostrar modal de configuração
+        this.showPlanTypeConfigModal();
+    },
 
-// Criar modal de configuração de tipos de plano
-showPlanTypeConfigModal() {
-    const existingModal = document.getElementById('planTypeConfigModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
+    // Criar modal de configuração de tipos de plano
+    showPlanTypeConfigModal() {
+        const existingModal = document.getElementById('planTypeConfigModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
 
-    const modal = document.createElement('div');
-    modal.id = 'planTypeConfigModal';
-    modal.className = 'modal active';
-    modal.innerHTML = `
+        const modal = document.createElement('div');
+        modal.id = 'planTypeConfigModal';
+        modal.className = 'modal active';
+        modal.innerHTML = `
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h2>⚙️ Configurar Tipos de Plano</h2>
@@ -3028,20 +2990,20 @@ showPlanTypeConfigModal() {
         </div>
     `;
 
-    document.body.appendChild(modal);
-},
+        document.body.appendChild(modal);
+    },
 
-// Gerar HTML para configuração de planos
-generatePlanConfigHTML() {
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const days = this.planTypeConfiguration.days;
-    let html = '';
+    // Gerar HTML para configuração de planos
+    generatePlanConfigHTML() {
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const days = this.planTypeConfiguration.days;
+        let html = '';
 
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
-        
-        html += `
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
+
+            html += `
             <div class="workout-config-item">
                 <div class="workout-config-header">
                     <div class="workout-letter">${letter}</div>
@@ -3071,227 +3033,227 @@ generatePlanConfigHTML() {
                 </div>
             </div>
         `;
-    }
+        }
 
-    return html;
-},
+        return html;
+    },
 
-// Gerar display dos grupos selecionados
-generateSelectedGroupsDisplay(letter, selectedGroups) {
-    if (selectedGroups.length === 0) {
-        return '<span class="no-groups-selected">⚠️ Nenhum grupo selecionado</span>';
-    }
+    // Gerar display dos grupos selecionados
+    generateSelectedGroupsDisplay(letter, selectedGroups) {
+        if (selectedGroups.length === 0) {
+            return '<span class="no-groups-selected">⚠️ Nenhum grupo selecionado</span>';
+        }
 
-    return `
+        return `
         <div class="selected-groups-title">Grupos selecionados:</div>
         <div class="selected-groups-tags">
             ${selectedGroups.map(groupId => {
-                const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-                return `<span class="selected-group-tag">${group.icon} ${group.name}</span>`;
-            }).join('')}
+            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+            return `<span class="selected-group-tag">${group.icon} ${group.name}</span>`;
+        }).join('')}
         </div>
     `;
-},
+    },
 
-// Gerar preview da configuração
-generatePlanConfigPreview() {
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const days = this.planTypeConfiguration.days;
-    let html = '';
+    // Gerar preview da configuração
+    generatePlanConfigPreview() {
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const days = this.planTypeConfiguration.days;
+        let html = '';
 
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
-        
-        const groupsText = config.groups.length > 0 
-            ? config.groups.map(groupId => {
-                const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-                return `${group.icon} ${group.name}`;
-            }).join(', ')
-            : '⚠️ Nenhum grupo selecionado';
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            const config = this.planTypeConfiguration.configuration[letter] || { name: `Treino ${letter}`, groups: [] };
 
-        html += `
+            const groupsText = config.groups.length > 0
+                ? config.groups.map(groupId => {
+                    const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+                    return `${group.icon} ${group.name}`;
+                }).join(', ')
+                : '⚠️ Nenhum grupo selecionado';
+
+            html += `
             <div class="preview-card ${config.groups.length === 0 ? 'preview-card-warning' : ''}">
                 <h4>Treino ${letter}</h4>
                 <div class="preview-name">${config.name}</div>
                 <div class="preview-groups">${groupsText}</div>
             </div>
         `;
-    }
-
-    return html;
-},
-
-// Atualizar nome do treino na configuração
-updateWorkoutConfigName(letter) {
-    const input = document.getElementById(`workout-name-${letter}`);
-    if (!this.planTypeConfiguration.configuration[letter]) {
-        this.planTypeConfiguration.configuration[letter] = { name: '', groups: [] };
-    }
-    this.planTypeConfiguration.configuration[letter].name = input.value;
-    this.updatePlanConfigPreview();
-},
-
-// Atualizar grupos do treino na configuração
-updateWorkoutConfigGroups(letter) {
-    const selectedGroups = [];
-    this.planTypeConfiguration.muscleGroups.forEach(group => {
-        const checkbox = document.getElementById(`group-${letter}-${group.id}`);
-        if (checkbox && checkbox.checked) {
-            selectedGroups.push(group.id);
         }
-    });
 
-    if (!this.planTypeConfiguration.configuration[letter]) {
-        this.planTypeConfiguration.configuration[letter] = { name: `Treino ${letter}`, groups: [] };
-    }
-    this.planTypeConfiguration.configuration[letter].groups = selectedGroups;
+        return html;
+    },
 
-    // Atualizar display dos grupos selecionados
-    const displayElement = document.getElementById(`selected-display-${letter}`);
-    if (displayElement) {
-        displayElement.innerHTML = this.generateSelectedGroupsDisplay(letter, selectedGroups);
-    }
+    // Atualizar nome do treino na configuração
+    updateWorkoutConfigName(letter) {
+        const input = document.getElementById(`workout-name-${letter}`);
+        if (!this.planTypeConfiguration.configuration[letter]) {
+            this.planTypeConfiguration.configuration[letter] = { name: '', groups: [] };
+        }
+        this.planTypeConfiguration.configuration[letter].name = input.value;
+        this.updatePlanConfigPreview();
+    },
 
-    this.updatePlanConfigPreview();
-},
-
-// Atualizar preview da configuração
-updatePlanConfigPreview() {
-    const previewElement = document.getElementById('planConfigPreview');
-    if (previewElement) {
-        previewElement.innerHTML = this.generatePlanConfigPreview();
-    }
-},
-
-// Carregar modelo padrão
-loadPresetPlanConfig() {
-    const days = this.planTypeConfiguration.days;
-    const preset = this.planTypeConfiguration.presetConfigurations[days];
-    
-    if (preset) {
-        this.planTypeConfiguration.configuration = JSON.parse(JSON.stringify(preset));
-        
-        // Atualizar interface
-        Object.entries(preset).forEach(([letter, config]) => {
-            // Atualizar nome
-            const nameInput = document.getElementById(`workout-name-${letter}`);
-            if (nameInput) {
-                nameInput.value = config.name;
-            }
-
-            // Atualizar checkboxes
-            this.planTypeConfiguration.muscleGroups.forEach(group => {
-                const checkbox = document.getElementById(`group-${letter}-${group.id}`);
-                if (checkbox) {
-                    checkbox.checked = config.groups.includes(group.id);
-                }
-            });
-
-            // Atualizar display
-            const displayElement = document.getElementById(`selected-display-${letter}`);
-            if (displayElement) {
-                displayElement.innerHTML = this.generateSelectedGroupsDisplay(letter, config.groups);
+    // Atualizar grupos do treino na configuração
+    updateWorkoutConfigGroups(letter) {
+        const selectedGroups = [];
+        this.planTypeConfiguration.muscleGroups.forEach(group => {
+            const checkbox = document.getElementById(`group-${letter}-${group.id}`);
+            if (checkbox && checkbox.checked) {
+                selectedGroups.push(group.id);
             }
         });
 
+        if (!this.planTypeConfiguration.configuration[letter]) {
+            this.planTypeConfiguration.configuration[letter] = { name: `Treino ${letter}`, groups: [] };
+        }
+        this.planTypeConfiguration.configuration[letter].groups = selectedGroups;
+
+        // Atualizar display dos grupos selecionados
+        const displayElement = document.getElementById(`selected-display-${letter}`);
+        if (displayElement) {
+            displayElement.innerHTML = this.generateSelectedGroupsDisplay(letter, selectedGroups);
+        }
+
         this.updatePlanConfigPreview();
-        this.showMessage('📋 Modelo padrão aplicado!', 'success');
-    }
-},
+    },
 
-// Salvar configuração e gerar treinos
-savePlanTypeConfigAndGenerate() {
-    // Validar se todos os treinos têm pelo menos um grupo
-    const letters = Object.keys(this.planTypeConfiguration.configuration);
-    let isValid = true;
-    let emptyWorkouts = [];
-
-    letters.forEach(letter => {
-        const config = this.planTypeConfiguration.configuration[letter];
-        if (!config.groups || config.groups.length === 0) {
-            isValid = false;
-            emptyWorkouts.push(letter);
+    // Atualizar preview da configuração
+    updatePlanConfigPreview() {
+        const previewElement = document.getElementById('planConfigPreview');
+        if (previewElement) {
+            previewElement.innerHTML = this.generatePlanConfigPreview();
         }
-    });
+    },
 
-    if (!isValid) {
-        this.showMessage(`⚠️ Os treinos ${emptyWorkouts.join(', ')} não têm grupos musculares selecionados!`, 'warning');
-        return;
-    }
+    // Carregar modelo padrão
+    loadPresetPlanConfig() {
+        const days = this.planTypeConfiguration.days;
+        const preset = this.planTypeConfiguration.presetConfigurations[days];
 
-    // Salvar configuração
-    this.savePlanTypeConfiguration();
-    
-    // Fechar modal
-    this.closePlanTypeConfigModal();
-    
-    // Gerar treinos baseado na configuração
-    this.generateWorkoutEditorWithConfig(this.planTypeConfiguration.days);
-    
-    this.showMessage('✅ Configuração aplicada e treinos gerados!', 'success');
-},
+        if (preset) {
+            this.planTypeConfiguration.configuration = JSON.parse(JSON.stringify(preset));
 
-// Fechar modal de configuração
-closePlanTypeConfigModal() {
-    const modal = document.getElementById('planTypeConfigModal');
-    if (modal) {
-        modal.remove();
-    }
-},
-
-// Gerar editor de treinos com configuração personalizada
-generateWorkoutEditorWithConfig(days) {
-    const editor = document.getElementById('workoutEditor');
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    let html = '<div class="form-section"><h2>🏋️ Treinos Configurados</h2>';
-    
-    this.currentPlan.treinos = [];
-    
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        const config = this.planTypeConfiguration.configuration[letter];
-        
-        if (!config) {
-            console.warn(`Configuração não encontrada para treino ${letter}`);
-            continue;
-        }
-
-        const workout = {
-            id: letter,
-            nome: config.name,
-            foco: this.generateWorkoutFocusFromGroups(config.groups),
-            exercicios: [
-                {
-                    id: i * 10 + 1,
-                    nome: 'Aquecimento',
-                    descricao: 'Aquecimento específico para os grupos trabalhados',
-                    series: 1,
-                    repeticoes: '8-10 min',
-                    carga: 'Leve',
-                    descanso: '0',
-                    observacoesEspeciais: '',
-                    tecnica: '',
-                    concluido: false
+            // Atualizar interface
+            Object.entries(preset).forEach(([letter, config]) => {
+                // Atualizar nome
+                const nameInput = document.getElementById(`workout-name-${letter}`);
+                if (nameInput) {
+                    nameInput.value = config.name;
                 }
-            ],
-            gruposMusculares: config.groups, // Novo campo
-            concluido: false,
-            execucoes: 0
-        };
-        
-        this.currentPlan.treinos.push(workout);
-        
-        html += `
+
+                // Atualizar checkboxes
+                this.planTypeConfiguration.muscleGroups.forEach(group => {
+                    const checkbox = document.getElementById(`group-${letter}-${group.id}`);
+                    if (checkbox) {
+                        checkbox.checked = config.groups.includes(group.id);
+                    }
+                });
+
+                // Atualizar display
+                const displayElement = document.getElementById(`selected-display-${letter}`);
+                if (displayElement) {
+                    displayElement.innerHTML = this.generateSelectedGroupsDisplay(letter, config.groups);
+                }
+            });
+
+            this.updatePlanConfigPreview();
+            this.showMessage('📋 Modelo padrão aplicado!', 'success');
+        }
+    },
+
+    // Salvar configuração e gerar treinos
+    savePlanTypeConfigAndGenerate() {
+        // Validar se todos os treinos têm pelo menos um grupo
+        const letters = Object.keys(this.planTypeConfiguration.configuration);
+        let isValid = true;
+        let emptyWorkouts = [];
+
+        letters.forEach(letter => {
+            const config = this.planTypeConfiguration.configuration[letter];
+            if (!config.groups || config.groups.length === 0) {
+                isValid = false;
+                emptyWorkouts.push(letter);
+            }
+        });
+
+        if (!isValid) {
+            this.showMessage(`⚠️ Os treinos ${emptyWorkouts.join(', ')} não têm grupos musculares selecionados!`, 'warning');
+            return;
+        }
+
+        // Salvar configuração
+        this.savePlanTypeConfiguration();
+
+        // Fechar modal
+        this.closePlanTypeConfigModal();
+
+        // Gerar treinos baseado na configuração
+        this.generateWorkoutEditorWithConfig(this.planTypeConfiguration.days);
+
+        this.showMessage('✅ Configuração aplicada e treinos gerados!', 'success');
+    },
+
+    // Fechar modal de configuração
+    closePlanTypeConfigModal() {
+        const modal = document.getElementById('planTypeConfigModal');
+        if (modal) {
+            modal.remove();
+        }
+    },
+
+    // Gerar editor de treinos com configuração personalizada
+    generateWorkoutEditorWithConfig(days) {
+        const editor = document.getElementById('workoutEditor');
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        let html = '<div class="form-section"><h2>🏋️ Treinos Configurados</h2>';
+
+        this.currentPlan.treinos = [];
+
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            const config = this.planTypeConfiguration.configuration[letter];
+
+            if (!config) {
+                console.warn(`Configuração não encontrada para treino ${letter}`);
+                continue;
+            }
+
+            const workout = {
+                id: letter,
+                nome: config.name,
+                foco: this.generateWorkoutFocusFromGroups(config.groups),
+                exercicios: [
+                    {
+                        id: i * 10 + 1,
+                        nome: 'Aquecimento',
+                        descricao: 'Aquecimento específico para os grupos trabalhados',
+                        series: 1,
+                        repeticoes: '8-10 min',
+                        carga: 'Leve',
+                        descanso: '0',
+                        observacoesEspeciais: '',
+                        tecnica: '',
+                        concluido: false
+                    }
+                ],
+                gruposMusculares: config.groups, // Novo campo
+                concluido: false,
+                execucoes: 0
+            };
+
+            this.currentPlan.treinos.push(workout);
+
+            html += `
             <div class="workout-editor">
                 <div class="workout-header">
                     <h3 class="workout-title">${workout.nome}</h3>
                     <div class="workout-muscle-groups">
                         ${config.groups.map(groupId => {
-                            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-                            return `<span class="muscle-group-badge">${group.icon} ${group.name}</span>`;
-                        }).join('')}
+                const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+                return `<span class="muscle-group-badge">${group.icon} ${group.name}</span>`;
+            }).join('')}
                     </div>
                     <button class="btn btn-primary btn-small" onclick="app.addExercise(${i})">
                         ➕ Adicionar Exercício
@@ -3302,187 +3264,187 @@ generateWorkoutEditorWithConfig(days) {
                 </div>
             </div>
         `;
-    }
-    
-    html += '</div>';
-    editor.innerHTML = html;
-},
-
-// Gerar foco do treino baseado nos grupos
-generateWorkoutFocusFromGroups(groups) {
-    if (groups.length === 0) return 'Treino geral';
-    
-    const groupNames = groups.map(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        return group ? group.name : groupId;
-    });
-    
-    if (groupNames.length === 1) {
-        return `Foco: ${groupNames[0]}`;
-    } else if (groupNames.length <= 3) {
-        return `Foco: ${groupNames.join(', ')}`;
-    } else {
-        return `Foco: ${groupNames.slice(0, 2).join(', ')} e mais ${groupNames.length - 2} grupos`;
-    }
-},
-
-// Sobrescrever função de geração de treinos da IA para usar configuração
-generateAIWorkouts(aiData) {
-    const workouts = [];
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    // Usar configuração personalizada se disponível
-    const useCustomConfig = this.planTypeConfiguration.days === aiData.dias && 
-                           Object.keys(this.planTypeConfiguration.configuration).length > 0;
-    
-    if (useCustomConfig) {
-        console.log('🎯 Usando configuração personalizada para IA');
-        
-        for (let i = 0; i < aiData.dias; i++) {
-            const letter = letters[i];
-            const config = this.planTypeConfiguration.configuration[letter];
-            
-            if (!config) continue;
-            
-            const exercises = this.generateExercisesForCustomGroups(
-                config.groups,
-                aiData.nivel,
-                aiData.objetivo,
-                aiData.equipamentos,
-                i + 1
-            );
-
-            workouts.push({
-                id: letter,
-                nome: config.name,
-                foco: this.generateWorkoutFocusFromGroups(config.groups),
-                exercicios: exercises,
-                gruposMusculares: config.groups,
-                concluido: false,
-                execucoes: 0
-            });
         }
-    } else {
-        // Usar método padrão original
-        console.log('📋 Usando configuração padrão para IA');
-        return this.generateAIWorkoutsOriginal(aiData);
-    }
-    
-    return workouts;
-},
 
-// Gerar exercícios para grupos personalizados
-generateExercisesForCustomGroups(customGroups, nivel, objetivo, equipamentos, workoutNumber) {
-    const exercises = [];
-    let exerciseId = workoutNumber * 10;
+        html += '</div>';
+        editor.innerHTML = html;
+    },
 
-    // Aquecimento específico
-    exercises.push({
-        id: exerciseId++,
-        nome: this.getWarmupForGroups(customGroups),
-        descricao: this.getWarmupDescriptionForGroups(customGroups),
-        series: 1,
-        repeticoes: "8-10 min",
-        carga: this.getWarmupIntensity(),
-        descanso: '0',
-        observacoesEspeciais: '',
-        tecnica: '',
-        concluido: false
-    });
+    // Gerar foco do treino baseado nos grupos
+    generateWorkoutFocusFromGroups(groups) {
+        if (groups.length === 0) return 'Treino geral';
 
-    // Exercícios por grupo muscular personalizado
-    customGroups.forEach(grupoId => {
-        // Mapear IDs personalizados para grupos do sistema
-        const mappedGroup = this.mapCustomGroupToSystemGroup(grupoId);
-        
-        if (mappedGroup) {
-            const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, nivel);
-            
-            if (groupExercises.length > 0) {
-                const numExercises = customGroups.length <= 2 ? 4 : (customGroups.length <= 3 ? 3 : 2);
-                
-                for (let i = 0; i < Math.min(numExercises, groupExercises.length); i++) {
-                    const baseExercise = groupExercises[i];
-                    const tecnicaSelecionada = this.getTecnicaForExercise(i, nivel, mappedGroup);
-                    
-                    exercises.push({
-                        id: exerciseId++,
-                        nome: baseExercise.nome,
-                        descricao: this.findExerciseByName(baseExercise.nome) || 'Descrição não disponível',
-                        series: baseExercise.series || 3,
-                        repeticoes: baseExercise.repeticoes || '10-12',
-                        carga: this.adjustLoadForLevel(baseExercise.carga || 'A definir', nivel),
-                        descanso: this.getRestByObjective(objetivo),
-                        observacoesEspeciais: this.getObservacaoEspecial(tecnicaSelecionada, baseExercise.nome),
-                        tecnica: tecnicaSelecionada,
-                        concluido: false
-                    });
-                }
+        const groupNames = groups.map(groupId => {
+            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+            return group ? group.name : groupId;
+        });
+
+        if (groupNames.length === 1) {
+            return `Foco: ${groupNames[0]}`;
+        } else if (groupNames.length <= 3) {
+            return `Foco: ${groupNames.join(', ')}`;
+        } else {
+            return `Foco: ${groupNames.slice(0, 2).join(', ')} e mais ${groupNames.length - 2} grupos`;
+        }
+    },
+
+    // Sobrescrever função de geração de treinos da IA para usar configuração
+    generateAIWorkouts(aiData) {
+        const workouts = [];
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        // Usar configuração personalizada se disponível
+        const useCustomConfig = this.planTypeConfiguration.days === aiData.dias &&
+            Object.keys(this.planTypeConfiguration.configuration).length > 0;
+
+        if (useCustomConfig) {
+            console.log('🎯 Usando configuração personalizada para IA');
+
+            for (let i = 0; i < aiData.dias; i++) {
+                const letter = letters[i];
+                const config = this.planTypeConfiguration.configuration[letter];
+
+                if (!config) continue;
+
+                const exercises = this.generateExercisesForCustomGroups(
+                    config.groups,
+                    aiData.nivel,
+                    aiData.objetivo,
+                    aiData.equipamentos,
+                    i + 1
+                );
+
+                workouts.push({
+                    id: letter,
+                    nome: config.name,
+                    foco: this.generateWorkoutFocusFromGroups(config.groups),
+                    exercicios: exercises,
+                    gruposMusculares: config.groups,
+                    concluido: false,
+                    execucoes: 0
+                });
             }
+        } else {
+            // Usar método padrão original
+            console.log('📋 Usando configuração padrão para IA');
+            return this.generateAIWorkoutsOriginal(aiData);
         }
-    });
 
-    // Alongamento
-    if (exercises.length > 1) {
+        return workouts;
+    },
+
+    // Gerar exercícios para grupos personalizados
+    generateExercisesForCustomGroups(customGroups, nivel, objetivo, equipamentos, workoutNumber) {
+        const exercises = [];
+        let exerciseId = workoutNumber * 10;
+
+        // Aquecimento específico
         exercises.push({
             id: exerciseId++,
-            nome: "Alongamento",
-            descricao: "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+            nome: this.getWarmupForGroups(customGroups),
+            descricao: this.getWarmupDescriptionForGroups(customGroups),
             series: 1,
             repeticoes: "8-10 min",
-            carga: "Peso corporal",
+            carga: this.getWarmupIntensity(),
             descanso: '0',
             observacoesEspeciais: '',
             tecnica: '',
             concluido: false
         });
-    }
 
-    return exercises;
-},
+        // Exercícios por grupo muscular personalizado
+        customGroups.forEach(grupoId => {
+            // Mapear IDs personalizados para grupos do sistema
+            const mappedGroup = this.mapCustomGroupToSystemGroup(grupoId);
 
-// Mapear grupos personalizados para grupos do sistema
-mapCustomGroupToSystemGroup(customGroupId) {
-    const mapping = {
-        'antebraco': 'antebraco',
-        'abdome': 'abdome', 
-        'biceps': 'biceps',
-        'triceps': 'triceps',
-        'peito': 'peito',
-        'perna': 'quadriceps', // Perna mapeia para quadríceps
-        'gluteo': 'gluteos',
-        'costas': 'costas',
-        'ombro': 'ombros',
-        'corpo': 'corpo_inteiro'
-    };
-    
-    return mapping[customGroupId] || customGroupId;
-},
+            if (mappedGroup) {
+                const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, nivel);
 
-// Aquecimento específico para grupos
-getWarmupForGroups(groups) {
-    if (groups.includes('perna') || groups.includes('gluteo')) {
-        return "Bicicleta Ergométrica";
-    } else if (groups.includes('costas')) {
-        return "Remo Ergômetro";
-    } else if (groups.includes('ombro')) {
-        return "Elíptico";
-    } else if (groups.includes('corpo')) {
-        return "Aquecimento Geral";
-    } else {
-        return "Esteira";
-    }
-},
+                if (groupExercises.length > 0) {
+                    const numExercises = customGroups.length <= 2 ? 4 : (customGroups.length <= 3 ? 3 : 2);
 
-// Descrição do aquecimento para grupos
-getWarmupDescriptionForGroups(groups) {
-    const groupNames = groups.map(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        return group ? group.name.toLowerCase() : groupId;
-    }).join(', ');
-    
-    return `Aquecimento específico para ${groupNames} em ritmo moderado`;
-},
+                    for (let i = 0; i < Math.min(numExercises, groupExercises.length); i++) {
+                        const baseExercise = groupExercises[i];
+                        const tecnicaSelecionada = this.getTecnicaForExercise(i, nivel, mappedGroup);
+
+                        exercises.push({
+                            id: exerciseId++,
+                            nome: baseExercise.nome,
+                            descricao: this.findExerciseByName(baseExercise.nome) || 'Descrição não disponível',
+                            series: baseExercise.series || 3,
+                            repeticoes: baseExercise.repeticoes || '10-12',
+                            carga: this.adjustLoadForLevel(baseExercise.carga || 'A definir', nivel),
+                            descanso: this.getRestByObjective(objetivo),
+                            observacoesEspeciais: this.getObservacaoEspecial(tecnicaSelecionada, baseExercise.nome),
+                            tecnica: tecnicaSelecionada,
+                            concluido: false
+                        });
+                    }
+                }
+            }
+        });
+
+        // Alongamento
+        if (exercises.length > 1) {
+            exercises.push({
+                id: exerciseId++,
+                nome: "Alongamento",
+                descricao: "Relaxamento e flexibilidade dos grupos musculares trabalhados",
+                series: 1,
+                repeticoes: "8-10 min",
+                carga: "Peso corporal",
+                descanso: '0',
+                observacoesEspeciais: '',
+                tecnica: '',
+                concluido: false
+            });
+        }
+
+        return exercises;
+    },
+
+    // Mapear grupos personalizados para grupos do sistema
+    mapCustomGroupToSystemGroup(customGroupId) {
+        const mapping = {
+            'antebraco': 'antebraco',
+            'abdome': 'abdome',
+            'biceps': 'biceps',
+            'triceps': 'triceps',
+            'peito': 'peito',
+            'perna': 'quadriceps', // Perna mapeia para quadríceps
+            'gluteo': 'gluteos',
+            'costas': 'costas',
+            'ombro': 'ombros',
+            'corpo': 'corpo_inteiro'
+        };
+
+        return mapping[customGroupId] || customGroupId;
+    },
+
+    // Aquecimento específico para grupos
+    getWarmupForGroups(groups) {
+        if (groups.includes('perna') || groups.includes('gluteo')) {
+            return "Bicicleta Ergométrica";
+        } else if (groups.includes('costas')) {
+            return "Remo Ergômetro";
+        } else if (groups.includes('ombro')) {
+            return "Elíptico";
+        } else if (groups.includes('corpo')) {
+            return "Aquecimento Geral";
+        } else {
+            return "Esteira";
+        }
+    },
+
+    // Descrição do aquecimento para grupos
+    getWarmupDescriptionForGroups(groups) {
+        const groupNames = groups.map(groupId => {
+            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+            return group ? group.name.toLowerCase() : groupId;
+        }).join(', ');
+
+        return `Aquecimento específico para ${groupNames} em ritmo moderado`;
+    },
 
 
     generateWorkoutEditor(days) {
@@ -3498,9 +3460,9 @@ getWarmupDescriptionForGroups(groups) {
         };
 
         let html = '<div class="form-section"><h2>🏋️ Treinos</h2>';
-        
+
         this.currentPlan.treinos = [];
-        
+
         for (let i = 0; i < days; i++) {
             const workout = {
                 id: letters[i],
@@ -3523,9 +3485,9 @@ getWarmupDescriptionForGroups(groups) {
                 concluido: false,
                 execucoes: 0
             };
-            
+
             this.currentPlan.treinos.push(workout);
-            
+
             html += `
                 <div class="workout-editor">
                     <div class="workout-header">
@@ -3540,7 +3502,7 @@ getWarmupDescriptionForGroups(groups) {
                 </div>
             `;
         }
-        
+
         html += '</div>';
         editor.innerHTML = html;
     },
@@ -3590,28 +3552,51 @@ getWarmupDescriptionForGroups(groups) {
             tecnica: '',
             concluido: false
         };
-        
+
         this.currentPlan.treinos[workoutIndex].exercicios.push(newExercise);
         this.updateExerciseList(workoutIndex);
     },
 
+    // 3. NOVA FUNÇÃO editExercise() - sem modal
     editExercise(workoutIndex, exerciseIndex) {
+        // Fechar qualquer editor aberto
+        this.closeInlineEditor();
+
         this.currentWorkoutIndex = workoutIndex;
         this.currentExerciseIndex = exerciseIndex;
-        
+
         const exercise = this.currentPlan.treinos[workoutIndex].exercicios[exerciseIndex];
         const workout = this.currentPlan.treinos[workoutIndex];
-        
-        // Configurar filtro contextual COM exercício atual
+
+        // Criar HTML do editor inline
+        const editorHTML = this.createInlineEditorHTML(exercise);
+
+        // Inserir após o exercício atual
+        const exerciseItems = document.querySelectorAll(`#exerciseList${workoutIndex} .exercise-item`);
+        const currentItem = exerciseItems[exerciseIndex];
+
+        if (currentItem) {
+            currentItem.insertAdjacentHTML('afterend', editorHTML);
+
+            // Popular dados após inserir no DOM
+            setTimeout(() => {
+                this.populateInlineEditor(exercise, workoutIndex, workout);
+            }, 100);
+        }
+    },
+
+    // 5. NOVA FUNÇÃO populateInlineEditor()
+    populateInlineEditor(exercise, workoutIndex, workout) {
+        // Configurar filtro contextual
         this.setupContextualGroupFilter(workoutIndex, workout, exercise);
-        
-        // Resto do código existente...
+
+        // Popular campos
         document.getElementById('exerciseSets').value = exercise.series;
         document.getElementById('exerciseReps').value = exercise.repeticoes;
         document.getElementById('exerciseWeight').value = exercise.carga;
         document.getElementById('exerciseRest').value = exercise.descanso || '90 segundos';
         document.getElementById('exerciseDescription').value = exercise.descricao;
-        
+
         const techniqueSelect = document.getElementById('exerciseTechnique');
         if (exercise.tecnica && this.tecnicasDatabase[exercise.tecnica]) {
             techniqueSelect.value = exercise.tecnica;
@@ -3620,15 +3605,26 @@ getWarmupDescriptionForGroups(groups) {
             techniqueSelect.value = '';
             this.updateTechniqueDescription();
         }
-        
-        document.getElementById('exerciseModal').classList.add('active');
     },
+
+    // 6. NOVA FUNÇÃO closeInlineEditor()
+    closeInlineEditor() {
+        const editor = document.getElementById('inlineEditor');
+        if (editor) {
+            editor.remove();
+        }
+        this.currentWorkoutIndex = null;
+        this.currentExerciseIndex = null;
+    },
+
 
     updateTechniqueDescription() {
         const techniqueSelect = document.getElementById('exerciseTechnique');
         const descriptionGroup = document.getElementById('techniqueDescriptionGroup');
         const descriptionTextarea = document.getElementById('techniqueDescription');
-        
+
+        if (!techniqueSelect || !descriptionGroup || !descriptionTextarea) return;
+
         if (techniqueSelect.value && this.tecnicasDatabase[techniqueSelect.value]) {
             descriptionGroup.style.display = 'flex';
             descriptionTextarea.value = this.tecnicasDatabase[techniqueSelect.value];
@@ -3638,11 +3634,90 @@ getWarmupDescriptionForGroups(groups) {
         }
     },
 
+    // 4. NOVA FUNÇÃO createInlineEditorHTML()
+    createInlineEditorHTML(exercise) {
+        return `
+        <div class="exercise-inline-editor" id="inlineEditor">
+            <div class="inline-editor-header">
+                <h3 class="inline-editor-title">✏️ Editar Exercício</h3>
+                <button class="inline-editor-close" onclick="app.closeInlineEditor()">×</button>
+            </div>
+            <div class="inline-editor-form">
+                <div class="form-group">
+                    <label class="form-label">🎯 Grupo Muscular</label>
+                    <select id="exerciseGroupFilter" class="form-select" onchange="app.filterExercisesByGroup()">
+                        <option value="todos">📋 Todos os Grupos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nome do Exercício</label>
+                    <select id="exerciseName" class="form-select" onchange="app.updateExerciseDescription()">
+                        <option value="custom">✏️ Exercício Personalizado</option>
+                    </select>
+                    <div id="exerciseSelectStatus" class="form-hint">
+                        <span id="exerciseCount">Carregando exercícios...</span>
+                    </div>
+                </div>
+                <div class="form-group" id="customExerciseGroup" style="display: none;">
+                    <label class="form-label">Nome Personalizado</label>
+                    <input type="text" id="customExerciseName" class="form-input" placeholder="Digite o nome do exercício">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Séries</label>
+                    <input type="number" id="exerciseSets" class="form-input" min="1" placeholder="3">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Repetições</label>
+                    <input type="text" id="exerciseReps" class="form-input" placeholder="8-12">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Carga</label>
+                    <input type="text" id="exerciseWeight" class="form-input" placeholder="20kg">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descanso</label>
+                    <input type="text" id="exerciseRest" class="form-input" placeholder="90 segundos">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Técnica Avançada</label>
+                    <select id="exerciseTechnique" class="form-select" onchange="app.updateTechniqueDescription()">
+                        <option value="">Nenhuma</option>
+                        <option value="drop-set">Drop-set</option>
+                        <option value="rest-pause">Rest-pause</option>
+                        <option value="pre-exaustao">Pré-exaustão</option>
+                        <option value="pos-exaustao">Pós-exaustão</option>
+                        <option value="bi-set">Bi-set</option>
+                        <option value="tempo-controlado">Tempo Controlado</option>
+                        <option value="pausa-contracao">Pausa na Contração</option>
+                    </select>
+                </div>
+                <div class="form-group" id="techniqueDescriptionGroup" style="display: none;">
+                    <label class="form-label">Descrição da Técnica</label>
+                    <textarea id="techniqueDescription" class="form-textarea" readonly></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label class="form-label">Descrição/Técnica</label>
+                    <textarea id="exerciseDescription" class="form-textarea" placeholder="Instruções técnicas do exercício..."></textarea>
+                </div>
+            </div>
+            <div class="inline-editor-actions">
+                <button class="btn btn-primary" onclick="app.saveInlineExercise()">💾 Salvar</button>
+                <button class="btn btn-outline" onclick="app.closeInlineEditor()">❌ Cancelar</button>
+            </div>
+        </div>
+    `;
+    },
+
+
+
+    // 9. ATUALIZAR updateExerciseDescription()
     updateExerciseDescription() {
         const exerciseSelect = document.getElementById('exerciseName');
         const customGroup = document.getElementById('customExerciseGroup');
         const descriptionTextarea = document.getElementById('exerciseDescription');
-        
+
+        if (!exerciseSelect || !customGroup || !descriptionTextarea) return;
+
         if (exerciseSelect.value === 'custom') {
             customGroup.style.display = 'block';
             descriptionTextarea.value = '';
@@ -3651,41 +3726,11 @@ getWarmupDescriptionForGroups(groups) {
 
             const description = this.findExerciseByName(exerciseSelect.value);
             const descricao = description?.descricao || 'Descrição não disponível';
-            
-            descriptionTextarea.value = descricao.charAt(0).toUpperCase() + descricao.slice(1).toLowerCase();      }
+
+            descriptionTextarea.value = descricao.charAt(0).toUpperCase() + descricao.slice(1).toLowerCase();
+        }
     },
 
-    saveExercise() {
-        if (this.currentWorkoutIndex === null || this.currentExerciseIndex === null) return;
-        
-        const exercise = this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex];
-        
-        const exerciseSelect = document.getElementById('exerciseName');
-        const customName = document.getElementById('customExerciseName');
-        const techniqueSelect = document.getElementById('exerciseTechnique');
-        
-        // Atualizar dados básicos do exercício
-        exercise.nome = exerciseSelect.value === 'custom' ? customName.value : exerciseSelect.value;
-        exercise.series = parseInt(document.getElementById('exerciseSets').value) || 3;
-        exercise.repeticoes = document.getElementById('exerciseReps').value;
-        exercise.carga = document.getElementById('exerciseWeight').value;
-        exercise.descanso = document.getElementById('exerciseRest').value;
-        exercise.descricao = document.getElementById('exerciseDescription').value;
-        
-        // Configurar técnica selecionada
-        exercise.tecnica = techniqueSelect.value;
-        
-        // Gerar observações especiais automaticamente baseadas na técnica
-        if (exercise.tecnica && this.tecnicasDatabase[exercise.tecnica]) {
-            exercise.observacoesEspeciais = this.getObservacaoEspecial(exercise.tecnica, exercise.nome);
-        } else {
-            exercise.observacoesEspeciais = '';
-        }
-        
-        // Atualizar a lista de exercícios e fechar modal
-        this.updateExerciseList(this.currentWorkoutIndex);
-        this.closeExerciseModal();
-    },
 
     removeExercise(workoutIndex, exerciseIndex) {
         if (confirm('Tem certeza que deseja remover este exercício?')) {
@@ -3698,23 +3743,58 @@ getWarmupDescriptionForGroups(groups) {
         const container = document.getElementById(`exerciseList${workoutIndex}`);
         if (container) {
             container.innerHTML = this.renderExercises(
-                this.currentPlan.treinos[workoutIndex].exercicios, 
+                this.currentPlan.treinos[workoutIndex].exercicios,
                 workoutIndex
             );
         }
     },
 
-    closeExerciseModal() {
-        document.getElementById('exerciseModal').classList.remove('active');
+    // Substituir closeExerciseModal por:
+    closeInlineEditor() {
+        const editor = document.getElementById('inlineEditor');
+        if (editor) {
+            editor.remove();
+        }
         this.currentWorkoutIndex = null;
         this.currentExerciseIndex = null;
-        
-        // NOVO: Resetar filtro para modo padrão
-        setTimeout(() => {
-            this.populateGroupFilter();
-            this.populateExerciseSelect('todos');
-        }, 300);
     },
+
+
+    // 7. NOVA FUNÇÃO saveInlineExercise()
+    saveInlineExercise() {
+        if (this.currentWorkoutIndex === null || this.currentExerciseIndex === null) return;
+
+        const exercise = this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex];
+
+        const exerciseSelect = document.getElementById('exerciseName');
+        const customName = document.getElementById('customExerciseName');
+        const techniqueSelect = document.getElementById('exerciseTechnique');
+
+        // Atualizar dados do exercício
+        exercise.nome = exerciseSelect.value === 'custom' ?
+            customName.value :
+            exerciseSelect.value;
+        exercise.series = parseInt(document.getElementById('exerciseSets').value) || 3;
+        exercise.repeticoes = document.getElementById('exerciseReps').value;
+        exercise.carga = document.getElementById('exerciseWeight').value;
+        exercise.descanso = document.getElementById('exerciseRest').value;
+        exercise.tecnica = techniqueSelect.value;
+        exercise.descricao = document.getElementById('exerciseDescription').value;
+
+        // Gerar observações especiais baseadas na técnica
+        if (exercise.tecnica && this.tecnicasDatabase[exercise.tecnica]) {
+            exercise.observacoesEspeciais = this.getObservacaoEspecial(exercise.tecnica, exercise.nome);
+        } else {
+            exercise.observacoesEspeciais = '';
+        }
+
+        // Atualizar lista e fechar editor
+        this.updateExerciseList(this.currentWorkoutIndex);
+        this.closeInlineEditor();
+
+        this.showMessage('✅ Exercício atualizado!', 'success');
+    },
+
 
     // =============================================
     // FUNÇÕES DE PERSISTÊNCIA
@@ -3724,10 +3804,10 @@ getWarmupDescriptionForGroups(groups) {
         try {
             const currentPlanId = document.getElementById('currentPlanId').value;
             const isEditingPlan = this.isEditing && currentPlanId;
-            
+
             const birthDate = document.getElementById('studentBirthDate')?.value;
             const calculatedAge = birthDate ? this.calculateAge(birthDate) : 25;
-            
+
             const planData = {
                 id: isEditingPlan ? parseInt(currentPlanId) : Date.now(),
                 nome: document.getElementById('planName')?.value || 'Plano sem nome',
@@ -3782,12 +3862,12 @@ getWarmupDescriptionForGroups(groups) {
                 this.savedPlans.push(planData);
                 this.showMessage('Plano salvo com sucesso! 💾', 'success');
             }
-            
+
             this.savePlansToStorage();
-            
+
             this.isEditing = false;
             document.getElementById('cancelEditBtn').style.display = 'none';
-            
+
             setTimeout(() => {
                 this.showPlanList();
             }, 1500);
@@ -3820,15 +3900,15 @@ getWarmupDescriptionForGroups(groups) {
         };
 
         const dataStr = JSON.stringify(exportData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
         const exportFileDefaultName = `plano_${plan.nome.replace(/\s+/g, '_').toLowerCase().replace(/[^a-z0-9_]/g, '')}.json`;
-        
+
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
         linkElement.click();
-        
+
         this.showMessage('Plano exportado com sucesso! 📤', 'success');
     },
 
@@ -3840,9 +3920,9 @@ getWarmupDescriptionForGroups(groups) {
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                
+
                 let plansToImport = [];
-                
+
                 if (importedData.planos) {
                     plansToImport = importedData.planos;
                 } else if (Array.isArray(importedData)) {
@@ -3850,11 +3930,11 @@ getWarmupDescriptionForGroups(groups) {
                 } else {
                     plansToImport = [importedData];
                 }
-                
+
                 plansToImport.forEach(planData => {
                     planData.id = Date.now() + Math.random();
                     planData.nome = planData.nome + ' (Importado)';
-                    
+
                     if (!planData.aluno) {
                         planData.aluno = {
                             nome: '',
@@ -3865,7 +3945,7 @@ getWarmupDescriptionForGroups(groups) {
                             peso: planData.perfil?.peso || '75kg'
                         };
                     }
-                    
+
                     if (planData.treinos) {
                         planData.treinos.forEach(treino => {
                             if (treino.exercicios) {
@@ -3877,33 +3957,33 @@ getWarmupDescriptionForGroups(groups) {
                             }
                         });
                     }
-                    
+
                     if (!planData.tecnicas_aplicadas) {
                         planData.tecnicas_aplicadas = {};
                     }
-                    
+
                     if (planData.perfil && !planData.perfil.porte) {
                         planData.perfil.porte = this.calculateBodyType(
                             planData.perfil.altura || '1,75m',
                             planData.perfil.peso || '75kg'
                         );
                     }
-                    
+
                     this.savedPlans.push(planData);
                 });
-                
+
                 this.savePlansToStorage();
-                
+
                 this.showMessage(`${plansToImport.length} plano(s) importado(s) com sucesso! 📥`, 'success');
                 this.renderPlanList();
-                
+
             } catch (error) {
                 console.error('Erro ao importar plano:', error);
                 this.showMessage('Erro ao importar plano. Verifique o arquivo.', 'error');
             }
         };
         reader.readAsText(file);
-        
+
         event.target.value = '';
     },
 
@@ -3912,7 +3992,7 @@ getWarmupDescriptionForGroups(groups) {
             const stored = localStorage.getItem('jsfitapp_plans');
             if (stored) {
                 this.savedPlans = JSON.parse(stored);
-                
+
                 // Migrate old plans to new structure
                 this.savedPlans.forEach(plan => {
                     if (!plan.aluno && plan.perfil) {
@@ -3925,7 +4005,7 @@ getWarmupDescriptionForGroups(groups) {
                             peso: plan.perfil.peso || '75kg'
                         };
                     }
-                    
+
                     // Ensure exercises have all required fields
                     if (plan.treinos) {
                         plan.treinos.forEach(treino => {
@@ -3938,12 +4018,12 @@ getWarmupDescriptionForGroups(groups) {
                             }
                         });
                     }
-                    
+
                     // Add tecnicas_aplicadas if not present
                     if (!plan.tecnicas_aplicadas) {
                         plan.tecnicas_aplicadas = {};
                     }
-                    
+
                     // Ensure perfil has porte field
                     if (plan.perfil && !plan.perfil.porte) {
                         plan.perfil.porte = this.calculateBodyType(
@@ -3952,7 +4032,7 @@ getWarmupDescriptionForGroups(groups) {
                         );
                     }
                 });
-                
+
                 this.savePlansToStorage(); // Save migrated data
             }
         } catch (error) {
@@ -4001,8 +4081,8 @@ getWarmupDescriptionForGroups(groups) {
         container.innerHTML = this.savedPlans.map(plan => {
             // Verificar se este plano já foi compartilhado
             const isShared = Object.values(sharedPlans).some(shared => shared.id === plan.id);
-            const shareInfo = isShared ? 
-                Object.entries(sharedPlans).find(([, shared]) => shared.id === plan.id) : 
+            const shareInfo = isShared ?
+                Object.entries(sharedPlans).find(([, shared]) => shared.id === plan.id) :
                 null;
 
             return `
@@ -4079,51 +4159,107 @@ getWarmupDescriptionForGroups(groups) {
         }
     },
 
+    // =============================================
+    // VISUALIZAÇÃO DE PLANOS - VERSÃO INTEGRADA (SUBSTITUI O MODAL)
+    // =============================================
+
     viewPlan(planId) {
         const plan = this.savedPlans.find(p => p.id === planId);
         if (!plan) return;
 
-        // Fill modal with plan details
-        document.getElementById('planModalTitle').textContent = plan.nome;
-        
+        // Ocultar outras telas
+        document.getElementById('planCreator').style.display = 'none';
+        document.getElementById('aiPlanCreator').style.display = 'none';
+        document.getElementById('planList').style.display = 'none';
+
+        // Mostrar tela de detalhes
+        const planDetailsDiv = document.getElementById('planDetails');
+        planDetailsDiv.style.display = 'block';
+
+        // Preencher conteúdo
+        document.getElementById('planDetailsTitle').textContent = plan.nome;
+
         let content = `
-            <div class="plan-details">
-                <h3>📊 Informações Gerais</h3>
-                <p><strong>Aluno:</strong> ${plan.aluno?.nome || 'Não informado'}</p>
-                <p><strong>Frequência:</strong> ${plan.dias} dias por semana</p>
-                <p><strong>Período:</strong> ${this.formatDate(plan.dataInicio)} até ${this.formatDate(plan.dataFim)}</p>
-                <p><strong>Objetivo:</strong> ${plan.perfil?.objetivo || 'Não especificado'}</p>
-                ${plan.aluno?.idade ? `<p><strong>Idade:</strong> ${plan.aluno.idade} anos</p>` : ''}
-                ${plan.aluno?.altura ? `<p><strong>Altura:</strong> ${plan.aluno.altura}</p>` : ''}
-                ${plan.aluno?.peso ? `<p><strong>Peso:</strong> ${plan.aluno.peso}</p>` : ''}
+        <div class="plan-general-info">
+            <h3>📊 Informações Gerais</h3>
+            <div class="plan-info-grid">
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Aluno</span>
+                    <span class="plan-info-value">${plan.aluno?.nome || 'Não informado'}</span>
+                </div>
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Frequência</span>
+                    <span class="plan-info-value">${plan.dias} dias por semana</span>
+                </div>
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Período</span>
+                    <span class="plan-info-value">${this.formatDate(plan.dataInicio)} até ${this.formatDate(plan.dataFim)}</span>
+                </div>
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Objetivo</span>
+                    <span class="plan-info-value">${plan.perfil?.objetivo || 'Não especificado'}</span>
+                </div>
+                ${plan.aluno?.idade ? `
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Idade</span>
+                    <span class="plan-info-value">${plan.aluno.idade} anos</span>
+                </div>` : ''}
+                ${plan.aluno?.altura ? `
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Altura</span>
+                    <span class="plan-info-value">${plan.aluno.altura}</span>
+                </div>` : ''}
+                ${plan.aluno?.peso ? `
+                <div class="plan-info-item">
+                    <span class="plan-info-label">Peso</span>
+                    <span class="plan-info-value">${plan.aluno.peso}</span>
+                </div>` : ''}
             </div>
-        `;
+        </div>
+    `;
 
         if (plan.treinos && plan.treinos.length > 0) {
             content += `
-                <div class="workout-tabs">
-                    ${plan.treinos.map((treino, index) => `
-                        <div class="workout-tab ${index === 0 ? 'active' : ''}" onclick="app.switchWorkoutTab(${index})">
-                            ${treino.id || treino.nome}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            <div class="plan-workout-tabs">
+                ${plan.treinos.map((treino, index) => `
+                    <div class="plan-workout-tab ${index === 0 ? 'active' : ''}" onclick="app.switchPlanWorkoutTab(${index})">
+                        ${treino.id || treino.nome}
+                    </div>
+                `).join('')}
+            </div>
+        `;
 
             plan.treinos.forEach((treino, index) => {
                 content += `
-                    <div class="workout-content ${index === 0 ? 'active' : ''}" id="workoutContent${index}">
-                        <h3>${treino.nome}</h3>
-                        <p><strong>Foco:</strong> ${treino.foco}</p>
+                <div class="plan-workout-content ${index === 0 ? 'active' : ''}" id="planWorkoutContent${index}">
+                    <div class="workout-editor">
+                        <div class="workout-header" style="margin-bottom: var(--space-lg);">
+                            <h3 class="workout-title">${treino.nome}</h3>
+                            <p style="color: var(--text-secondary); margin: var(--space-sm) 0;">
+                                <strong>Foco:</strong> ${treino.foco}
+                            </p>
+                        </div>
                         
                         ${treino.exercicios ? treino.exercicios.map(ex => `
                             <div class="exercise-card">
                                 <div class="exercise-header">
-                                    <strong>${ex.nome}</strong>
-                                    ${ex.tecnica ? `<div class="exercise-special-display">🎯 Técnica: ${ex.tecnica.replace('-', ' ').toUpperCase()}</div>` : ''}
-                                    ${ex.observacoesEspeciais ? `<div class="exercise-special-display">💡 ${ex.observacoesEspeciais}</div>` : ''}
+                                    <strong style="font-size: var(--font-size-lg); color: var(--text-primary);">
+                                        ${ex.nome}
+                                    </strong>
+                                    ${ex.tecnica ? `
+                                        <div class="exercise-special-display">
+                                            🎯 Técnica: ${ex.tecnica.replace('-', ' ').toUpperCase()}
+                                        </div>
+                                    ` : ''}
+                                    ${ex.observacoesEspeciais ? `
+                                        <div class="exercise-special-display">
+                                            💡 ${ex.observacoesEspeciais}
+                                        </div>
+                                    ` : ''}
                                 </div>
-                                <p>${ex.descricao}</p>
+                                <p style="margin: var(--space-md) 0; color: var(--text-secondary); line-height: 1.6;">
+                                    ${ex.descricao}
+                                </p>
                                 <div class="exercise-specs">
                                     <div class="spec-item">
                                         <span class="spec-label">Séries</span>
@@ -4143,47 +4279,71 @@ getWarmupDescriptionForGroups(groups) {
                                     </div>
                                 </div>
                             </div>
-                        `).join('') : '<p>Nenhum exercício configurado</p>'}
+                        `).join('') : '<p style="text-align: center; color: var(--text-secondary); padding: var(--space-xl);">Nenhum exercício configurado</p>'}
                     </div>
-                `;
+                </div>
+            `;
             });
         }
 
-        // Add techniques section if available
+        // Adicionar seção de técnicas se disponível
         if (plan.tecnicas_aplicadas && Object.keys(plan.tecnicas_aplicadas).length > 0) {
             content += `
-                <div class="techniques-section">
-                    <h3>🎯 Técnicas Aplicadas no Plano</h3>
+            <div class="plan-techniques-section">
+                <h3>🎯 Técnicas Aplicadas no Plano</h3>
+                <div class="technique-grid">
                     ${Object.entries(plan.tecnicas_aplicadas).map(([tecnica, descricao]) => `
-                        <div class="technique-item">
+                        <div class="technique-card">
                             <div class="technique-name">${tecnica.replace('-', ' ')}</div>
                             <div class="technique-description">${descricao}</div>
                         </div>
                     `).join('')}
                 </div>
-            `;
+            </div>
+        `;
         }
 
         if (plan.observacoes) {
             content += `
-                <div class="plan-details">
-                    <h3>📝 Observações</h3>
-                    ${Object.entries(plan.observacoes).map(([key, value]) => 
-                        value ? `<p><strong>${this.getObservationLabel(key)}:</strong> ${value}</p>` : ''
-                    ).join('')}
-                </div>
-            `;
+            <div class="plan-observations-section">
+                <h3>📝 Observações</h3>
+                ${Object.entries(plan.observacoes).map(([key, value]) =>
+                value ? `
+                        <div class="observation-item">
+                            <div class="observation-label">${this.getObservationLabel(key)}</div>
+                            <div class="observation-value">${value}</div>
+                        </div>
+                    ` : ''
+            ).join('')}
+            </div>
+        `;
         }
 
-        document.getElementById('planModalContent').innerHTML = content;
-        document.getElementById('planModal').classList.add('active');
+        document.getElementById('planDetailsContent').innerHTML = content;
     },
+
+    // Nova função para alternar abas na view integrada
+    switchPlanWorkoutTab(index) {
+        // Remove active class from all tabs and contents
+        document.querySelectorAll('.plan-workout-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.plan-workout-content').forEach(content => content.classList.remove('active'));
+
+        // Add active class to selected tab and content
+        document.querySelectorAll('.plan-workout-tab')[index].classList.add('active');
+        document.getElementById(`planWorkoutContent${index}`).classList.add('active');
+    },
+
+    // Nova função para voltar à lista de planos
+    backToPlanList() {
+        this.showPlanList();
+    },
+
 
     switchWorkoutTab(index) {
         // Remove active class from all tabs and contents
         document.querySelectorAll('.workout-tab').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.workout-content').forEach(content => content.classList.remove('active'));
-        
+
         // Add active class to selected tab and content
         document.querySelectorAll('.workout-tab')[index].classList.add('active');
         document.getElementById(`workoutContent${index}`).classList.add('active');
@@ -4207,85 +4367,83 @@ getWarmupDescriptionForGroups(groups) {
         return labels[key] || key.charAt(0).toUpperCase() + key.slice(1);
     },
 
-    closePlanModal() {
-        document.getElementById('planModal').classList.remove('active');
-    },
+
 
     formatDate(dateString) {
         if (!dateString) return 'Não definido';
         const date = new Date(dateString);
         return date.toLocaleDateString('pt-BR');
     },
-// =============================================
-// CONFIGURAÇÃO DE MÚSCULOS NA CRIAÇÃO IA
-// =============================================
+    // =============================================
+    // CONFIGURAÇÃO DE MÚSCULOS NA CRIAÇÃO IA
+    // =============================================
 
-// Estado da configuração de músculos da IA
-aiMuscleConfig: {
-    enabled: false,
-    days: 3,
-    workouts: {}
-},
+    // Estado da configuração de músculos da IA
+    aiMuscleConfig: {
+        enabled: false,
+        days: 3,
+        workouts: {}
+    },
 
-// Alternar configuração de músculos na IA
-toggleAIMuscleConfig() {
-    const checkbox = document.getElementById('aiUseCustomMuscleConfig');
-    const section = document.getElementById('aiMuscleConfigSection');
-    
-    this.aiMuscleConfig.enabled = checkbox.checked;
-    
-    if (checkbox.checked) {
-        section.style.display = 'block';
-        section.classList.add('active');
-        this.generateAIMuscleConfigInterface();
-    } else {
-        section.style.display = 'none';
-        section.classList.remove('active');
-        this.aiMuscleConfig.workouts = {};
-    }
-    
-    console.log('🎯 Configuração de músculos IA:', this.aiMuscleConfig.enabled ? 'ATIVADA' : 'DESATIVADA');
-},
+    // Alternar configuração de músculos na IA
+    toggleAIMuscleConfig() {
+        const checkbox = document.getElementById('aiUseCustomMuscleConfig');
+        const section = document.getElementById('aiMuscleConfigSection');
 
-// Gerar interface de configuração de músculos para IA (VERSÃO CORRIGIDA)
-generateAIMuscleConfigInterface() {
-    const grid = document.getElementById('aiWorkoutConfigGrid');
-    const days = parseInt(document.getElementById('aiAvailableDays').value) || 3;
-    
-    if (!grid) {
-        console.error('❌ Elemento aiWorkoutConfigGrid não encontrado');
-        return;
-    }
-    
-    this.aiMuscleConfig.days = days;
-    
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    let html = '';
-    
-    console.log(`🏋️ Gerando interface para ${days} dias de treino`);
-    
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        const workout = this.aiMuscleConfig.workouts[letter] || {
-            name: `Treino ${letter}`,
-            groups: []
-        };
-        
-        // Garantir que planTypeConfiguration.muscleGroups existe
-        const muscleGroups = this.planTypeConfiguration?.muscleGroups || [
-            { id: 'antebraco', name: 'ANTEBRAÇO', icon: '💪' },
-            { id: 'abdome', name: 'ABDOME', icon: '🎯' },
-            { id: 'biceps', name: 'BÍCEPS', icon: '💪' },
-            { id: 'triceps', name: 'TRÍCEPS', icon: '🔥' },
-            { id: 'peito', name: 'PEITO', icon: '💥' },
-            { id: 'perna', name: 'PERNA', icon: '🦵' },
-            { id: 'gluteo', name: 'GLÚTEO', icon: '🍑' },
-            { id: 'costas', name: 'COSTAS', icon: '🗻' },
-            { id: 'ombro', name: 'OMBRO', icon: '👑' },
-            { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
-        ];
-        
-        html += `
+        this.aiMuscleConfig.enabled = checkbox.checked;
+
+        if (checkbox.checked) {
+            section.style.display = 'block';
+            section.classList.add('active');
+            this.generateAIMuscleConfigInterface();
+        } else {
+            section.style.display = 'none';
+            section.classList.remove('active');
+            this.aiMuscleConfig.workouts = {};
+        }
+
+        console.log('🎯 Configuração de músculos IA:', this.aiMuscleConfig.enabled ? 'ATIVADA' : 'DESATIVADA');
+    },
+
+    // Gerar interface de configuração de músculos para IA (VERSÃO CORRIGIDA)
+    generateAIMuscleConfigInterface() {
+        const grid = document.getElementById('aiWorkoutConfigGrid');
+        const days = parseInt(document.getElementById('aiAvailableDays').value) || 3;
+
+        if (!grid) {
+            console.error('❌ Elemento aiWorkoutConfigGrid não encontrado');
+            return;
+        }
+
+        this.aiMuscleConfig.days = days;
+
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        let html = '';
+
+        console.log(`🏋️ Gerando interface para ${days} dias de treino`);
+
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            const workout = this.aiMuscleConfig.workouts[letter] || {
+                name: `Treino ${letter}`,
+                groups: []
+            };
+
+            // Garantir que planTypeConfiguration.muscleGroups existe
+            const muscleGroups = this.planTypeConfiguration?.muscleGroups || [
+                { id: 'antebraco', name: 'ANTEBRAÇO', icon: '💪' },
+                { id: 'abdome', name: 'ABDOME', icon: '🎯' },
+                { id: 'biceps', name: 'BÍCEPS', icon: '💪' },
+                { id: 'triceps', name: 'TRÍCEPS', icon: '🔥' },
+                { id: 'peito', name: 'PEITO', icon: '💥' },
+                { id: 'perna', name: 'PERNA', icon: '🦵' },
+                { id: 'gluteo', name: 'GLÚTEO', icon: '🍑' },
+                { id: 'costas', name: 'COSTAS', icon: '🗻' },
+                { id: 'ombro', name: 'OMBRO', icon: '👑' },
+                { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
+            ];
+
+            html += `
             <div class="ai-workout-config" id="aiWorkout${letter}">
                 <div class="ai-workout-header">
                     <div class="ai-workout-letter">${letter}</div>
@@ -4318,190 +4476,190 @@ generateAIMuscleConfigInterface() {
                 </div>
             </div>
         `;
-    }
-    
-    // Inserir HTML no grid
-    grid.innerHTML = html;
-    
-    // Validar cada treino após inserir
-    for (let i = 0; i < days; i++) {
-        const letter = letters[i];
-        this.validateAIWorkoutConfig(letter);
-    }
-    
-    console.log(`✅ Interface gerada com sucesso para ${days} treinos`);
-    console.log('🔍 HTML gerado:', html.substring(0, 200) + '...');
-},
-
-// Atualizar nome do treino na configuração IA
-updateAIWorkoutName(letter, name) {
-    if (!this.aiMuscleConfig.workouts[letter]) {
-        this.aiMuscleConfig.workouts[letter] = { name: '', groups: [] };
-    }
-    this.aiMuscleConfig.workouts[letter].name = name;
-    console.log(`📝 Treino ${letter} renomeado para: ${name}`);
-},
-
-// Atualizar grupos musculares na configuração IA
-updateAIMuscleGroups(letter) {
-    const selectedGroups = [];
-    
-    this.planTypeConfiguration.muscleGroups.forEach(group => {
-        const checkbox = document.getElementById(`aiMuscle-${letter}-${group.id}`);
-        if (checkbox && checkbox.checked) {
-            selectedGroups.push(group.id);
         }
-    });
-    
-    if (!this.aiMuscleConfig.workouts[letter]) {
-        this.aiMuscleConfig.workouts[letter] = { name: `Treino ${letter}`, groups: [] };
-    }
-    this.aiMuscleConfig.workouts[letter].groups = selectedGroups;
-    
-    // Atualizar preview
-    const preview = document.getElementById(`aiPreview${letter}`);
-    if (preview) {
-        preview.innerHTML = this.generateAIGroupsPreview(letter, selectedGroups);
-    }
-    
-    // Validar configuração
-    this.validateAIWorkoutConfig(letter);
-    
-    console.log(`💪 Treino ${letter} - Grupos: ${selectedGroups.join(', ')}`);
-},
 
-// Gerar preview dos grupos selecionados
-generateAIGroupsPreview(letter, groups) {
-    if (groups.length === 0) {
-        return '⚠️ Nenhum grupo muscular selecionado';
-    }
-    
-    const groupNames = groups.map(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        return group ? `${group.icon} ${group.name}` : groupId;
-    });
-    
-    return `✅ Trabalhando: ${groupNames.join(', ')}`;
-},
+        // Inserir HTML no grid
+        grid.innerHTML = html;
 
-// Validar configuração do treino
-validateAIWorkoutConfig(letter) {
-    const workoutElement = document.getElementById(`aiWorkout${letter}`);
-    const workout = this.aiMuscleConfig.workouts[letter];
-    
-    if (!workoutElement) return;
-    
-    // Remover classes existentes
-    workoutElement.classList.remove('valid', 'invalid');
-    
-    // Validar
-    if (workout && workout.groups.length > 0) {
-        workoutElement.classList.add('valid');
-    } else {
-        workoutElement.classList.add('invalid');
-    }
-},
-
-// Carregar configuração padrão na IA
-loadAIPresetConfig() {
-    const days = this.aiMuscleConfig.days;
-    const preset = this.planTypeConfiguration.presetConfigurations[days];
-    
-    if (!preset) {
-        this.showMessage('❌ Não há configuração padrão para este número de dias', 'warning');
-        return;
-    }
-    
-    // Aplicar configuração padrão
-    this.aiMuscleConfig.workouts = JSON.parse(JSON.stringify(preset));
-    
-    // Atualizar interface
-    Object.entries(preset).forEach(([letter, config]) => {
-        // Atualizar nome
-        const nameInput = document.querySelector(`#aiWorkout${letter} input[type="text"]`);
-        if (nameInput) {
-            nameInput.value = config.name;
+        // Validar cada treino após inserir
+        for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            this.validateAIWorkoutConfig(letter);
         }
-        
-        // Atualizar checkboxes
+
+        console.log(`✅ Interface gerada com sucesso para ${days} treinos`);
+        console.log('🔍 HTML gerado:', html.substring(0, 200) + '...');
+    },
+
+    // Atualizar nome do treino na configuração IA
+    updateAIWorkoutName(letter, name) {
+        if (!this.aiMuscleConfig.workouts[letter]) {
+            this.aiMuscleConfig.workouts[letter] = { name: '', groups: [] };
+        }
+        this.aiMuscleConfig.workouts[letter].name = name;
+        console.log(`📝 Treino ${letter} renomeado para: ${name}`);
+    },
+
+    // Atualizar grupos musculares na configuração IA
+    updateAIMuscleGroups(letter) {
+        const selectedGroups = [];
+
         this.planTypeConfiguration.muscleGroups.forEach(group => {
             const checkbox = document.getElementById(`aiMuscle-${letter}-${group.id}`);
-            if (checkbox) {
-                checkbox.checked = config.groups.includes(group.id);
+            if (checkbox && checkbox.checked) {
+                selectedGroups.push(group.id);
             }
         });
-        
+
+        if (!this.aiMuscleConfig.workouts[letter]) {
+            this.aiMuscleConfig.workouts[letter] = { name: `Treino ${letter}`, groups: [] };
+        }
+        this.aiMuscleConfig.workouts[letter].groups = selectedGroups;
+
         // Atualizar preview
         const preview = document.getElementById(`aiPreview${letter}`);
         if (preview) {
-            preview.innerHTML = this.generateAIGroupsPreview(letter, config.groups);
+            preview.innerHTML = this.generateAIGroupsPreview(letter, selectedGroups);
         }
-        
-        // Validar
+
+        // Validar configuração
         this.validateAIWorkoutConfig(letter);
-    });
-    
-    this.showMessage('📋 Configuração padrão aplicada!', 'success');
-    console.log('📋 Configuração padrão carregada na IA:', preset);
-},
 
-// Resetar configuração de músculos na IA
-resetAIMuscleConfig() {
-    if (!confirm('Tem certeza que deseja limpar toda a configuração de músculos?')) {
-        return;
-    }
-    
-    this.aiMuscleConfig.workouts = {};
-    
-    // Limpar interface
-    const grid = document.getElementById('aiWorkoutConfigGrid');
-    if (grid) {
-        const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = false);
-        
-        const nameInputs = grid.querySelectorAll('input[type="text"]');
-        nameInputs.forEach(input => {
-            const letter = input.closest('.ai-workout-config').id.replace('aiWorkout', '');
-            input.value = `Treino ${letter}`;
-        });
-        
-        const previews = grid.querySelectorAll('.selected-groups-preview');
-        previews.forEach(preview => {
-            preview.innerHTML = '⚠️ Nenhum grupo muscular selecionado';
-        });
-        
-        // Remover validações
-        const workouts = grid.querySelectorAll('.ai-workout-config');
-        workouts.forEach(workout => {
-            workout.classList.remove('valid', 'invalid');
-        });
-    }
-    
-    this.showMessage('🔄 Configuração resetada!', 'info');
-    console.log('🔄 Configuração de músculos IA resetada');
-},
+        console.log(`💪 Treino ${letter} - Grupos: ${selectedGroups.join(', ')}`);
+    },
 
-// Validar configuração completa antes de gerar
-validateAICompleteConfig() {
-    if (!this.aiMuscleConfig.enabled) {
-        return true; // Se não está usando configuração personalizada, está válido
-    }
-    
-    const letters = Object.keys(this.aiMuscleConfig.workouts);
-    const expectedDays = this.aiMuscleConfig.days;
-    const expectedLetters = ['A', 'B', 'C', 'D', 'E', 'F'].slice(0, expectedDays);
-    
-    // Verificar se todos os treinos esperados estão configurados
-    for (const letter of expectedLetters) {
-        const workout = this.aiMuscleConfig.workouts[letter];
-        if (!workout || !workout.groups || workout.groups.length === 0) {
-            this.showMessage(`❌ Treino ${letter} não tem grupos musculares selecionados!`, 'error');
-            return false;
+    // Gerar preview dos grupos selecionados
+    generateAIGroupsPreview(letter, groups) {
+        if (groups.length === 0) {
+            return '⚠️ Nenhum grupo muscular selecionado';
         }
-    }
-    
-    return true;
-},
+
+        const groupNames = groups.map(groupId => {
+            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+            return group ? `${group.icon} ${group.name}` : groupId;
+        });
+
+        return `✅ Trabalhando: ${groupNames.join(', ')}`;
+    },
+
+    // Validar configuração do treino
+    validateAIWorkoutConfig(letter) {
+        const workoutElement = document.getElementById(`aiWorkout${letter}`);
+        const workout = this.aiMuscleConfig.workouts[letter];
+
+        if (!workoutElement) return;
+
+        // Remover classes existentes
+        workoutElement.classList.remove('valid', 'invalid');
+
+        // Validar
+        if (workout && workout.groups.length > 0) {
+            workoutElement.classList.add('valid');
+        } else {
+            workoutElement.classList.add('invalid');
+        }
+    },
+
+    // Carregar configuração padrão na IA
+    loadAIPresetConfig() {
+        const days = this.aiMuscleConfig.days;
+        const preset = this.planTypeConfiguration.presetConfigurations[days];
+
+        if (!preset) {
+            this.showMessage('❌ Não há configuração padrão para este número de dias', 'warning');
+            return;
+        }
+
+        // Aplicar configuração padrão
+        this.aiMuscleConfig.workouts = JSON.parse(JSON.stringify(preset));
+
+        // Atualizar interface
+        Object.entries(preset).forEach(([letter, config]) => {
+            // Atualizar nome
+            const nameInput = document.querySelector(`#aiWorkout${letter} input[type="text"]`);
+            if (nameInput) {
+                nameInput.value = config.name;
+            }
+
+            // Atualizar checkboxes
+            this.planTypeConfiguration.muscleGroups.forEach(group => {
+                const checkbox = document.getElementById(`aiMuscle-${letter}-${group.id}`);
+                if (checkbox) {
+                    checkbox.checked = config.groups.includes(group.id);
+                }
+            });
+
+            // Atualizar preview
+            const preview = document.getElementById(`aiPreview${letter}`);
+            if (preview) {
+                preview.innerHTML = this.generateAIGroupsPreview(letter, config.groups);
+            }
+
+            // Validar
+            this.validateAIWorkoutConfig(letter);
+        });
+
+        this.showMessage('📋 Configuração padrão aplicada!', 'success');
+        console.log('📋 Configuração padrão carregada na IA:', preset);
+    },
+
+    // Resetar configuração de músculos na IA
+    resetAIMuscleConfig() {
+        if (!confirm('Tem certeza que deseja limpar toda a configuração de músculos?')) {
+            return;
+        }
+
+        this.aiMuscleConfig.workouts = {};
+
+        // Limpar interface
+        const grid = document.getElementById('aiWorkoutConfigGrid');
+        if (grid) {
+            const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+
+            const nameInputs = grid.querySelectorAll('input[type="text"]');
+            nameInputs.forEach(input => {
+                const letter = input.closest('.ai-workout-config').id.replace('aiWorkout', '');
+                input.value = `Treino ${letter}`;
+            });
+
+            const previews = grid.querySelectorAll('.selected-groups-preview');
+            previews.forEach(preview => {
+                preview.innerHTML = '⚠️ Nenhum grupo muscular selecionado';
+            });
+
+            // Remover validações
+            const workouts = grid.querySelectorAll('.ai-workout-config');
+            workouts.forEach(workout => {
+                workout.classList.remove('valid', 'invalid');
+            });
+        }
+
+        this.showMessage('🔄 Configuração resetada!', 'info');
+        console.log('🔄 Configuração de músculos IA resetada');
+    },
+
+    // Validar configuração completa antes de gerar
+    validateAICompleteConfig() {
+        if (!this.aiMuscleConfig.enabled) {
+            return true; // Se não está usando configuração personalizada, está válido
+        }
+
+        const letters = Object.keys(this.aiMuscleConfig.workouts);
+        const expectedDays = this.aiMuscleConfig.days;
+        const expectedLetters = ['A', 'B', 'C', 'D', 'E', 'F'].slice(0, expectedDays);
+
+        // Verificar se todos os treinos esperados estão configurados
+        for (const letter of expectedLetters) {
+            const workout = this.aiMuscleConfig.workouts[letter];
+            if (!workout || !workout.groups || workout.groups.length === 0) {
+                this.showMessage(`❌ Treino ${letter} não tem grupos musculares selecionados!`, 'error');
+                return false;
+            }
+        }
+
+        return true;
+    },
 
     // =============================================
     // FUNÇÕES DE MENSAGENS
@@ -4528,30 +4686,30 @@ validateAICompleteConfig() {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             animation: slideIn 0.3s ease-out;
         `;
-        
+
         const colors = {
             success: '#4caf50',
             error: '#f44336',
             warning: '#ff9800',
             info: '#2196f3'
         };
-        
+
         const icons = {
             success: '✅',
             error: '❌',
             warning: '⚠️',
             info: 'ℹ️'
         };
-        
+
         messageDiv.style.backgroundColor = colors[type] || colors.info;
-        
+
         messageDiv.innerHTML = `
             <span style="margin-right: 8px;">${icons[type] || icons.info}</span>
             <span>${message}</span>
         `;
 
         document.body.appendChild(messageDiv);
-        
+
         // Auto remove after 5 seconds
         setTimeout(() => {
             if (messageDiv.parentNode) {
@@ -4561,209 +4719,209 @@ validateAICompleteConfig() {
         }, 5000);
     },
     // =============================================
-// FILTRO CONTEXTUAL DE GRUPOS MUSCULARES
-// =============================================
+    // FILTRO CONTEXTUAL DE GRUPOS MUSCULARES
+    // =============================================
 
-setupContextualGroupFilter(workoutIndex, workout, currentExercise = null) {
-    console.log(`Configurando filtro contextual para treino ${workout.id}`);
-    
-    const configuredGroups = this.getConfiguredGroupsForWorkout(workoutIndex, workout);
-    
-    if (configuredGroups.length > 0) {
-        setTimeout(() => {
-            this.populateContextualGroupFilter(configuredGroups, workout);
-            this.populateExerciseSelect('contextual');
-            
-            // Definir valores padrão se exercício atual foi passado
-            if (currentExercise) {
-                this.setDefaultValues(currentExercise, configuredGroups);
-            }
-        }, 100);
-    } else {
-        setTimeout(() => {
-            this.populateGroupFilter();
-            this.populateExerciseSelect('todos');
-            
-            if (currentExercise) {
-                this.setDefaultExerciseName(currentExercise);
-            }
-        }, 100);
-    }
-},
+    setupContextualGroupFilter(workoutIndex, workout, currentExercise = null) {
+        console.log(`Configurando filtro contextual para treino ${workout.id}`);
 
-setDefaultValues(currentExercise, configuredGroups) {
-    // Definir grupo padrão como 'contextual' (mostra todos os grupos do treino)
-    const groupFilter = document.getElementById('exerciseGroupFilter');
-    if (groupFilter) {
-        groupFilter.value = 'contextual';
-    }
-    
-    // Aguardar um pouco e definir o nome do exercício
-    setTimeout(() => {
-        this.setDefaultExerciseName(currentExercise);
-    }, 150);
-},
+        const configuredGroups = this.getConfiguredGroupsForWorkout(workoutIndex, workout);
 
-setDefaultExerciseName(currentExercise) {
-    const exerciseSelect = document.getElementById('exerciseName');
-    const customGroup = document.getElementById('customExerciseGroup');
-    const customInput = document.getElementById('customExerciseName');
-    
-    if (exerciseSelect) {
-        // Verificar se exercício existe no select
-        const option = Array.from(exerciseSelect.options).find(opt => opt.value === currentExercise.nome);
-        
-        if (option) {
-            // Exercício encontrado na lista
-            exerciseSelect.value = currentExercise.nome;
-            customGroup.style.display = 'none';
+        if (configuredGroups.length > 0) {
+            setTimeout(() => {
+                this.populateContextualGroupFilter(configuredGroups, workout);
+                this.populateExerciseSelect('contextual');
+
+                // Definir valores padrão se exercício atual foi passado
+                if (currentExercise) {
+                    this.setDefaultValues(currentExercise, configuredGroups);
+                }
+            }, 100);
         } else {
-            // Exercício não encontrado, usar modo personalizado
-            exerciseSelect.value = 'custom';
-            customGroup.style.display = 'block';
-            if (customInput) {
-                customInput.value = currentExercise.nome;
+            setTimeout(() => {
+                this.populateGroupFilter();
+                this.populateExerciseSelect('todos');
+
+                if (currentExercise) {
+                    this.setDefaultExerciseName(currentExercise);
+                }
+            }, 100);
+        }
+    },
+
+    setDefaultValues(currentExercise, configuredGroups) {
+        // Definir grupo padrão como 'contextual' (mostra todos os grupos do treino)
+        const groupFilter = document.getElementById('exerciseGroupFilter');
+        if (groupFilter) {
+            groupFilter.value = 'contextual';
+        }
+
+        // Aguardar um pouco e definir o nome do exercício
+        setTimeout(() => {
+            this.setDefaultExerciseName(currentExercise);
+        }, 150);
+    },
+
+    setDefaultExerciseName(currentExercise) {
+        const exerciseSelect = document.getElementById('exerciseName');
+        const customGroup = document.getElementById('customExerciseGroup');
+        const customInput = document.getElementById('customExerciseName');
+
+        if (exerciseSelect) {
+            // Verificar se exercício existe no select
+            const option = Array.from(exerciseSelect.options).find(opt => opt.value === currentExercise.nome);
+
+            if (option) {
+                // Exercício encontrado na lista
+                exerciseSelect.value = currentExercise.nome;
+                customGroup.style.display = 'none';
+            } else {
+                // Exercício não encontrado, usar modo personalizado
+                exerciseSelect.value = 'custom';
+                customGroup.style.display = 'block';
+                if (customInput) {
+                    customInput.value = currentExercise.nome;
+                }
+            }
+
+            // Disparar evento change para atualizar descrição
+            exerciseSelect.dispatchEvent(new Event('change'));
+        }
+    },
+
+    getConfiguredGroupsForWorkout(workoutIndex, workout) {
+        let configuredGroups = [];
+
+        // Método 1: Grupos definidos diretamente no treino
+        if (workout.gruposMusculares && Array.isArray(workout.gruposMusculares)) {
+            configuredGroups = [...workout.gruposMusculares];
+            console.log(`📌 Grupos do treino: ${configuredGroups.join(', ')}`);
+        }
+        // Método 2: Buscar na configuração de tipos de plano
+        else if (this.planTypeConfiguration && this.planTypeConfiguration.configuration) {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            const workoutLetter = letters[workoutIndex];
+            const config = this.planTypeConfiguration.configuration[workoutLetter];
+
+            if (config && config.groups) {
+                configuredGroups = [...config.groups];
+                console.log(`⚙️ Grupos da configuração: ${configuredGroups.join(', ')}`);
             }
         }
-        
-        // Disparar evento change para atualizar descrição
-        exerciseSelect.dispatchEvent(new Event('change'));
-    }
-},
+        // Método 3: Inferir pelos exercícios existentes
+        else if (workout.exercicios && workout.exercicios.length > 1) {
+            configuredGroups = this.inferGroupsFromExercises(workout.exercicios);
+            console.log(`🔍 Grupos inferidos: ${configuredGroups.join(', ')}`);
+        }
 
-getConfiguredGroupsForWorkout(workoutIndex, workout) {
-    let configuredGroups = [];
-    
-    // Método 1: Grupos definidos diretamente no treino
-    if (workout.gruposMusculares && Array.isArray(workout.gruposMusculares)) {
-        configuredGroups = [...workout.gruposMusculares];
-        console.log(`📌 Grupos do treino: ${configuredGroups.join(', ')}`);
-    }
-    // Método 2: Buscar na configuração de tipos de plano
-    else if (this.planTypeConfiguration && this.planTypeConfiguration.configuration) {
-        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const workoutLetter = letters[workoutIndex];
-        const config = this.planTypeConfiguration.configuration[workoutLetter];
-        
-        if (config && config.groups) {
-            configuredGroups = [...config.groups];
-            console.log(`⚙️ Grupos da configuração: ${configuredGroups.join(', ')}`);
-        }
-    }
-    // Método 3: Inferir pelos exercícios existentes
-    else if (workout.exercicios && workout.exercicios.length > 1) {
-        configuredGroups = this.inferGroupsFromExercises(workout.exercicios);
-        console.log(`🔍 Grupos inferidos: ${configuredGroups.join(', ')}`);
-    }
-    
-    return configuredGroups;
-},
+        return configuredGroups;
+    },
 
-inferGroupsFromExercises(exercises) {
-    const inferredGroups = new Set();
-    
-    exercises.forEach(exercise => {
-        if (exercise.nome.toLowerCase().includes('aquecimento') ||
-            exercise.nome.toLowerCase().includes('alongamento') ||
-            exercise.nome.toLowerCase().includes('esteira')) {
-            return;
-        }
-        
-        const exerciseName = exercise.nome.toLowerCase();
-        
-        // Mapear exercícios para grupos
-        if (exerciseName.includes('supino') || exerciseName.includes('crucifixo') || 
-            exerciseName.includes('flexão')) {
-            inferredGroups.add('peito');
-        }
-        else if (exerciseName.includes('puxada') || exerciseName.includes('remada')) {
-            inferredGroups.add('costas');
-        }
-        else if (exerciseName.includes('desenvolvimento') || exerciseName.includes('elevação')) {
-            inferredGroups.add('ombro');
-        }
-        else if (exerciseName.includes('rosca') && !exerciseName.includes('francesa')) {
-            inferredGroups.add('biceps');
-        }
-        else if (exerciseName.includes('tríceps') || exerciseName.includes('francesa')) {
-            inferredGroups.add('triceps');
-        }
-        else if (exerciseName.includes('agachamento') || exerciseName.includes('leg press')) {
-            inferredGroups.add('perna');
-        }
-        else if (exerciseName.includes('hip thrust')) {
-            inferredGroups.add('gluteo');
-        }
-        else if (exerciseName.includes('abdominal')) {
-            inferredGroups.add('abdome');
-        }
-    });
-    
-    return Array.from(inferredGroups);
-},
+    inferGroupsFromExercises(exercises) {
+        const inferredGroups = new Set();
 
-populateContextualGroupFilter(configuredGroups, workout) {
-    const groupFilter = document.getElementById('exerciseGroupFilter');
-    if (!groupFilter) return;
-    
-    console.log(`🎯 Populando filtro contextual com ${configuredGroups.length} grupos`);
-    
-    groupFilter.innerHTML = '';
-    
-    // Opção para todos os grupos do treino
-    const allOption = document.createElement('option');
-    allOption.value = 'contextual';
-    allOption.textContent = `🏋️ Todos os grupos do treino ${workout.id}`;
-    groupFilter.appendChild(allOption);
-    
-    // Grupos configurados
-    configuredGroups.forEach(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        if (group) {
-            const option = document.createElement('option');
-            option.value = group.id.toLowerCase();
-            option.textContent = `${group.icon} ${group.name}`;
-            groupFilter.appendChild(option);
-        }
-    });
-    
-    // Separador
-    const separatorOption = document.createElement('option');
-    separatorOption.disabled = true;
-    separatorOption.textContent = '─────────────────';
-    groupFilter.appendChild(separatorOption);
-    
-    // Ver todos
-    const allGroupsOption = document.createElement('option');
-    allGroupsOption.value = 'todos';
-    allGroupsOption.textContent = '📋 Ver todos os grupos disponíveis';
-    groupFilter.appendChild(allGroupsOption);
-    
-    groupFilter.value = 'contextual';
-    this.showContextualFilterInfo(workout, configuredGroups);
-},
+        exercises.forEach(exercise => {
+            if (exercise.nome.toLowerCase().includes('aquecimento') ||
+                exercise.nome.toLowerCase().includes('alongamento') ||
+                exercise.nome.toLowerCase().includes('esteira')) {
+                return;
+            }
 
-showContextualFilterInfo(workout, configuredGroups) {
-    const statusElement = document.getElementById('exerciseSelectStatus');
-    const countElement = document.getElementById('exerciseCount');
-    
-    if (!statusElement || !countElement) return;
-    
-    let totalExercises = 0;
-    configuredGroups.forEach(groupId => {
-        const mappedGroup = this.mapCustomGroupToSystemGroup ? 
-                           this.mapCustomGroupToSystemGroup(groupId) : groupId;
-        const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, 'intermediario');
-        totalExercises += groupExercises.length;
-    });
-    
-    const groupNames = configuredGroups.map(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        return group ? group.name : groupId;
-    }).join(', ');
-    
-    statusElement.className = 'form-hint contextual';
-    countElement.innerHTML = `
+            const exerciseName = exercise.nome.toLowerCase();
+
+            // Mapear exercícios para grupos
+            if (exerciseName.includes('supino') || exerciseName.includes('crucifixo') ||
+                exerciseName.includes('flexão')) {
+                inferredGroups.add('peito');
+            }
+            else if (exerciseName.includes('puxada') || exerciseName.includes('remada')) {
+                inferredGroups.add('costas');
+            }
+            else if (exerciseName.includes('desenvolvimento') || exerciseName.includes('elevação')) {
+                inferredGroups.add('ombro');
+            }
+            else if (exerciseName.includes('rosca') && !exerciseName.includes('francesa')) {
+                inferredGroups.add('biceps');
+            }
+            else if (exerciseName.includes('tríceps') || exerciseName.includes('francesa')) {
+                inferredGroups.add('triceps');
+            }
+            else if (exerciseName.includes('agachamento') || exerciseName.includes('leg press')) {
+                inferredGroups.add('perna');
+            }
+            else if (exerciseName.includes('hip thrust')) {
+                inferredGroups.add('gluteo');
+            }
+            else if (exerciseName.includes('abdominal')) {
+                inferredGroups.add('abdome');
+            }
+        });
+
+        return Array.from(inferredGroups);
+    },
+
+    populateContextualGroupFilter(configuredGroups, workout) {
+        const groupFilter = document.getElementById('exerciseGroupFilter');
+        if (!groupFilter) return;
+
+        console.log(`🎯 Populando filtro contextual com ${configuredGroups.length} grupos`);
+
+        groupFilter.innerHTML = '';
+
+        // Opção para todos os grupos do treino
+        const allOption = document.createElement('option');
+        allOption.value = 'contextual';
+        allOption.textContent = `🏋️ Todos os grupos do treino ${workout.id}`;
+        groupFilter.appendChild(allOption);
+
+        // Grupos configurados
+        configuredGroups.forEach(groupId => {
+            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+            if (group) {
+                const option = document.createElement('option');
+                option.value = group.id.toLowerCase();
+                option.textContent = `${group.icon} ${group.name}`;
+                groupFilter.appendChild(option);
+            }
+        });
+
+        // Separador
+        const separatorOption = document.createElement('option');
+        separatorOption.disabled = true;
+        separatorOption.textContent = '─────────────────';
+        groupFilter.appendChild(separatorOption);
+
+        // Ver todos
+        const allGroupsOption = document.createElement('option');
+        allGroupsOption.value = 'todos';
+        allGroupsOption.textContent = '📋 Ver todos os grupos disponíveis';
+        groupFilter.appendChild(allGroupsOption);
+
+        groupFilter.value = 'contextual';
+        this.showContextualFilterInfo(workout, configuredGroups);
+    },
+
+    showContextualFilterInfo(workout, configuredGroups) {
+        const statusElement = document.getElementById('exerciseSelectStatus');
+        const countElement = document.getElementById('exerciseCount');
+
+        if (!statusElement || !countElement) return;
+
+        let totalExercises = 0;
+        configuredGroups.forEach(groupId => {
+            const mappedGroup = this.mapCustomGroupToSystemGroup ?
+                this.mapCustomGroupToSystemGroup(groupId) : groupId;
+            const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, 'intermediario');
+            totalExercises += groupExercises.length;
+        });
+
+        const groupNames = configuredGroups.map(groupId => {
+            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+            return group ? group.name : groupId;
+        }).join(', ');
+
+        statusElement.className = 'form-hint contextual';
+        countElement.innerHTML = `
         <div class="contextual-filter-info">
             <div class="contextual-title">🎯 Filtro contextual ativo</div>
             <div class="contextual-workout">Treino ${workout.id}: ${workout.nome}</div>
@@ -4771,7 +4929,7 @@ showContextualFilterInfo(workout, configuredGroups) {
             <div class="contextual-count">${totalExercises} exercícios disponíveis</div>
         </div>
     `;
-}
+    }
 
 };
 
@@ -4781,7 +4939,7 @@ showContextualFilterInfo(workout, configuredGroups) {
 // =============================================
 
 // Initialize app when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     app.init();
 });
 
