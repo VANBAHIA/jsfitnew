@@ -3546,26 +3546,81 @@ loadInlinePresetConfig() {
         }
     },
 
-    // 5. NOVA FUNÇÃO populateInlineEditor()
+
     populateInlineEditor(exercise, workoutIndex, workout) {
         // Configurar filtro contextual
         this.setupContextualGroupFilter(workoutIndex, workout, exercise);
-
-        // Popular campos
-        document.getElementById('exerciseSets').value = exercise.series;
-        document.getElementById('exerciseReps').value = exercise.repeticoes;
-        document.getElementById('exerciseWeight').value = exercise.carga;
-        document.getElementById('exerciseRest').value = exercise.descanso || '90 segundos';
-        document.getElementById('exerciseDescription').value = exercise.descricao;
-
+    
+        // Popular campos básicos
+        const setsInput = document.getElementById('exerciseSets');
+        const repsInput = document.getElementById('exerciseReps');
+        const weightInput = document.getElementById('exerciseWeight');
+        const restInput = document.getElementById('exerciseRest');
+        const descriptionTextarea = document.getElementById('exerciseDescription');
         const techniqueSelect = document.getElementById('exerciseTechnique');
-        if (exercise.tecnica && this.tecnicasDatabase[exercise.tecnica]) {
-            techniqueSelect.value = exercise.tecnica;
-            this.updateTechniqueDescription();
-        } else {
-            techniqueSelect.value = '';
+    
+        // Definir valores dos campos
+        if (setsInput) setsInput.value = exercise.series || 3;
+        if (repsInput) repsInput.value = exercise.repeticoes || '10-12';
+        if (weightInput) weightInput.value = exercise.carga || 'A definir';
+        if (restInput) restInput.value = exercise.descanso || '90 segundos';
+        if (descriptionTextarea) descriptionTextarea.value = exercise.descricao || '';
+    
+        // Configurar técnica avançada
+        if (techniqueSelect) {
+            if (exercise.tecnica && this.tecnicasDatabase[exercise.tecnica]) {
+                techniqueSelect.value = exercise.tecnica;
+            } else {
+                techniqueSelect.value = '';
+            }
             this.updateTechniqueDescription();
         }
+    
+        // Configurar nome do exercício e GIF (com delay para garantir que o DOM está pronto)
+        setTimeout(() => {
+            const exerciseSelect = document.getElementById('exerciseName');
+            const customGroup = document.getElementById('customExerciseGroup');
+            const customInput = document.getElementById('customExerciseName');
+            const gifGroup = document.getElementById('exerciseGifGroup');
+            const gifElement = document.getElementById('exerciseGif');
+            const gifError = document.getElementById('exerciseGifError');
+    
+            if (!exerciseSelect) return;
+    
+            // Verificar se exercício existe no select
+            const option = Array.from(exerciseSelect.options).find(opt => opt.value === exercise.nome);
+    
+            if (option) {
+                // Exercício encontrado na lista
+                exerciseSelect.value = exercise.nome;
+                
+                if (customGroup) customGroup.style.display = 'none';
+    
+                // Carregar GIF do exercício
+                if (gifGroup && gifElement && gifError) {
+                    this.loadExerciseGif(exercise.nome, gifGroup, gifElement, gifError);
+                }
+    
+            } else {
+                // Exercício não encontrado, usar modo personalizado
+                exerciseSelect.value = 'custom';
+                
+                if (customGroup) {
+                    customGroup.style.display = 'block';
+                    if (customInput) customInput.value = exercise.nome;
+                }
+    
+                // Ocultar GIF para exercícios personalizados
+                if (gifGroup) gifGroup.style.display = 'none';
+            }
+    
+            // Disparar evento change para atualizar descrição (se necessário)
+            exerciseSelect.dispatchEvent(new Event('change'));
+    
+        }, 150);
+    
+        // Log para debug
+        console.log(`Editando exercício: ${exercise.nome} (Treino ${workout.id})`);
     },
 
     // 6. NOVA FUNÇÃO closeInlineEditor()
@@ -3619,6 +3674,20 @@ loadInlinePresetConfig() {
                         <span id="exerciseCount">Carregando exercícios...</span>
                     </div>
                 </div>
+                <!-- ADICIONAR ESTE BLOCO -->
+                <div class="form-group" id="exerciseGifGroup" style="display: none;">
+                    <label class="form-label">Demonstração Visual</label>
+                    <div class="exercise-gif-container">
+                        <img id="exerciseGif" 
+                            src="" 
+                            alt="Demonstração do exercício" 
+                            style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color);">
+                        <div id="exerciseGifError" style="display: none; color: var(--text-secondary); font-size: 12px; margin-top: 5px;">
+                            GIF não disponível para este exercício
+                        </div>
+                    </div>
+                </div>
+                                
                 <div class="form-group" id="customExerciseGroup" style="display: none;">
                     <label class="form-label">Nome Personalizado</label>
                     <input type="text" id="customExerciseName" class="form-input" placeholder="Digite o nome do exercício">
@@ -3670,26 +3739,109 @@ loadInlinePresetConfig() {
     },
 
 
-
-    // 9. ATUALIZAR updateExerciseDescription()
     updateExerciseDescription() {
         const exerciseSelect = document.getElementById('exerciseName');
         const customGroup = document.getElementById('customExerciseGroup');
         const descriptionTextarea = document.getElementById('exerciseDescription');
-
+        const gifGroup = document.getElementById('exerciseGifGroup'); // NOVO
+        const gifElement = document.getElementById('exerciseGif'); // NOVO
+        const gifError = document.getElementById('exerciseGifError'); // NOVO
+    
         if (!exerciseSelect || !customGroup || !descriptionTextarea) return;
-
+    
         if (exerciseSelect.value === 'custom') {
             customGroup.style.display = 'block';
             descriptionTextarea.value = '';
+            
+            // NOVO: Ocultar GIF para exercícios personalizados
+            if (gifGroup) {
+                gifGroup.style.display = 'none';
+            }
         } else {
             customGroup.style.display = 'none';
-
+    
             const description = this.findExerciseByName(exerciseSelect.value);
             const descricao = description?.descricao || 'Descrição não disponível';
-
+    
             descriptionTextarea.value = descricao.charAt(0).toUpperCase() + descricao.slice(1).toLowerCase();
+            
+            // NOVO: Buscar e exibir GIF
+            this.loadExerciseGif(exerciseSelect.value, gifGroup, gifElement, gifError);
         }
+    },
+
+    loadExerciseGif(exerciseName, gifGroup, gifElement, gifError) {
+        if (!gifGroup || !gifElement || !gifError) return;
+    
+        // Buscar GIF na base de dados
+        const gifPath = this.findExerciseGif(exerciseName);
+        
+        if (gifPath && gifPath.trim() !== '') {
+            // Resetar estados
+            gifError.style.display = 'none';
+            gifElement.style.display = 'block';
+            
+            // Configurar elemento de imagem
+            gifElement.src = gifPath;
+            gifElement.alt = `Demonstração: ${exerciseName}`;
+            
+            // Handler para erro de carregamento
+            gifElement.onerror = () => {
+                console.warn(`⚠️ Erro ao carregar GIF: ${gifPath}`);
+                gifElement.style.display = 'none';
+                gifError.style.display = 'block';
+                gifError.textContent = `GIF não encontrado: ${exerciseName}`;
+            };
+            
+            // Handler para sucesso no carregamento
+            gifElement.onload = () => {
+                console.log(`✅ GIF carregado: ${exerciseName}`);
+            };
+            
+            // Mostrar container do GIF
+            gifGroup.style.display = 'block';
+            
+        } else {
+            // Sem GIF disponível
+            gifElement.style.display = 'none';
+            gifError.style.display = 'block';
+            gifError.textContent = 'GIF não disponível para este exercício';
+            gifGroup.style.display = 'block';
+        }
+    },
+
+    findExerciseGif(exerciseName) {
+        // Aguardar carregamento da base se necessário
+        if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+            console.warn('⚠️ Base de exercícios ainda não carregada');
+            return null;
+        }
+    
+        const normalizedName = exerciseName.trim().toLowerCase();
+        
+        // Busca exata primeiro
+        const exactMatch = this.exerciseDatabase.find(exercise => 
+            exercise.nome.toLowerCase() === normalizedName
+        );
+        
+        if (exactMatch) {
+            return exactMatch.Column4;
+        }
+        
+        // Busca parcial como fallback
+        const partialMatch = this.exerciseDatabase.find(exercise => 
+            exercise.nome.toLowerCase().includes(normalizedName) ||
+            normalizedName.includes(exercise.nome.toLowerCase())
+        );
+        
+        if (partialMatch) {
+            console.log(`🔍 Busca parcial: "${exerciseName}" → "${partialMatch.nome}"`);
+            return partialMatch.Column4;
+        }
+        
+        // Log para debug
+        console.warn(`❌ Exercício não encontrado: "${exerciseName}"`);
+        return null;
     },
 
 

@@ -261,6 +261,66 @@ class JSFitStudentApp {
         }
     }
 
+    async processFileData(data) {
+        // Validate required fields
+        if (!data.nome && !data.name) {
+            throw new Error('Nome do plano não encontrado no arquivo');
+        }
+    
+        if (!data.treinos && !data.workouts) {
+            throw new Error('Treinos não encontrados no arquivo');
+        }
+    
+        // Generate unique ID for imported plan
+        const processedPlan = {
+            id: this.generateId(),
+            nome: data.nome || data.name || 'Plano Importado',
+            importedAt: new Date().toISOString(),
+            importedFrom: 'file',
+            execucoesPlanCompleto: 0,
+            
+            // Student data com correção de data
+            aluno: {
+                nome: data.aluno?.nome || data.student?.name || '',
+                dataNascimento: this.fixTimezoneDate(data.aluno?.dataNascimento || data.student?.birth_date || ''),
+                idade: data.aluno?.idade || data.student?.age || null,
+                altura: data.aluno?.altura || data.student?.height || '',
+                peso: data.aluno?.peso || data.student?.weight || '',
+                cpf: data.aluno?.cpf || data.student?.cpf || ''
+            },
+            
+            // Plan metadata com correção de datas
+            dias: data.dias || data.frequency_per_week || 3,
+            dataInicio: this.fixTimezoneDate(data.dataInicio || data.start_date || new Date().toISOString().split('T')[0]),
+            dataFim: this.fixTimezoneDate(data.dataFim || data.end_date || ''),
+            
+            // Profile and objectives
+            perfil: {
+                objetivo: data.perfil?.objetivo || data.objective || 'Condicionamento geral',
+                altura: data.aluno?.altura || data.student?.height || '',
+                peso: data.aluno?.peso || data.student?.weight || '',
+                idade: data.aluno?.idade || data.student?.age || null,
+                porte: data.perfil?.porte || ''
+            },
+            
+            // Convert workouts
+            treinos: this.convertWorkoutsToFrontendFormat(data.treinos || data.workouts || []),
+            
+            // Observations
+            observacoes: data.observacoes || data.observations || {},
+            
+            // Técnicas aplicadas
+            tecnicasAplicadas: data.tecnicas_aplicadas || {}
+        };
+    
+        // Validate processed plan
+        if (processedPlan.treinos.length === 0) {
+            throw new Error('Nenhum treino válido encontrado no arquivo');
+        }
+    
+        return processedPlan;
+    }
+
     async readFileContent(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -300,64 +360,50 @@ class JSFitStudentApp {
         }
     }
 
-    async processFileData(data) {
-        // Validate required fields
-        if (!data.nome && !data.name) {
-            throw new Error('Nome do plano não encontrado no arquivo');
+ 
+
+    fixTimezoneDate(dateInput) {
+        if (!dateInput) return '';
+        
+        // Se já está no formato string correto, mantém
+        if (typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateInput;
         }
-    
-        if (!data.treinos && !data.workouts) {
-            throw new Error('Treinos não encontrados no arquivo');
+        
+        try {
+            let date;
+            
+            // Se é string, converte para Date
+            if (typeof dateInput === 'string') {
+                // Se tem formato ISO completo, trata diferente
+                if (dateInput.includes('T')) {
+                    date = new Date(dateInput);
+                } else {
+                    // Para datas simples (YYYY-MM-DD), cria data local
+                    const parts = dateInput.split('-');
+                    date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                }
+            } else {
+                date = new Date(dateInput);
+            }
+            
+            // Verifica se a data é válida
+            if (isNaN(date.getTime())) {
+                console.warn('Data inválida:', dateInput);
+                return '';
+            }
+            
+            // Retorna no formato YYYY-MM-DD local
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+            
+        } catch (error) {
+            console.warn('Erro ao processar data:', dateInput, error);
+            return '';
         }
-    
-        // Generate unique ID for imported plan
-        const processedPlan = {
-            id: this.generateId(),
-            nome: data.nome || data.name || 'Plano Importado',
-            importedAt: new Date().toISOString(),
-            importedFrom: 'file',
-            execucoesPlanCompleto: 0,
-            
-            // Student data
-            aluno: {
-                nome: data.aluno?.nome || data.student?.name || '',
-                dataNascimento: data.aluno?.dataNascimento || data.student?.birth_date || '',
-                idade: data.aluno?.idade || data.student?.age || null,
-                altura: data.aluno?.altura || data.student?.height || '',
-                peso: data.aluno?.peso || data.student?.weight || '',
-                cpf: data.aluno?.cpf || data.student?.cpf || ''
-            },
-            
-            // Plan metadata
-            dias: data.dias || data.frequency_per_week || 3,
-            dataInicio: data.dataInicio || data.start_date || new Date().toISOString().split('T')[0],
-            dataFim: data.dataFim || data.end_date || '',
-            
-            // Profile and objectives
-            perfil: {
-                objetivo: data.perfil?.objetivo || data.objective || 'Condicionamento geral',
-                altura: data.aluno?.altura || data.student?.height || '',
-                peso: data.aluno?.peso || data.student?.weight || '',
-                idade: data.aluno?.idade || data.student?.age || null,
-                porte: data.perfil?.porte || '' // NOVO CAMPO
-            },
-            
-            // Convert workouts
-            treinos: this.convertWorkoutsToFrontendFormat(data.treinos || data.workouts || []),
-            
-            // Observations
-            observacoes: data.observacoes || data.observations || {},
-            
-            // NOVO: Técnicas aplicadas
-            tecnicasAplicadas: data.tecnicas_aplicadas || {}
-        };
-    
-        // Validate processed plan
-        if (processedPlan.treinos.length === 0) {
-            throw new Error('Nenhum treino válido encontrado no arquivo');
-        }
-    
-        return processedPlan;
     }
 
     setupPWAFeatures() {
@@ -500,7 +546,7 @@ class JSFitStudentApp {
             // Student data
             aluno: {
                 nome: planData.aluno?.nome || planData.student?.name || '',
-                dataNascimento: planData.aluno?.dataNascimento || planData.student?.birth_date || '',
+                dataNascimento: this.fixTimezoneDate(planData.aluno?.dataNascimento || planData.student?.birth_date || ''),
                 idade: planData.aluno?.idade || planData.student?.age || null,
                 altura: planData.aluno?.altura || planData.student?.height || '',
                 peso: planData.aluno?.peso || planData.student?.weight || '',
@@ -509,9 +555,9 @@ class JSFitStudentApp {
             
             // Plan metadata
             dias: planData.dias || planData.frequency_per_week || 3,
-            dataInicio: planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0],
-            dataFim: planData.dataFim || planData.end_date || '',
-            
+            dataInicio: this.fixTimezoneDate(planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0]),
+            dataFim: this.fixTimezoneDate(planData.dataFim || planData.end_date || ''),
+
             // Profile and objectives
             perfil: {
                 objetivo: planData.perfil?.objetivo || planData.objective || 'Condicionamento geral',
@@ -1011,20 +1057,24 @@ class JSFitStudentApp {
     // RENDERING METHODS
     // =============================================================================
 
-    renderHome() {
-        const content = document.getElementById('homeContent');
-        if (!content) return;
+renderHome() {
+    const content = document.getElementById('homeContent');
+    if (!content) return;
 
-        let html = this.renderImportCard();
-        
-        if (this.state.workoutPlans.length === 0) {
-            html += this.renderEmptyState();
-        } else {
-            html += this.state.workoutPlans.map(plan => this.renderPlanCard(plan)).join('');
-        }
-        
-        content.innerHTML = html;
+    let html = '';
+    
+    // Renderizar planos primeiro
+    if (this.state.workoutPlans.length === 0) {
+        html += this.renderEmptyState();
+    } else {
+        html += this.state.workoutPlans.map(plan => this.renderPlanCard(plan)).join('');
     }
+    
+    // Adicionar card de importação no final
+    html += this.renderImportCard();
+    
+    content.innerHTML = html;
+}
 
     renderImportCard() {
         const isOnline = this.state.connectionStatus === 'online';
