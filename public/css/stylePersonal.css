@@ -612,14 +612,14 @@ body {
     gap: var(--s2);
 }
 
-/* Editor inline de exercícios */
+/* Editor inline de exercícios 
 .exercise-inline-editor {
     background: var(--bg-elevated);
     border: 1px solid var(--primary);
     border-radius: var(--r1);
     margin: var(--s3) 0;
     padding: var(--s3);
-}
+}*/
 
 .inline-editor-header {
     display: flex;
@@ -1562,4 +1562,74 @@ body {
 #exerciseGifError {
     text-align: center;
     font-style: italic;
+}
+
+/* Modo fullscreen para o editor */
+.exercise-inline-editor.fullscreen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background: var(--bg-primary);
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.exercise-inline-editor.fullscreen-mode .inline-editor-header {
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 10;
+    padding: var(--space-lg);
+}
+
+.exercise-inline-editor.fullscreen-mode .inline-editor-form {
+    padding: var(--space-lg);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.exercise-inline-editor.fullscreen-mode .inline-editor-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-lg);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+}
+
+/* Ocultar conteúdo de fundo quando em fullscreen */
+body.editor-fullscreen {
+    overflow: hidden;
+}
+
+body.editor-fullscreen > *:not(.exercise-inline-editor) {
+    display: none !important;
+}
+
+/* Manter apenas o header visível */
+body.editor-fullscreen .app-header {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9998;
+}
+
+body.editor-fullscreen .exercise-inline-editor.fullscreen-mode {
+    padding-top: 60px; /* Altura do header */
+}
+
+body.editor-fullscreen .exercise-inline-editor.fullscreen-mode.btn {
+    padding-top: 60px; /* Altura do header */
+    display: flex;
 }

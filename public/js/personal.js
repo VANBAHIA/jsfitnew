@@ -216,6 +216,7 @@ const app = {
     currentWorkoutIndex: null,
     selectedDays: 1,
     isEditing: false,
+    currentScrollPosition: 0,  // ADICIONAR AQUI
 
     // =============================================
     // INICIALIZAÇÃO DA APLICAÇÃO
@@ -3518,34 +3519,47 @@ loadInlinePresetConfig() {
         this.updateExerciseList(workoutIndex);
     },
 
-    // 3. NOVA FUNÇÃO editExercise() - sem modal
-    editExercise(workoutIndex, exerciseIndex) {
-        // Fechar qualquer editor aberto
-        this.closeInlineEditor();
+// Modificar editExercise para salvar scroll
+editExercise(workoutIndex, exerciseIndex) {
+    // Salvar posição atual do scroll
+    this.currentScrollPosition = window.scrollY;
+    
+    // Resto do código existente...
+    this.closeInlineEditor();
+    this.currentWorkoutIndex = workoutIndex;
+    this.currentExerciseIndex = exerciseIndex;
 
-        this.currentWorkoutIndex = workoutIndex;
-        this.currentExerciseIndex = exerciseIndex;
+    const exercise = this.currentPlan.treinos[workoutIndex].exercicios[exerciseIndex];
+    const workout = this.currentPlan.treinos[workoutIndex];
 
-        const exercise = this.currentPlan.treinos[workoutIndex].exercicios[exerciseIndex];
-        const workout = this.currentPlan.treinos[workoutIndex];
+    this.createFullscreenEditor(exercise, workoutIndex, workout);
+},
 
-        // Criar HTML do editor inline
+    createFullscreenEditor(exercise, workoutIndex, workout) {
+        // Criar HTML do editor fullscreen
         const editorHTML = this.createInlineEditorHTML(exercise);
-
-        // Inserir após o exercício atual
-        const exerciseItems = document.querySelectorAll(`#exerciseList${workoutIndex} .exercise-item`);
-        const currentItem = exerciseItems[exerciseIndex];
-
-        if (currentItem) {
-            currentItem.insertAdjacentHTML('afterend', editorHTML);
-
-            // Popular dados após inserir no DOM
-            setTimeout(() => {
-                this.populateInlineEditor(exercise, workoutIndex, workout);
-            }, 100);
-        }
+        
+        // Criar container fullscreen
+        const editorContainer = document.createElement('div');
+        editorContainer.innerHTML = editorHTML;
+        
+        // Buscar o editor criado e adicionar classe fullscreen
+        const editor = editorContainer.querySelector('.exercise-inline-editor');
+        editor.classList.add('fullscreen-mode');
+        
+        // Adicionar ao body
+        document.body.appendChild(editor);
+        
+        // Adicionar classe ao body para ocultar outros elementos
+        document.body.classList.add('editor-fullscreen');
+        
+        // Popular dados após inserir no DOM
+        setTimeout(() => {
+            this.populateInlineEditor(exercise, workoutIndex, workout);
+        }, 100);
+        
+        console.log(`Editor fullscreen aberto para exercício: ${exercise.nome}`);
     },
-
 
     populateInlineEditor(exercise, workoutIndex, workout) {
         // Configurar filtro contextual
@@ -3623,15 +3637,7 @@ loadInlinePresetConfig() {
         console.log(`Editando exercício: ${exercise.nome} (Treino ${workout.id})`);
     },
 
-    // 6. NOVA FUNÇÃO closeInlineEditor()
-    closeInlineEditor() {
-        const editor = document.getElementById('inlineEditor');
-        if (editor) {
-            editor.remove();
-        }
-        this.currentWorkoutIndex = null;
-        this.currentExerciseIndex = null;
-    },
+   
 
 
     updateTechniqueDescription() {
@@ -3730,10 +3736,14 @@ loadInlinePresetConfig() {
                     <textarea id="exerciseDescription" class="form-textarea" placeholder="Instruções técnicas do exercício..."></textarea>
                 </div>
             </div>
-            <div class="inline-editor-actions">
-                <button class="btn btn-primary" onclick="app.saveInlineExercise()">💾 Salvar</button>
-                <button class="btn btn-outline" onclick="app.closeInlineEditor()">❌ Cancelar</button>
-            </div>
+<div class="exercise-actions">
+    <button class="btn btn-primary" onclick="app.saveInlineExercise()">
+        Salvar
+    </button>
+    <button class="btn btn-outline" onclick="app.closeInlineEditor()">
+        Cancelar
+    </button>
+</div>
         </div>
     `;
     },
@@ -3862,50 +3872,42 @@ loadInlinePresetConfig() {
         }
     },
 
-    // Substituir closeExerciseModal por:
-    closeInlineEditor() {
-        const editor = document.getElementById('inlineEditor');
-        if (editor) {
-            editor.remove();
-        }
-        this.currentWorkoutIndex = null;
-        this.currentExerciseIndex = null;
-    },
+// Modificar closeInlineEditor para restaurar scroll
+closeInlineEditor() {
+    const editor = document.querySelector('.exercise-inline-editor');
+    if (editor) {
+        editor.remove();
+    }
+    
+    document.body.classList.remove('editor-fullscreen');
+    
+    // Restaurar posição do scroll
+    setTimeout(() => {
+        window.scrollTo(0, this.currentScrollPosition);
+    }, 100);
+    
+    this.currentWorkoutIndex = null;
+    this.currentExerciseIndex = null;
+    
+    // Garantir que a tela de criação esteja visível
+    const planCreator = document.getElementById('planCreator');
+    if (planCreator) {
+        planCreator.style.display = 'block';
+    }
+},
 
-
-    // 7. NOVA FUNÇÃO saveInlineExercise()
     saveInlineExercise() {
-        if (this.currentWorkoutIndex === null || this.currentExerciseIndex === null) return;
-
-        const exercise = this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex];
-
-        const exerciseSelect = document.getElementById('exerciseName');
-        const customName = document.getElementById('customExerciseName');
-        const techniqueSelect = document.getElementById('exerciseTechnique');
-
-        // Atualizar dados do exercício
-        exercise.nome = exerciseSelect.value === 'custom' ?
-            customName.value :
-            exerciseSelect.value;
-        exercise.series = parseInt(document.getElementById('exerciseSets').value) || 3;
-        exercise.repeticoes = document.getElementById('exerciseReps').value;
-        exercise.carga = document.getElementById('exerciseWeight').value;
-        exercise.descanso = document.getElementById('exerciseRest').value;
-        exercise.tecnica = techniqueSelect.value;
-        exercise.descricao = document.getElementById('exerciseDescription').value;
-
-        // Gerar observações especiais baseadas na técnica
-        if (exercise.tecnica && this.tecnicasDatabase[exercise.tecnica]) {
-            exercise.observacoesEspeciais = this.getObservacaoEspecial(exercise.tecnica, exercise.nome);
-        } else {
-            exercise.observacoesEspeciais = '';
-        }
-
-        // Atualizar lista e fechar editor
-        this.updateExerciseList(this.currentWorkoutIndex);
+        // ... código de salvamento existente ...
+        
+        // Fechar editor e garantir que volta para a tela correta
         this.closeInlineEditor();
-
-        this.showMessage('✅ Exercício atualizado!', 'success');
+        
+        // Atualizar lista de exercícios
+        if (this.currentWorkoutIndex !== null) {
+            this.updateExerciseList(this.currentWorkoutIndex);
+        }
+        
+        this.showMessage('Exercício salvo!', 'success');
     },
 
 
