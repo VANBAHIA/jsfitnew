@@ -68,11 +68,6 @@
         "to": "/.netlify/functions/:splat",
         "status": 200
       }
-      {
-        "from": "/public/personal",
-        "to": "/public/personal.html",
-        "status": 200
-      }
     ]
   },
   "browserslist": [
