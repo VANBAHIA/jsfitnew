@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Planos de Treino
+    match /plans/{planId} {
+      allow read, write: if true; // Temporário - implementar auth depois
+      allow create: if isValidPlan();
+      allow update: if isValidPlan();
+      
+      function isValidPlan() {
+        return resource.data.keys().hasAll(['nome', 'dias', 'treinos']) &&
+               resource.data.nome is string &&
+               resource.data.dias is number;
+      }
+    }
+    
+    // Planos Compartilhados
+    match /shared_plans/{shareId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if false;
+      
+      function isValidSharedPlan() {
+        return resource.data.keys().hasAll(['shareId', 'plan']) &&
+               resource.data.shareId is string &&
+               resource.data.shareId.size() == 6;
+      }
+    }
+    
+    // Base de Exercícios
+    match /exercises_database/{exerciseId} {
+      allow read: if true;
+      allow write: if true; // Restringir depois
+    }
+    
+    // Configurações
+    match /plan_configurations/{configId} {
+      allow read, write: if true;
+    }
+    
+    // Teste de conectividade
+    match /_test_/connection {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
