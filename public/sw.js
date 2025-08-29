@@ -1,29 +1,21 @@
-// sw.js - Service Worker para JS Fit App PWA
-// Versão otimizada com cache inteligente e sincronização
+// sw.js - Service Worker Simplificado para JS Fit App PWA
+// Versão focada apenas no Firebase e funcionalidades essenciais
 
 const CACHE_NAME = 'js-fit-app-v2.1.0';
 const STATIC_CACHE_NAME = 'js-fit-static-v2.1.0';
-const DYNAMIC_CACHE_NAME = 'js-fit-dynamic-v2.1.0';
 
-// Arquivos estáticos para cache
+// Arquivos essenciais para cache offline
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/aluno.html',
     '/personal.html',
     '/css/style.css',
-    '/styles.css',
-    '/aluno.js',
-    '/script.js',
-    '/manifest.json',
-    // Fontes do sistema (fallback)
-    'https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;900&display=swap'
-];
-
-// URLs da API para cache dinâmico
-const API_URLS = [
-    'https://jsfitapp.netlify.app/api/health',
-    'https://jsfitapp.netlify.app/api/workouts'
+    '/css/stylePersonal.css',
+    '/js/aluno.js',
+    '/js/personal.js',
+    '/js/shared/jsfitcore.js',
+    '/manifest.json'
 ];
 
 // =============================================================================
@@ -31,20 +23,19 @@ const API_URLS = [
 // =============================================================================
 
 self.addEventListener('install', event => {
-    console.log('[SW] Instalando Service Worker v2.1.0');
+    console.log('[SW] Instalando Service Worker v2.1.0 (Firebase Only)');
     
     event.waitUntil(
         (async () => {
             try {
-                // Cache de arquivos estáticos
                 const staticCache = await caches.open(STATIC_CACHE_NAME);
                 await staticCache.addAll(STATIC_ASSETS);
-                console.log('[SW] Arquivos estáticos cacheados com sucesso');
+                console.log('[SW] Arquivos essenciais cacheados');
                 
-                // Pular a espera e ativar imediatamente
+                // Ativar imediatamente
                 self.skipWaiting();
             } catch (error) {
-                console.error('[SW] Erro ao cachear arquivos estáticos:', error);
+                console.error('[SW] Erro ao cachear arquivos:', error);
             }
         })()
     );
@@ -64,8 +55,7 @@ self.addEventListener('activate', event => {
                 const cacheNames = await caches.keys();
                 const deletionPromises = cacheNames
                     .filter(cacheName => 
-                        cacheName !== STATIC_CACHE_NAME && 
-                        cacheName !== DYNAMIC_CACHE_NAME &&
+                        cacheName !== STATIC_CACHE_NAME &&
                         cacheName.startsWith('js-fit')
                     )
                     .map(cacheName => {
@@ -75,10 +65,10 @@ self.addEventListener('activate', event => {
                 
                 await Promise.all(deletionPromises);
                 
-                // Tomar controle de todas as abas abertas
+                // Tomar controle de todas as abas
                 await self.clients.claim();
                 
-                console.log('[SW] Service Worker ativado e em controle');
+                console.log('[SW] Service Worker ativado');
             } catch (error) {
                 console.error('[SW] Erro na ativação:', error);
             }
@@ -87,45 +77,47 @@ self.addEventListener('activate', event => {
 });
 
 // =============================================================================
-// INTERCEPTAÇÃO DE REQUISIÇÕES
+// INTERCEPTAÇÃO DE REQUISIÇÕES - ESTRATÉGIA SIMPLES
 // =============================================================================
 
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
     
-    // Ignorar requisições de extensões do navegador
-    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+    // Ignorar requisições de extensões e Firebase SDK
+    if (url.protocol === 'chrome-extension:' || 
+        url.protocol === 'moz-extension:' ||
+        url.hostname.includes('firebase') ||
+        url.hostname.includes('googleapis.com') ||
+        url.hostname.includes('gstatic.com')) {
         return;
     }
     
-    // Estratégia baseada no tipo de recurso
+    // Cache First para arquivos estáticos, Network First para o resto
     if (isStaticAsset(request)) {
         event.respondWith(handleStaticAsset(request));
-    } else if (isAPIRequest(request)) {
-        event.respondWith(handleAPIRequest(request));
     } else if (isNavigationRequest(request)) {
-        event.respondWith(handleNavigationRequest(request));
-    } else {
-        event.respondWith(handleOtherRequests(request));
+        event.respondWith(handleNavigation(request));
     }
+    // Deixar outras requisições (Firebase, API) passarem normalmente
 });
 
 // =============================================================================
-// ESTRATÉGIAS DE CACHE
+// ESTRATÉGIAS SIMPLIFICADAS
 // =============================================================================
 
-// Cache First - Para arquivos estáticos
+// Cache First para arquivos estáticos
 async function handleStaticAsset(request) {
     try {
+        // Tentar cache primeiro
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
             return cachedResponse;
         }
         
+        // Buscar da rede se não estiver em cache
         const networkResponse = await fetch(request);
         
-        // Cachear apenas se a resposta for válida
         if (networkResponse.ok) {
             const cache = await caches.open(STATIC_CACHE_NAME);
             cache.put(request, networkResponse.clone());
@@ -133,103 +125,36 @@ async function handleStaticAsset(request) {
         
         return networkResponse;
     } catch (error) {
-        console.error('[SW] Erro ao buscar asset estático:', error);
+        console.warn('[SW] Erro ao buscar asset:', error);
         
-        // Retornar resposta em cache se disponível
+        // Fallback para cache se rede falhar
         const cachedResponse = await caches.match(request);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        
-        // Fallback para página offline
-        if (request.destination === 'document') {
-            return createOfflineResponse();
-        }
-        
-        throw error;
+        return cachedResponse || createOfflineResponse();
     }
 }
 
-// Network First com Cache Fallback - Para API
-async function handleAPIRequest(request) {
+// Network First para navegação (permite Firebase funcionar)
+async function handleNavigation(request) {
     try {
-        // Tentar buscar da rede primeiro
-        const networkResponse = await Promise.race([
-            fetch(request),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 5000)
-            )
-        ]);
+        // Tentar rede primeiro para permitir atualizações
+        const networkResponse = await fetch(request);
         
-        // Cachear resposta se for bem-sucedida
         if (networkResponse.ok) {
-            const cache = await caches.open(DYNAMIC_CACHE_NAME);
+            const cache = await caches.open(STATIC_CACHE_NAME);
             cache.put(request, networkResponse.clone());
         }
         
         return networkResponse;
     } catch (error) {
-        console.warn('[SW] Rede indisponível, tentando cache:', error.message);
+        console.warn('[SW] Rede indisponível, usando cache:', error);
         
         // Fallback para cache
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
-            // Adicionar header indicando que veio do cache
-            const headers = new Headers(cachedResponse.headers);
-            headers.set('X-Cache-Status', 'HIT');
-            headers.set('X-Cache-Date', new Date().toISOString());
-            
-            return new Response(cachedResponse.body, {
-                status: cachedResponse.status,
-                statusText: cachedResponse.statusText,
-                headers: headers
-            });
-        }
-        
-        // Retornar resposta de erro estruturada
-        return new Response(
-            JSON.stringify({
-                error: 'Sem conexão com a internet',
-                cached: false,
-                timestamp: new Date().toISOString()
-            }),
-            {
-                status: 503,
-                statusText: 'Service Unavailable',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Cache-Status': 'MISS'
-                }
-            }
-        );
-    }
-}
-
-// Cache First com Network Fallback - Para navegação
-async function handleNavigationRequest(request) {
-    try {
-        // Verificar cache primeiro
-        const cachedResponse = await caches.match(request);
-        if (cachedResponse) {
-            // Tentar atualizar em background
-            updateCacheInBackground(request);
             return cachedResponse;
         }
         
-        // Buscar da rede
-        const networkResponse = await fetch(request);
-        
-        // Cachear se bem-sucedida
-        if (networkResponse.ok) {
-            const cache = await caches.open(STATIC_CACHE_NAME);
-            cache.put(request, networkResponse.clone());
-        }
-        
-        return networkResponse;
-    } catch (error) {
-        console.error('[SW] Erro na navegação:', error);
-        
-        // Fallback para páginas principais
+        // Fallback final baseado na URL
         const url = new URL(request.url);
         if (url.pathname === '/aluno.html') {
             const cached = await caches.match('/aluno.html');
@@ -244,61 +169,24 @@ async function handleNavigationRequest(request) {
     }
 }
 
-// Stale While Revalidate - Para outros recursos
-async function handleOtherRequests(request) {
-    try {
-        const cachedResponse = await caches.match(request);
-        
-        // Buscar da rede em background
-        const networkPromise = fetch(request).then(response => {
-            if (response.ok) {
-                const cache = caches.open(DYNAMIC_CACHE_NAME);
-                cache.then(c => c.put(request, response.clone()));
-            }
-            return response;
-        }).catch(() => null);
-        
-        // Retornar cache imediatamente se disponível, senão esperar pela rede
-        return cachedResponse || await networkPromise;
-    } catch (error) {
-        console.error('[SW] Erro em outros requests:', error);
-        throw error;
-    }
-}
-
 // =============================================================================
 // FUNÇÕES AUXILIARES
 // =============================================================================
 
 function isStaticAsset(request) {
     const url = new URL(request.url);
-    return STATIC_ASSETS.some(asset => url.pathname.endsWith(asset)) ||
+    return STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.endsWith(asset)) ||
            request.destination === 'style' ||
            request.destination === 'script' ||
-           request.destination === 'font' ||
-           request.destination === 'image';
-}
-
-function isAPIRequest(request) {
-    const url = new URL(request.url);
-    return url.hostname === 'jsfitapp.netlify.app' && url.pathname.startsWith('/api/');
+           request.destination === 'image' ||
+           request.destination === 'font';
 }
 
 function isNavigationRequest(request) {
     return request.mode === 'navigate' || 
-           (request.method === 'GET' && request.headers.get('accept').includes('text/html'));
-}
-
-async function updateCacheInBackground(request) {
-    try {
-        const networkResponse = await fetch(request);
-        if (networkResponse.ok) {
-            const cache = await caches.open(STATIC_CACHE_NAME);
-            await cache.put(request, networkResponse);
-        }
-    } catch (error) {
-        console.warn('[SW] Falha na atualização em background:', error);
-    }
+           (request.method === 'GET' && 
+            request.headers.get('accept') && 
+            request.headers.get('accept').includes('text/html'));
 }
 
 function createOfflineResponse() {
@@ -310,17 +198,21 @@ function createOfflineResponse() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Offline - JS Fit App</title>
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                margin: 0;
-                padding: 20px;
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: white;
                 text-align: center;
+                padding: 20px;
             }
             .offline-container {
                 background: rgba(255, 255, 255, 0.1);
@@ -356,9 +248,30 @@ function createOfflineResponse() {
                 font-size: 16px;
                 font-weight: 600;
                 transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
             }
             .retry-btn:hover {
                 background: rgba(255, 255, 255, 0.3);
+            }
+            .app-links {
+                margin-top: 20px;
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+            .app-link {
+                background: rgba(255, 255, 255, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            .app-link:hover {
+                background: rgba(255, 255, 255, 0.25);
             }
         </style>
     </head>
@@ -371,9 +284,27 @@ function createOfflineResponse() {
                 Verifique sua conexão e tente novamente.
             </p>
             <button class="retry-btn" onclick="window.location.reload()">
-                Tentar Novamente
+                🔄 Tentar Novamente
             </button>
+            <div class="app-links">
+                <a href="/aluno.html" class="app-link">👨‍🎓 Aluno</a>
+                <a href="/personal.html" class="app-link">🏋️ Personal</a>
+            </div>
         </div>
+        
+        <script>
+            // Tentar reconectar automaticamente a cada 30 segundos
+            let reconnectInterval = setInterval(() => {
+                if (navigator.onLine) {
+                    window.location.reload();
+                }
+            }, 30000);
+            
+            // Parar tentativas se usuário interagir
+            document.addEventListener('click', () => {
+                clearInterval(reconnectInterval);
+            });
+        </script>
     </body>
     </html>
     `;
@@ -388,76 +319,28 @@ function createOfflineResponse() {
 }
 
 // =============================================================================
-// SINCRONIZAÇÃO EM BACKGROUND
+// SINCRONIZAÇÃO SIMPLES EM BACKGROUND
 // =============================================================================
 
 self.addEventListener('sync', event => {
     console.log('[SW] Evento de sincronização:', event.tag);
     
-    if (event.tag === 'sync-workout-data') {
-        event.waitUntil(syncWorkoutData());
-    } else if (event.tag === 'sync-shared-plans') {
-        event.waitUntil(syncSharedPlans());
+    if (event.tag === 'firebase-sync') {
+        event.waitUntil(notifyFirebaseSync());
     }
 });
 
-async function syncWorkoutData() {
+async function notifyFirebaseSync() {
     try {
-        console.log('[SW] Sincronizando dados de treino...');
-        
-        // Buscar dados locais que precisam ser sincronizados
-        const clients = await self.clients.matchAll();
-        
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'SYNC_WORKOUT_DATA',
-                status: 'starting'
-            });
-        });
-        
-        // Implementar lógica de sincronização aqui
-        // Por exemplo, enviar dados offline para o servidor
-        
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'SYNC_WORKOUT_DATA',
-                status: 'completed'
-            });
-        });
-        
-    } catch (error) {
-        console.error('[SW] Erro na sincronização:', error);
-        
         const clients = await self.clients.matchAll();
         clients.forEach(client => {
             client.postMessage({
-                type: 'SYNC_WORKOUT_DATA',
-                status: 'failed',
-                error: error.message
+                type: 'FIREBASE_SYNC_AVAILABLE',
+                status: 'ready'
             });
         });
-    }
-}
-
-async function syncSharedPlans() {
-    try {
-        console.log('[SW] Sincronizando planos compartilhados...');
-        
-        // Tentar buscar atualizações dos planos compartilhados
-        const response = await fetch('https://jsfitapp.netlify.app/api/health');
-        
-        if (response.ok) {
-            const clients = await self.clients.matchAll();
-            clients.forEach(client => {
-                client.postMessage({
-                    type: 'SYNC_SHARED_PLANS',
-                    status: 'server_available'
-                });
-            });
-        }
-        
     } catch (error) {
-        console.warn('[SW] Servidor indisponível para sincronização');
+        console.error('[SW] Erro na notificação de sincronização:', error);
     }
 }
 
@@ -477,12 +360,8 @@ self.addEventListener('message', event => {
             self.clients.claim();
             break;
             
-        case 'CACHE_WORKOUT_DATA':
-            handleCacheWorkoutData(payload);
-            break;
-            
         case 'CLEAR_CACHE':
-            handleClearCache(payload);
+            handleClearCache();
             break;
             
         case 'GET_CACHE_STATUS':
@@ -490,42 +369,19 @@ self.addEventListener('message', event => {
             break;
             
         default:
-            console.warn('[SW] Tipo de mensagem não reconhecido:', type);
+            console.log('[SW] Mensagem recebida:', type);
     }
 });
 
-async function handleCacheWorkoutData(data) {
+async function handleClearCache() {
     try {
-        const cache = await caches.open(DYNAMIC_CACHE_NAME);
-        
-        // Cachear dados de treino para acesso offline
-        const response = new Response(JSON.stringify(data), {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Cache-Date': new Date().toISOString()
-            }
-        });
-        
-        await cache.put('/offline-workout-data', response);
-        console.log('[SW] Dados de treino cacheados para uso offline');
-    } catch (error) {
-        console.error('[SW] Erro ao cachear dados de treino:', error);
-    }
-}
-
-async function handleClearCache(cacheType) {
-    try {
-        if (cacheType === 'all') {
-            const cacheNames = await caches.keys();
-            await Promise.all(
-                cacheNames
-                    .filter(name => name.startsWith('js-fit'))
-                    .map(name => caches.delete(name))
-            );
-        } else {
-            await caches.delete(cacheType);
-        }
-        console.log('[SW] Cache limpo:', cacheType);
+        const cacheNames = await caches.keys();
+        await Promise.all(
+            cacheNames
+                .filter(name => name.startsWith('js-fit'))
+                .map(name => caches.delete(name))
+        );
+        console.log('[SW] Todos os caches limpos');
     } catch (error) {
         console.error('[SW] Erro ao limpar cache:', error);
     }
@@ -533,21 +389,16 @@ async function handleClearCache(cacheType) {
 
 async function handleGetCacheStatus(event) {
     try {
-        const cacheNames = await caches.keys();
-        const cacheStatus = {};
-        
-        for (const cacheName of cacheNames) {
-            const cache = await caches.open(cacheName);
-            const keys = await cache.keys();
-            cacheStatus[cacheName] = {
-                count: keys.length,
-                lastModified: new Date().toISOString()
-            };
-        }
+        const cache = await caches.open(STATIC_CACHE_NAME);
+        const keys = await cache.keys();
         
         event.ports[0].postMessage({
             type: 'CACHE_STATUS',
-            data: cacheStatus
+            data: {
+                name: STATIC_CACHE_NAME,
+                count: keys.length,
+                lastModified: new Date().toISOString()
+            }
         });
     } catch (error) {
         console.error('[SW] Erro ao obter status do cache:', error);
@@ -559,79 +410,20 @@ async function handleGetCacheStatus(event) {
 }
 
 // =============================================================================
-// NOTIFICAÇÕES PUSH
+// MONITORAMENTO DE CONECTIVIDADE
 // =============================================================================
 
-self.addEventListener('push', event => {
-    console.log('[SW] Notificação push recebida');
-    
-    const options = {
-        body: 'Você tem novos treinos disponíveis!',
-        icon: '/icon-192x192.png',
-        badge: '/badge-72x72.png',
-        vibrate: [100, 50, 100],
-        data: {
-            dateOfArrival: Date.now(),
-            primaryKey: 1
-        },
-        actions: [
-            {
-                action: 'explore',
-                title: 'Ver Treinos',
-                icon: '/images/checkmark.png'
-            },
-            {
-                action: 'close',
-                title: 'Fechar',
-                icon: '/images/xmark.png'
-            }
-        ]
-    };
-    
-    event.waitUntil(
-        self.registration.showNotification('JS Fit App', options)
-    );
+// Notificar quando a conectividade for restaurada
+self.addEventListener('online', () => {
+    console.log('[SW] Conectividade restaurada');
+    self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+            client.postMessage({
+                type: 'CONNECTIVITY_RESTORED',
+                timestamp: new Date().toISOString()
+            });
+        });
+    });
 });
 
-self.addEventListener('notificationclick', event => {
-    console.log('[SW] Clique na notificação:', event.action);
-    
-    event.notification.close();
-    
-    if (event.action === 'explore') {
-        event.waitUntil(
-            clients.openWindow('/aluno.html')
-        );
-    }
-});
-
-// =============================================================================
-// LIMPEZA PERIÓDICA DE CACHE
-// =============================================================================
-
-// Executar limpeza a cada 24 horas
-setInterval(async () => {
-    try {
-        const cache = await caches.open(DYNAMIC_CACHE_NAME);
-        const requests = await cache.keys();
-        
-        for (const request of requests) {
-            const response = await cache.match(request);
-            if (response) {
-                const cacheDate = response.headers.get('X-Cache-Date');
-                if (cacheDate) {
-                    const age = Date.now() - new Date(cacheDate).getTime();
-                    // Remover itens com mais de 7 dias
-                    if (age > 7 * 24 * 60 * 60 * 1000) {
-                        await cache.delete(request);
-                        console.log('[SW] Item antigo removido do cache:', request.url);
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        console.error('[SW] Erro na limpeza periódica:', error);
-    }
-}, 24 * 60 * 60 * 1000); // 24 horas
-
-console.log('[SW] Service Worker JS Fit App v2.1.0 carregado');
+console.log('[SW] Service Worker JS Fit App v2.1.0 (Firebase Only) carregado');
