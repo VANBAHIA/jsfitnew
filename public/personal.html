@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="JS Fit App">
     <title>JS Fit App - Criador de Planos de Treino</title>
@@ -405,19 +405,210 @@
         
     </div>
 
+    <!-- ADICIONAR ESTE HTML NA SEÇÃO DE CONTROLES DA SUA INTERFACE -->
+
+<!-- Controles de Debug e Sincronização -->
+<div class="debug-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+    <div class="debug-panel" id="debugPanel" style="display: none;">
+        <div class="debug-header">
+            <h4>Controles de Debug</h4>
+            <button onclick="app.toggleDebugPanel()" class="close-debug">&times;</button>
+        </div>
+        <div class="debug-actions">
+            <button class="btn btn-sm btn-outline" onclick="app.debugDataState()">
+                Estado dos Dados
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="app.reloadData()">
+                Recarregar Dados
+            </button>
+            <button class="btn btn-sm btn-success" onclick="app.forceSyncAllPlans()">
+                Forçar Sync Firebase
+            </button>
+            <button class="btn btn-sm btn-warning" onclick="app.createEmergencyBackup()">
+                Backup Emergência
+            </button>
+            <button class="btn btn-sm btn-info" onclick="app.verifyAndRestorePlans()">
+                Restaurar Planos
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="app.syncAllPendingOperations()">
+                Sync Firebase
+            </button>
+            <div class="debug-info">
+                <small>
+                    Total: <span id="debugPlanCount">0</span> | 
+                    Firebase: <span id="debugFirebaseCount">0</span> | 
+                    Pendentes: <span id="debugPendingCount">0</span>
+                </small>
+                <div class="sync-status-bar">
+                    <div class="sync-progress" id="syncProgressBar"></div>
+                </div>
+                <small id="syncStatus" class="sync-status"></small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botão para mostrar/ocultar painel -->
+    <button class="btn btn-debug" onclick="app.toggleDebugPanel()" title="Debug Controls">
+        🔧
+    </button>
+</div>
+
+<!-- CSS para os controles de debug -->
+<style>
+.debug-controls {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.btn-debug {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #6c757d;
+    color: white;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-debug:hover {
+    background: #5a6268;
+    transform: scale(1.1);
+}
+
+.debug-panel {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    width: 280px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.debug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.debug-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.close-debug {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.debug-actions {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-outline {
+    background: white;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-sm:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.debug-info {
+    margin-top: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.debug-info small {
+    color: #6c757d;
+    font-size: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .debug-panel {
+        width: 250px;
+        bottom: 70px;
+        right: -200px;
+    }
+    
+    .debug-panel.active {
+        right: 0;
+    }
+}
+</style>
+
+
    <!-- Plan Details View -->
 
 
 
 
-    <!-- Hidden file input -->
-    <input type="file" id="importFile" style="display: none;" accept=".json" onchange="app.importPlan(event)">
+<!-- Hidden file input -->
+<input type="file" id="importFile" style="display: none;" accept=".json" onchange="app.importPlan(event)">
 
-    <!-- JavaScript -->
-    <script src="js/personal.js">
+<!-- JavaScript - ORDEM CORRETA -->
+<script src="js/shared/jsfitcore.js"></script>
+<script src="js/personal.js"></script>
 
 
 
-	</script>
 </body>
 </html>

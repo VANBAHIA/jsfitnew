@@ -1,17 +1,13 @@
 // aluno.js - JS Fit Student App - Complete with Direct File Import
 // Sistema modernizado compatível com PostgreSQL e Netlify Functions
 
+
+
 class JSFitStudentApp {
     constructor() {
-        // API Configuration
-        this.config = {
-            apiBase: window.location.hostname === 'localhost' ? 
-                'http://localhost:8888/api' : 
-                'https://jsfitapp.netlify.app/api',
-            timeout: 10000,
-            retries: 3,
-            syncInterval: 30000
-        };
+
+        this.core = new JSFitCore(this.firebaseConfig);
+
 
         // App State
         this.state = {
@@ -30,8 +26,7 @@ class JSFitStudentApp {
         this.init();
 
         // NOVA: Base de dados de exercícios integrada
-        this.exerciseDatabase = []; // Array simples que será carregado do DATABASE.JSON
-        this.loadExerciseDatabase(); // Novo método para carregar
+        this.core.exerciseDatabase = []; // Array simples que será carregado do DATABASE.JSON
         
          // Create hidden file input for direct import
         this.createFileInput();
@@ -42,129 +37,75 @@ class JSFitStudentApp {
     // =============================================================================
 
     async init() {
-        console.log('🚀 Initializing JS Fit Student App - Backend Compatible');
+        console.log('Inicializando JS Fit Student App com Firebase...');
         
         try {
+            // 1. Inicializar Firebase
+            await this.core.initializeFirebase();
+            
+            // 2. Configurações existentes
             this.setupEventListeners();
             this.setupPWAFeatures();
             await this.loadFromStorage();
             
-            // Aguardar carregamento da base de exercícios
-            await this.loadExerciseDatabase();
-            
-            // Validar integridade após carregamento
+            // 3. Carregar base de exercícios
+            await this.core.loadExerciseDatabase();
             this.validateExerciseDatabase();
             
-            await this.checkServerConnection();
-            this.startPeriodicSync();
+            // 4. Renderizar interface
             this.renderHome();
             
-            console.log('✅ App initialized successfully');
+            console.log('App inicializado com sucesso');
         } catch (error) {
-            console.error('❌ Initialization failed:', error);
+            console.error('Erro na inicialização:', error);
             this.showNotification('Erro ao inicializar aplicativo', 'error');
         }
     }
 
 
+
     setupEventListeners() {
-        // Handle network status changes
+        // Network status para Firebase
         window.addEventListener('online', () => {
             this.state.isOnline = true;
-            this.checkServerConnection();
-            this.showNotification('Conexão restaurada', 'success');
+            if (this.firebaseConnected) {
+                this.showNotification('Conexão restaurada - Firebase online', 'success');
+            }
         });
-
+    
         window.addEventListener('offline', () => {
             this.state.isOnline = false;
-            this.updateConnectionStatus('offline');
-            this.showNotification('Modo offline ativo', 'warning');
+            this.showNotification('Modo offline - usando dados locais', 'warning');
         });
-
-        // Handle app lifecycle
+    
+        // App lifecycle
         window.addEventListener('beforeunload', () => {
             this.saveToStorage();
         });
-
+    
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 this.saveToStorage();
-            } else {
-                this.checkServerConnection();
             }
         });
     }
 
-    async loadExerciseDatabase() {
-        try {
-            console.log('🔄 Carregando base de dados de exercícios...');
-            
-            // Tentar carregar DATABASE.JSON
-            const response = await fetch('data/DATABASE.JSON');
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            
-            // Validar estrutura do arquivo
-            if (!Array.isArray(data)) {
-                throw new Error('DATABASE.JSON deve ser um array de exercícios');
-            }
-            
-            // Validar se tem exercícios
-            if (data.length === 0) {
-                throw new Error('DATABASE.JSON está vazio');
-            }
-            
-            // Validar estrutura básica de cada exercício
-            const invalidExercises = data.filter(ex => 
-                !ex.nome || !ex.Column4 || !ex.grupo
-            );
-            
-            if (invalidExercises.length > 0) {
-                console.warn(`⚠️ ${invalidExercises.length} exercícios com dados incompletos encontrados`);
-            }
-            
-            this.exerciseDatabase = data;
-            console.log(`✅ ${data.length} exercícios carregados com sucesso`);
-            
-            // Mostrar estatísticas
-            this.logDatabaseStats();
-            
-        } catch (error) {
-            console.error('❌ Erro ao carregar DATABASE.JSON:', error);
-            
-            // Fallback: usar dados de exemplo ou array vazio
-            this.exerciseDatabase = [];
-            
-            // Mostrar notificação para o usuário
-            setTimeout(() => {
-                this.showNotification(
-                    '⚠️ Erro ao carregar base de exercícios. Demonstrações podem não funcionar.',
-                    'warning',
-                    8000
-                );
-            }, 2000);
-        }
-    }
     
     // PASSO 3: MÉTODO PARA MOSTRAR ESTATÍSTICAS
     // ==========================================
     
     logDatabaseStats() {
-        if (this.exerciseDatabase.length === 0) return;
+        if (this.core.exerciseDatabase.length === 0) return;
         
         // Contar exercícios por grupo
         const groupStats = {};
-        this.exerciseDatabase.forEach(ex => {
+        this.core.exerciseDatabase.forEach(ex => {
             const grupo = ex.grupo || 'Sem grupo';
             groupStats[grupo] = (groupStats[grupo] || 0) + 1;
         });
         
         console.log('📊 Estatísticas da base de exercícios:');
-        console.log(`   Total: ${this.exerciseDatabase.length} exercícios`);
+        console.log(`   Total: ${this.core.exerciseDatabase.length} exercícios`);
         console.log('   Por grupo:');
         Object.entries(groupStats).forEach(([grupo, count]) => {
             console.log(`     ${grupo}: ${count} exercícios`);
@@ -419,162 +360,57 @@ class JSFitStudentApp {
             setTimeout(setViewportHeight, 500);
         });
 
-        // Service Worker registration
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('SW registered:', reg))
-                .catch(err => console.log('SW registration failed:', err));
-        }
+  
     }
 
     // =============================================================================
     // SERVER COMMUNICATION
     // =============================================================================
 
-    async makeRequest(endpoint, options = {}) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
+async fetchFromFirebase(shareId) {
+    try {
+        const { doc, getDoc, updateDoc, increment } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        
+        const shareRef = doc(window.db, 'shared_plans', shareId);
+        const shareDoc = await getDoc(shareRef);
+        
+        if (!shareDoc.exists()) {
+            throw new Error('Plano não encontrado no Firebase');
+        }
+        
+        const shareData = shareDoc.data();
+        
+        // Verificar se está ativo
+        if (!shareData.isActive) {
+            throw new Error('Este plano foi desativado');
+        }
+        
+        // Verificar se expirou
+        if (shareData.expiresAt && new Date() > shareData.expiresAt.toDate()) {
+            throw new Error('Este plano expirou');
+        }
+        
+        // Incrementar contador de acesso
         try {
-            const response = await fetch(`${this.config.apiBase}${endpoint}`, {
-                ...options,
-                signal: controller.signal,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(this.state.token && { 'Authorization': `Bearer ${this.state.token}` }),
-                    ...options.headers
-                }
+            await updateDoc(shareRef, {
+                accessCount: increment(1),
+                lastAccessedAt: new Date()
             });
-
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            clearTimeout(timeoutId);
-            
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout');
-            }
-            
-            throw error;
+        } catch (updateError) {
+            console.warn('Erro ao atualizar contador:', updateError);
         }
+        
+        return shareData.plan;
+        
+    } catch (error) {
+        throw new Error(`Erro ao buscar do Firebase: ${error.message}`);
     }
+}
 
-    async checkServerConnection() {
-        try {
-            this.updateConnectionStatus('loading');
-            const response = await this.makeRequest('/health');
-            
-            if (response.success !== false) {
-                this.updateConnectionStatus('online');
-                return true;
-            } else {
-                throw new Error('Health check failed');
-            }
-        } catch (error) {
-            console.warn('Server connection failed:', error);
-            this.updateConnectionStatus('offline');
-            return false;
-        }
-    }
 
-    async importPlanById(shareId) {
-        // Validate share ID
-        if (!shareId || shareId.length !== 6) {
-            throw new Error('ID deve ter 6 caracteres');
-        }
 
-        const normalizedId = shareId.toUpperCase();
 
-        // Check if already imported
-        const existing = this.state.workoutPlans.find(p => p.originalShareId === normalizedId);
-        if (existing) {
-            throw new Error('Este plano já foi importado');
-        }
-
-        try {
-            // Try server first
-            const serverData = await this.fetchFromServer(normalizedId);
-            
-            // Process and save the plan
-            const processedPlan = this.processPlanData(serverData, normalizedId, 'server');
-            
-            return processedPlan;
-        } catch (serverError) {
-            console.warn('Server fetch failed, trying cache:', serverError);
-            
-            // Fallback to cache
-            const cacheData = this.getPlanFromCache(normalizedId);
-            if (!cacheData) {
-                throw new Error('Plano não encontrado nem no servidor nem no cache');
-            }
-            
-            const processedPlan = this.processPlanData(cacheData, normalizedId, 'cache');
-            return processedPlan;
-        }
-    }
-
-    async fetchFromServer(shareId) {
-        try {
-            const response = await this.makeRequest(`/share/${shareId}`);
-            
-            if (response.success && response.plan) {
-                return response.plan;
-            } else {
-                throw new Error(response.error || 'Plano não encontrado no servidor');
-            }
-        } catch (error) {
-            throw new Error(`Erro ao buscar do servidor: ${error.message}`);
-        }
-    }
-
-    processPlanData(planData, shareId, source) {
-        // Convert backend format to frontend format
-        const processedPlan = {
-            id: this.generateId(),
-            nome: planData.nome || planData.name || 'Plano Importado',
-            originalShareId: shareId,
-            importedAt: new Date().toISOString(),
-            importedFrom: source,
-            execucoesPlanCompleto: 0,
-            
-            // Student data
-            aluno: {
-                nome: planData.aluno?.nome || planData.student?.name || '',
-                dataNascimento: this.fixTimezoneDate(planData.aluno?.dataNascimento || planData.student?.birth_date || ''),
-                idade: planData.aluno?.idade || planData.student?.age || null,
-                altura: planData.aluno?.altura || planData.student?.height || '',
-                peso: planData.aluno?.peso || planData.student?.weight || '',
-                cpf: planData.aluno?.cpf || planData.student?.cpf || ''
-            },
-            
-            // Plan metadata
-            dias: planData.dias || planData.frequency_per_week || 3,
-            dataInicio: this.fixTimezoneDate(planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0]),
-            dataFim: this.fixTimezoneDate(planData.dataFim || planData.end_date || ''),
-
-            // Profile and objectives
-            perfil: {
-                objetivo: planData.perfil?.objetivo || planData.objective || 'Condicionamento geral',
-                altura: planData.aluno?.altura || planData.student?.height || '',
-                peso: planData.aluno?.peso || planData.student?.weight || '',
-                idade: planData.aluno?.idade || planData.student?.age || null
-            },
-            
-            // Convert workouts
-            treinos: this.convertWorkoutsToFrontendFormat(planData.treinos || planData.workouts || []),
-            
-            // Observations
-            observacoes: planData.observacoes || planData.observations || {}
-        };
-
-        return { plan: processedPlan, source };
-    }
 
     convertWorkoutsToFrontendFormat(workouts) {
         return workouts.map((workout, index) => ({
@@ -865,34 +701,8 @@ class JSFitStudentApp {
         });
     }
 
-    savePlanToCache(shareId, planData) {
-        try {
-            const cache = this.getSharedPlansCache();
-            cache[shareId] = planData;
-            localStorage.setItem('jsfitapp_shared_cache', JSON.stringify(cache));
-        } catch (error) {
-            console.warn('Cache save failed:', error);
-        }
-    }
 
-    getPlanFromCache(shareId) {
-        try {
-            const cache = this.getSharedPlansCache();
-            return cache[shareId] || null;
-        } catch (error) {
-            console.warn('Cache read failed:', error);
-            return null;
-        }
-    }
 
-    getSharedPlansCache() {
-        try {
-            const stored = localStorage.getItem('jsfitapp_shared_cache');
-            return stored ? JSON.parse(stored) : {};
-        } catch (error) {
-            return {};
-        }
-    }
 
     deletePlan(planId) {
         const plan = this.findPlan(planId);
@@ -927,33 +737,7 @@ class JSFitStudentApp {
         this.showNotification('Plano excluído!', 'success');
     }
 
-    startPeriodicSync() {
-        setInterval(() => {
-            if (this.state.isOnline && !document.hidden) {
-                this.checkServerConnection();
-            }
-        }, this.config.syncInterval);
-    }
 
-    // =============================================================================
-    // UI MANAGEMENT
-    // =============================================================================
-
-    updateConnectionStatus(status) {
-        const indicator = document.getElementById('connectionStatus');
-        if (!indicator) return;
-
-        this.state.connectionStatus = status;
-        indicator.className = `connection-status ${status}`;
-        
-        const statusMap = {
-            online: 'Conectado ao servidor',
-            offline: 'Offline - usando cache local',
-            loading: 'Verificando conexão...'
-        };
-        
-        indicator.title = statusMap[status] || 'Status desconhecido';
-    }
 
     showNotification(message, type = 'info', duration = 4000) {
         // Remove existing notifications
@@ -1052,7 +836,6 @@ class JSFitStudentApp {
             this.renderHome();
         }
     }
-
     // =============================================================================
     // RENDERING METHODS
     // =============================================================================
@@ -1076,65 +859,53 @@ renderHome() {
     content.innerHTML = html;
 }
 
-    renderImportCard() {
-        const isOnline = this.state.connectionStatus === 'online';
-        
-        return `
-            <div class="card import-by-id-card">
-                <div class="card-content">
-                    <h3 class="import-title">
-                        🔗 Importar Treino
-                    </h3>
-                    
-                    <!-- Import by ID section 
-                    <div class="import-section1">
-                        <div class="server-status ${isOnline ? 'online' : 'offline'}">
-                            ${isOnline ? 
-                                '🟢 Servidor online - Buscará do servidor' : 
-                                '🟡 Servidor offline - Usando cache local'
-                            }
-                        </div>
-                            <h4 class="import-method-title">Por ID do Servidor</h4>
-                        <div class="import-form">
-                            <input type="text" id="importIdInput" class="import-input" 
-                                   placeholder="Digite o ID (6 caracteres)" 
-                                   maxlength="6" 
-                                   autocomplete="off"
-                                   oninput="this.value = this.value.toUpperCase()"
-                                   onkeypress="if(event.key==='Enter') app.handleImportById()">
-                            <button id="importIdButton" class="btn import-btn" onclick="app.handleImportById()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="7,10 12,15 17,10"/>
-                                    <line x1="12" x2="12" y1="15" y2="3"/>
-                                </svg>
-                                Importar por ID
-                            </button>
-                        </div>
-                        <div id="importStatus" class="import-status">
-                            Peça o ID do seu personal trainer
-                        </div>
-                    </div>-->
-
-                    <!-- Import by file section -->
-                    <div class="import-section">
-                       <!--  <div class="import-divider">
-                            <span>OU</span> 
-                        </div>-->
-                        <button class="btn btn-secondary import-file-btn" onclick="app.openFileSelector()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                            </svg>
-                            Importar Arquivo JSON
+  renderImportCard() {
+    const firebaseStatus = this.firebaseConnected ? 'online' : 'offline';
+    
+    return `
+        <div class="card import-by-id-card">
+            <div class="card-content">
+                <h3 class="import-title">Importar Treino</h3>
+                
+                <div class="import-section">
+                    <div class="server-status ${firebaseStatus}">
+                        ${firebaseStatus === 'online' ? 
+                            'Firebase online - Buscará do servidor' : 
+                            'Firebase offline - Usando cache local'
+                        }
+                    </div>
+                    <h4 class="import-method-title">Por ID do Firebase</h4>
+                    <div class="import-form">
+                        <input type="text" id="importIdInput" class="import-input" 
+                               placeholder="Digite o ID (6 caracteres)" 
+                               maxlength="6" 
+                               autocomplete="off"
+                               oninput="this.value = this.value.toUpperCase()"
+                               onkeypress="if(event.key==='Enter') app.handleImportById()">
+                        <button id="importIdButton" class="btn import-btn" onclick="app.handleImportById()">
+                            Importar por ID
                         </button>
-                        <div class="import-file-hint">
-                            Selecione o arquivo JSON fornecido pelo seu personal trainer
-                        </div>
+                    </div>
+                    <div id="importStatus" class="import-status">
+                        Peça o ID do seu personal trainer
+                    </div>
+                </div>
+
+                <div class="import-section">
+                    <div class="import-divider">
+                        <span>OU</span>
+                    </div>
+                    <button class="btn btn-secondary import-file-btn" onclick="app.openFileSelector()">
+                        Importar Arquivo JSON
+                    </button>
+                    <div class="import-file-hint">
+                        Selecione o arquivo JSON fornecido pelo seu personal trainer
                     </div>
                 </div>
             </div>
-        `;
-    }
+        </div>
+    `;
+}
 
     renderEmptyState() {
         return `
@@ -1818,7 +1589,7 @@ renderHome() {
 
     findExerciseGif(exerciseName) {
         // Aguardar carregamento da base se necessário
-        if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+        if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
             console.warn('⚠️ Base de exercícios ainda não carregada');
             return null;
         }
@@ -1826,7 +1597,7 @@ renderHome() {
         const normalizedName = exerciseName.trim().toLowerCase();
         
         // Busca exata primeiro
-        const exactMatch = this.exerciseDatabase.find(exercise => 
+        const exactMatch = this.core.exerciseDatabase.find(exercise => 
             exercise.nome.toLowerCase() === normalizedName
         );
         
@@ -1835,7 +1606,7 @@ renderHome() {
         }
         
         // Busca parcial como fallback
-        const partialMatch = this.exerciseDatabase.find(exercise => 
+        const partialMatch = this.core.exerciseDatabase.find(exercise => 
             exercise.nome.toLowerCase().includes(normalizedName) ||
             normalizedName.includes(exercise.nome.toLowerCase())
         );
@@ -1854,7 +1625,7 @@ renderHome() {
     // NOVA FUNÇÃO: Mostrar modal com GIF do exercício
     showExerciseGif(exerciseName) {
         // Verificar se a base está carregada
-        if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+        if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
             this.showNotification('⚠️ Base de exercícios ainda não carregada. Aguarde...', 'warning');
             return;
         }
@@ -1911,40 +1682,40 @@ renderHome() {
 
         // Buscar exercício completo por nome
         findExerciseByName(exerciseName) {
-            if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+            if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
                 return null;
             }
     
             const normalizedName = exerciseName.trim().toLowerCase();
             
-            return this.exerciseDatabase.find(exercise => 
+            return this.core.exerciseDatabase.find(exercise => 
                 exercise.nome.toLowerCase() === normalizedName
             );
         }
     
         // Buscar exercícios por grupo
         findExercisesByGroup(groupName) {
-            if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+            if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
                 return [];
             }
     
             const normalizedGroup = groupName.trim().toLowerCase();
             
-            return this.exerciseDatabase.filter(exercise => 
+            return this.core.exerciseDatabase.filter(exercise => 
                 exercise.grupo.toLowerCase() === normalizedGroup
             );
         }
     
         // Buscar exercícios por músculos
         findExercisesByMuscle(muscleName) {
-            if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+            if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
                 return [];
             }
         
             // Normaliza o nome do músculo
             const normalizedMuscle = muscleName[0].toUpperCase() + muscleName.slice(1).toLowerCase().trim();
         
-            return this.exerciseDatabase.filter(exercise => 
+            return this.core.exerciseDatabase.filter(exercise => 
                 exercise.Musculos && exercise.Musculos.toLowerCase().includes(normalizedMuscle.toLowerCase())
             );
         }
@@ -1952,12 +1723,12 @@ renderHome() {
     
         // Obter todos os grupos disponíveis
         getAllExerciseGroups() {
-            if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+            if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
                 return [];
             }
     
             const groups = new Set();
-            this.exerciseDatabase.forEach(exercise => {
+            this.core.exerciseDatabase.forEach(exercise => {
                 if (exercise.grupo) {
                     groups.add(exercise.grupo);
                 }
@@ -2054,14 +1825,14 @@ renderHome() {
 
     // Buscar exercícios similares
     findSimilarExercises(exerciseName, maxResults = 5) {
-        if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+        if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
             return [];
         }
 
         const normalizedName = exerciseName.toLowerCase();
         const words = normalizedName.split(' ').filter(w => w.length > 2);
         
-        const matches = this.exerciseDatabase
+        const matches = this.core.exerciseDatabase
             .filter(ex => {
                 const exName = ex.nome.toLowerCase();
                 return words.some(word => exName.includes(word));
@@ -2075,7 +1846,7 @@ renderHome() {
     // ==================================
 
     validateExerciseDatabase() {
-        if (!this.exerciseDatabase || this.exerciseDatabase.length === 0) {
+        if (!this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
             console.warn('⚠️ Base de exercícios vazia ou não carregada');
             return false;
         }
@@ -2083,7 +1854,7 @@ renderHome() {
         let isValid = true;
         const issues = [];
 
-        this.exerciseDatabase.forEach((ex, index) => {
+        this.core.exerciseDatabase.forEach((ex, index) => {
             // Verificar campos obrigatórios
             if (!ex.nome) {
                 issues.push(`Exercício ${index + 1}: Nome ausente`);
@@ -2121,64 +1892,257 @@ renderHome() {
     // EVENT HANDLERS
     // =============================================================================
 
-    async handleImportById() {
-        const input = document.getElementById('importIdInput');
-        const button = document.getElementById('importIdButton');
-        const status = document.getElementById('importStatus');
+// Substituir a função handleImportById() existente no aluno.js
+
+async handleImportById() {
+    console.log('🔄 INÍCIO - handleImportById chamado');
+    
+    // Verificar se já está importando
+    if (this.importing) {
+        console.log('⚠️ Importação já em andamento');
+        this.updateImportStatus('Uma importação já está em andamento', 'warning');
+        return;
+    }
+    
+    // Verificar elementos DOM
+    const input = document.getElementById('importIdInput');
+    const button = document.getElementById('importIdButton');
+    const status = document.getElementById('importStatus');
+    
+    console.log('📋 ELEMENTOS DOM:', { 
+        input: !!input, 
+        button: !!button, 
+        status: !!status 
+    });
+    
+    if (!input || !button || !status) {
+        console.error('❌ ERRO CRÍTICO: Elementos da interface não encontrados', {
+            input: !!input, button: !!button, status: !!status
+        });
+        alert('Erro na interface. Recarregue a página.');
+        return;
+    }
+    
+    // Verificar se core está inicializado
+    if (!this.core) {
+        console.error('❌ ERRO: Core não existe');
+        this.updateImportStatus('Sistema não inicializado. Recarregue a página.', 'error');
+        return;
+    }
+    
+    if (typeof this.core.importSharedPlan !== 'function') {
+        console.error('❌ ERRO: Método importSharedPlan não existe');
+        this.updateImportStatus('Funcionalidade não disponível. Atualize o app.', 'error');
+        return;
+    }
+    
+    // Obter e validar ID
+    const shareId = input.value.trim().toUpperCase();
+    console.log('🆔 SHARE ID obtido:', shareId);
+    
+    // Validações básicas
+    if (!shareId) {
+        console.log('⚠️ VALIDAÇÃO: ID vazio');
+        this.updateImportStatus('Digite um ID válido', 'error');
+        input.focus();
+        return;
+    }
+    
+    if (shareId.length !== 6) {
+        console.log('⚠️ VALIDAÇÃO: ID com tamanho incorreto:', shareId.length);
+        this.updateImportStatus('ID deve ter exatamente 6 caracteres', 'error');
+        input.focus();
+        return;
+    }
+    
+    if (!/^[A-Z0-9]{6}$/.test(shareId)) {
+        console.log('⚠️ VALIDAÇÃO: ID com caracteres inválidos');
+        this.updateImportStatus('ID deve conter apenas letras e números', 'error');
+        input.focus();
+        return;
+    }
+    
+    console.log('✅ VALIDAÇÃO: ID aprovado');
+    
+    // Verificar se já foi importado
+    console.log('🔍 VERIFICANDO: Planos existentes:', this.state.workoutPlans.length);
+    const existingPlan = this.state.workoutPlans.find(p => 
+        p.originalShareId === shareId || 
+        p.shareId === shareId ||
+        p.metadata?.shareId === shareId
+    );
+    
+    if (existingPlan) {
+        console.log('⚠️ DUPLICADO: Plano já existe:', existingPlan.nome);
+        this.updateImportStatus(`Plano "${existingPlan.nome}" já foi importado`, 'warning');
+        input.value = '';
+        setTimeout(() => {
+            this.renderHome();
+        }, 1500);
+        return;
+    }
+    
+    console.log('✅ DUPLICAÇÃO: Plano não existe localmente');
+    
+    // Marcar como importando e configurar UI
+    this.importing = true;
+    const originalButtonText = button.innerHTML;
+    button.innerHTML = '<span class="loading-spinner"></span> Buscando...';
+    button.disabled = true;
+    input.disabled = true;
+    
+    this.updateImportStatus('Conectando ao servidor...', 'loading');
+    
+    try {
+        console.log('🔥 FIREBASE: Iniciando busca do plano');
+        this.updateImportStatus('Buscando plano no servidor...', 'loading');
         
-        if (!input || !button || !status) return;
+        // Buscar plano compartilhado
+        const sharedPlanResponse = await this.core.importSharedPlan(shareId);
+        console.log('✅ BUSCA: Dados obtidos:', {
+            hasData: !!sharedPlanResponse,
+            source: sharedPlanResponse?.metadata?.source,
+            planExists: !!sharedPlanResponse?.plan
+        });
         
-        const shareId = input.value.trim();
-        
-        if (!shareId) {
-            this.updateImportStatus('Digite um ID válido', 'error');
-            return;
+        if (!sharedPlanResponse || !sharedPlanResponse.plan) {
+            throw new Error('Dados do plano não foram encontrados');
         }
         
-        if (shareId.length !== 6) {
-            this.updateImportStatus('ID deve ter 6 caracteres', 'error');
-            return;
+        // Verificar se processSharedPlanData existe
+        if (typeof this.processSharedPlanData !== 'function') {
+            console.error('❌ ERRO: Método processSharedPlanData não implementado');
+            throw new Error('Funcionalidade de processamento não disponível');
         }
         
-        // Update UI for loading state
-        button.innerHTML = '<span class="loading-spinner"></span> Importando...';
-        button.classList.add('btn-loading');
-        button.disabled = true;
-        this.updateImportStatus('Buscando plano...', 'loading');
+        // Processar e validar dados
+        console.log('⚙️ PROCESSAMENTO: Iniciando processamento dos dados');
+        this.updateImportStatus('Processando dados do plano...', 'loading');
+        
+        const processedPlan = await this.processSharedPlanData(
+            sharedPlanResponse.plan, 
+            shareId, 
+            sharedPlanResponse.metadata
+        );
+        
+        console.log('✅ PROCESSAMENTO: Plano processado:', {
+            nome: processedPlan.nome,
+            id: processedPlan.id,
+            exerciciosCount: processedPlan.exercicios?.length || 0,
+            hasMetadata: !!processedPlan.metadata
+        });
+        
+        if (!processedPlan.nome) {
+            throw new Error('Plano processado está incompleto');
+        }
+        
+        // Adicionar à lista local
+        console.log('💾 ESTADO: Adicionando plano ao estado local');
+        this.state.workoutPlans.push(processedPlan);
+        console.log('✅ ESTADO: Total de planos agora:', this.state.workoutPlans.length);
+        
+        // Salvar localmente
+        console.log('💾 STORAGE: Salvando no armazenamento local');
+        this.updateImportStatus('Salvando localmente...', 'loading');
+        await this.saveToStorage();
+        console.log('✅ STORAGE: Dados salvos localmente');
+        
+        // Salvar no cache para uso offline
+        console.log('📦 CACHE: Salvando no cache');
+        if (typeof this.savePlanToCache === 'function') {
+            this.savePlanToCache(shareId, sharedPlanResponse);
+            console.log('✅ CACHE: Plano salvo no cache');
+        } else {
+            console.warn('⚠️ CACHE: Método savePlanToCache não disponível');
+        }
+        
+        // Feedback de sucesso
+        console.log('🎉 SUCESSO: Importação concluída com sucesso');
+        this.updateImportStatus(`Plano "${processedPlan.nome}" importado com sucesso!`, 'success');
+        input.value = '';
+        
+        // Atualizar interface após delay
+        console.log('🔄 UI: Agendando atualização da interface');
+        setTimeout(() => {
+            console.log('🏠 UI: Renderizando home e resetando status');
+            this.renderHome();
+            this.updateImportStatus('Peça o ID do seu personal trainer', 'info');
+        }, 2000);
+        
+    } catch (error) {
+        console.error('❌ ERRO PRINCIPAL:', error);
+        console.error('❌ DETALHES DO ERRO:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack?.substring(0, 500),
+            shareId: shareId
+        });
+        
+        // Tentar cache local como fallback
+        console.log('🔄 FALLBACK: Tentando cache local');
+        let fallbackSuccess = false;
         
         try {
-            const result = await this.importPlanById(shareId);
-            
-            this.state.workoutPlans.push(result.plan);
-            await this.saveToStorage();
-            
-            const sourceText = result.source === 'server' ? 'servidor' : 'cache local';
-            this.updateImportStatus(`✅ Plano "${result.plan.nome}" importado do ${sourceText}!`, 'success');
-            input.value = '';
-            
-            setTimeout(() => {
-                this.renderHome();
-                this.updateImportStatus('Peça o ID do seu personal trainer', 'info');
-            }, 2000);
-            
-        } catch (error) {
-            console.error('Import error:', error);
-            this.updateImportStatus(`❌ ${error.message}`, 'error');
-        } finally {
-            // Reset button
-            button.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7,10 12,15 17,10"/>
-                    <line x1="12" x2="12" y1="15" y2="3"/>
-                </svg>
-                Importar por ID
-            `;
-            button.classList.remove('btn-loading');
-            button.disabled = false;
+            if (typeof this.getPlanFromCache === 'function') {
+                const cachedPlan = this.getPlanFromCache(shareId);
+                console.log('📦 CACHE: Resultado da busca:', !!cachedPlan);
+                
+                if (cachedPlan) {
+                    console.log('✅ CACHE: Dados encontrados, processando...');
+                    this.updateImportStatus('Usando dados salvos...', 'loading');
+                    
+                    // Extrair dados do cache (pode ter estrutura diferente)
+                    const planData = cachedPlan.plan || cachedPlan.planData || cachedPlan;
+                    const metadata = cachedPlan.metadata || { source: 'cache', shareId };
+                    
+                    const processedPlan = await this.processSharedPlanData(planData, shareId, metadata);
+                    console.log('✅ CACHE: Plano processado:', processedPlan.nome);
+                    
+                    this.state.workoutPlans.push(processedPlan);
+                    await this.saveToStorage();
+                    console.log('✅ CACHE: Plano salvo do cache');
+                    
+                    this.updateImportStatus(`Plano "${processedPlan.nome}" importado (modo offline)`, 'success');
+                    input.value = '';
+                    fallbackSuccess = true;
+                    
+                    setTimeout(() => {
+                        this.renderHome();
+                        this.updateImportStatus('Peça o ID do seu personal trainer', 'info');
+                    }, 2000);
+                } else {
+                    console.log('❌ CACHE: Nenhum dado encontrado no cache');
+                }
+            } else {
+                console.warn('⚠️ CACHE: Método getPlanFromCache não disponível');
+            }
+        } catch (cacheError) {
+            console.error('❌ CACHE ERRO:', cacheError);
+            console.warn('Cache também falhou:', cacheError.message);
         }
+        
+        // Se o fallback não funcionou, mostrar erro
+        if (!fallbackSuccess) {
+            console.log('💬 ERRO FINAL: Exibindo mensagem de erro ao usuário');
+            const errorMessage = this.getErrorMessage ? this.getErrorMessage(error) : error.message;
+            this.updateImportStatus(errorMessage, 'error');
+            
+            // Dar foco de volta ao input para nova tentativa
+            setTimeout(() => {
+                input.focus();
+            }, 100);
+        }
+        
+    } finally {
+        // Reset estados e UI
+        console.log('🔄 CLEANUP: Resetando estado do botão e flags');
+        button.innerHTML = originalButtonText;
+        button.disabled = false;
+        input.disabled = false;
+        this.importing = false;
+        console.log('✅ FIM - handleImportById concluído');
     }
-
+}
     handleSaveWeight(exerciseId) {
         const input = document.getElementById(`weight-input-${exerciseId}`);
         if (!input) return;
@@ -2192,16 +2156,267 @@ renderHome() {
         );
     }
 
-    updateImportStatus(message, type) {
-        const status = document.getElementById('importStatus');
-        if (!status) return;
+  // Adicionar estas funções à classe JSFitStudentApp no aluno.js
+
+// 1. Buscar plano compartilhado do Firebase
+async fetchSharedPlanFromFirebase(shareId) {
+    try {
+        const { doc, getDoc, updateDoc, increment } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         
-        status.textContent = message;
-        status.className = `import-status ${type}`;
+        // Buscar na coleção de planos compartilhados
+        const shareRef = doc(window.db, 'shared_plans', shareId);
+        const shareDoc = await getDoc(shareRef);
+        
+        if (!shareDoc.exists()) {
+            throw new Error(`Plano com ID ${shareId} não encontrado`);
+        }
+        
+        const shareData = shareDoc.data();
+        
+        // Verificar se o plano está ativo
+        if (!shareData.isActive) {
+            throw new Error('Este plano foi desativado pelo personal trainer');
+        }
+        
+        // Verificar se não expirou
+        if (shareData.expiresAt && new Date() > shareData.expiresAt.toDate()) {
+            throw new Error('Este plano expirou. Solicite um novo ID ao seu personal trainer');
+        }
+        
+        // Incrementar contador de acesso (opcional)
+        try {
+            await updateDoc(shareRef, {
+                accessCount: increment(1),
+                lastAccessedAt: new Date()
+            });
+        } catch (updateError) {
+            console.warn('Não foi possível atualizar contador de acesso:', updateError);
+        }
+        
+        return shareData.planData;
+        
+    } catch (error) {
+        if (error.code === 'permission-denied') {
+            throw new Error('Sem permissão para acessar este plano');
+        } else if (error.code === 'not-found') {
+            throw new Error('Plano não encontrado. Verifique o ID');
+        }
+        throw error;
     }
+}
+
+// 2. Processar dados do plano compartilhado
+async processSharedPlanData(planData, shareId) {
+    if (!planData) {
+        throw new Error('Dados do plano inválidos');
+    }
+    
+    // Gerar ID único para o plano importado
+    const processedPlan = {
+        id: this.core.generateId(),
+        originalShareId: shareId,
+        nome: planData.nome || 'Plano Importado',
+        importedAt: new Date().toISOString(),
+        importedFrom: 'firebase',
+        execucoesPlanCompleto: 0,
+        
+        // Dados do aluno
+        aluno: {
+            nome: planData.aluno?.nome || '',
+            dataNascimento: this.core.fixTimezoneDate(planData.aluno?.dataNascimento || ''),
+            idade: planData.aluno?.idade || null,
+            altura: planData.aluno?.altura || '',
+            peso: planData.aluno?.peso || '',
+            cpf: planData.aluno?.cpf || ''
+        },
+        
+        // Metadados do plano
+        dias: planData.dias || 3,
+        dataInicio: this.core.fixTimezoneDate(planData.dataInicio || new Date().toISOString().split('T')[0]),
+        dataFim: this.core.fixTimezoneDate(planData.dataFim || ''),
+        
+        // Perfil e objetivos
+        perfil: {
+            objetivo: planData.perfil?.objetivo || 'Condicionamento geral',
+            altura: planData.aluno?.altura || planData.perfil?.altura || '',
+            peso: planData.aluno?.peso || planData.perfil?.peso || '',
+            idade: planData.aluno?.idade || planData.perfil?.idade || null,
+            porte: planData.perfil?.porte || this.core.calculateBodyType(
+                planData.aluno?.altura || '1,75m',
+                planData.aluno?.peso || '75kg'
+            )
+        },
+        
+        // Converter treinos
+        treinos: this.convertFirebaseWorkoutsToFrontend(planData.treinos || []),
+        
+        // Observações
+        observacoes: planData.observacoes || {},
+        
+        // Técnicas aplicadas
+        tecnicasAplicadas: planData.tecnicas_aplicadas || {}
+    };
+    
+    // Validar dados processados
+    this.validateProcessedPlan(processedPlan);
+    
+    return processedPlan;
+}
+
+// 3. Converter treinos do Firebase para formato do frontend
+convertFirebaseWorkoutsToFrontend(treinos) {
+    return treinos.map((treino, index) => ({
+        id: treino.id || String.fromCharCode(65 + index),
+        nome: treino.nome || `Treino ${String.fromCharCode(65 + index)}`,
+        foco: treino.foco || 'Treino geral',
+        concluido: false,
+        execucoes: 0,
+        exercicios: this.convertFirebaseExercisesToFrontend(treino.exercicios || [])
+    }));
+}
+
+// 4. Converter exercícios do Firebase
+convertFirebaseExercisesToFrontend(exercicios) {
+    return exercicios.map((exercicio, index) => ({
+        id: exercicio.id || this.core.generateId(),
+        nome: exercicio.nome || 'Exercício',
+        descricao: exercicio.descricao || '',
+        series: exercicio.series || 3,
+        repeticoes: exercicio.repeticoes || '10-12',
+        carga: exercicio.carga || 'A definir',
+        currentCarga: exercicio.currentCarga || exercicio.carga || 'A definir',
+        descanso: exercicio.descanso || '90 segundos',
+        observacoesEspeciais: exercicio.observacoesEspeciais || '',
+        tecnica: exercicio.tecnica || '',
+        concluido: false
+    }));
+}
+
+// 5. Validar plano processado
+validateProcessedPlan(plan) {
+    const errors = [];
+    
+    if (!plan.nome || plan.nome.trim() === '') {
+        errors.push('Nome do plano é obrigatório');
+    }
+    
+    if (!plan.treinos || !Array.isArray(plan.treinos) || plan.treinos.length === 0) {
+        errors.push('Plano deve ter pelo menos um treino');
+    }
+    
+    if (plan.treinos) {
+        plan.treinos.forEach((treino, index) => {
+            if (!treino.exercicios || !Array.isArray(treino.exercicios)) {
+                errors.push(`Treino ${index + 1} não tem exercícios válidos`);
+            }
+        });
+    }
+    
+    if (errors.length > 0) {
+        throw new Error(`Dados do plano inválidos: ${errors.join(', ')}`);
+    }
+}
+
+// 6. Salvar plano no cache local
+savePlanToCache(shareId, planData) {
+    try {
+        const cache = this.getSharedPlansCache();
+        cache[shareId] = {
+            data: planData,
+            cachedAt: new Date().toISOString(),
+            shareId: shareId
+        };
+        
+        localStorage.setItem('jsfitapp_shared_cache', JSON.stringify(cache));
+        console.log(`Plano ${shareId} salvo no cache`);
+    } catch (error) {
+        console.warn('Erro ao salvar no cache:', error);
+    }
+}
+
+// 7. Obter plano do cache
+getPlanFromCache(shareId) {
+    try {
+        const cache = this.getSharedPlansCache();
+        const cachedItem = cache[shareId];
+        
+        if (!cachedItem) {
+            return null;
+        }
+        
+        // Verificar se o cache não está muito antigo (7 dias)
+        const cacheAge = Date.now() - new Date(cachedItem.cachedAt).getTime();
+        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias
+        
+        if (cacheAge > maxAge) {
+            delete cache[shareId];
+            localStorage.setItem('jsfitapp_shared_cache', JSON.stringify(cache));
+            return null;
+        }
+        
+        return cachedItem.data;
+    } catch (error) {
+        console.warn('Erro ao ler cache:', error);
+        return null;
+    }
+}
+
+// 8. Obter cache de planos compartilhados
+getSharedPlansCache() {
+    try {
+        const stored = localStorage.getItem('jsfitapp_shared_cache');
+        return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+// 9. Obter mensagem de erro amigável
+getErrorMessage(error) {
+    const errorMessages = {
+        'permission-denied': 'Sem permissão para acessar este plano',
+        'not-found': 'Plano não encontrado. Verifique o ID',
+        'network-error': 'Erro de conexão. Verifique sua internet',
+        'expired': 'Este plano expirou',
+        'inactive': 'Este plano foi desativado'
+    };
+    
+    if (error.code && errorMessages[error.code]) {
+        return errorMessages[error.code];
+    }
+    
+    if (error.message) {
+        return error.message;
+    }
+    
+    return 'Erro desconhecido ao importar plano';
+}
+
+// 10. Atualizar status da importação
+updateImportStatus(message, type) {
+    const status = document.getElementById('importStatus');
+    if (!status) return;
+    
+    status.textContent = message;
+    status.className = `import-status ${type}`;
+    
+    // Classes CSS correspondentes devem estar definidas
+    const colors = {
+        success: '#4caf50',
+        error: '#f44336',
+        warning: '#ff9800',
+        loading: '#2196f3',
+        info: '#6c757d'
+    };
+    
+    if (colors[type]) {
+        status.style.color = colors[type];
+    }
+}
 
     loadExampleData() {
         const examplePlan = {
+            
             id: this.generateId(),
             nome: "Plano Exemplo - Adaptação Iniciante",
             importedAt: new Date().toISOString(),
@@ -2212,114 +2427,443 @@ renderHome() {
                 altura: "1,75m",
                 peso: "75kg"
             },
-            dias: 3,
-            dataInicio: new Date().toISOString().split('T')[0],
-            dataFim: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            perfil: {
-                objetivo: "Condicionamento geral e adaptação"
+            "dias": 4,
+            "dataInicio": "2025-08-27",
+            "dataFim": "2025-10-31",
+            "perfil": {
+              "idade": 20,
+              "altura": "1,73",
+              "peso": "57",
+              "porte": "médio",
+              "objetivo": "Definição muscular"
             },
-            treinos: [
-                {
-                    id: "A",
-                    nome: "A - Corpo Inteiro",
-                    foco: "Adaptação e condicionamento geral",
-                    exercicios: [
-                        {
-                            id: this.generateId(),
-                            nome: "Aquecimento - Esteira",
-                            series: 1,
-                            repeticoes: "10 min",
-                            carga: "Ritmo moderado",
-                            descanso: "0",
-                            descricao: "Caminhada em ritmo moderado para aquecimento geral",
-                            concluido: false,
-                            currentCarga: "Ritmo moderado"
-                        },
-                        {
-                            id: this.generateId(),
-                            nome: "Agachamento Livre",
-                            series: 3,
-                            repeticoes: "12-15",
-                            carga: "Peso corporal",
-                            descanso: "90 segundos",
-                            descricao: "Movimento básico fundamental, mantenha as costas retas",
-                            concluido: false,
-                            currentCarga: "Peso corporal"
-                        },
-                        {
-                            id: this.generateId(),
-                            nome: "Flexão de Braços",
-                            series: 3,
-                            repeticoes: "8-12",
-                            carga: "Peso corporal",
-                            descanso: "90 segundos",
-                            descricao: "Pode ser feito com joelhos apoiados se necessário",
-                            concluido: false,
-                            currentCarga: "Peso corporal"
-                        },
-                        {
-                            id: this.generateId(),
-                            nome: "Prancha",
-                            series: 3,
-                            repeticoes: "30-60 seg",
-                            carga: "Peso corporal",
-                            descanso: "60 segundos",
-                            descricao: "Mantenha o corpo alinhado, contraindo o abdômen",
-                            concluido: false,
-                            currentCarga: "Peso corporal"
-                        }
-                    ],
-                    concluido: false,
-                    execucoes: 0
-                },
-                {
-                    id: "B",
-                    nome: "B - Cardio e Core",
-                    foco: "Condicionamento cardiovascular e fortalecimento do core",
-                    exercicios: [
-                        {
-                            id: this.generateId(),
-                            nome: "Aquecimento - Bicicleta",
-                            series: 1,
-                            repeticoes: "8 min",
-                            carga: "Resistência leve",
-                            descanso: "0",
-                            descricao: "Pedalada em ritmo moderado para aquecimento",
-                            concluido: false,
-                            currentCarga: "Resistência leve"
-                        },
-                        {
-                            id: this.generateId(),
-                            nome: "Burpee",
-                            series: 3,
-                            repeticoes: "5-8",
-                            carga: "Peso corporal",
-                            descanso: "90 segundos",
-                            descricao: "Exercício completo: agachamento, prancha, flexão e salto",
-                            concluido: false,
-                            currentCarga: "Peso corporal"
-                        },
-                        {
-                            id: this.generateId(),
-                            nome: "Mountain Climber",
-                            series: 3,
-                            repeticoes: "30 seg",
-                            carga: "Peso corporal",
-                            descanso: "60 segundos",
-                            descricao: "Posição de prancha, alternando joelhos ao peito rapidamente",
-                            concluido: false,
-                            currentCarga: "Peso corporal"
-                        }
-                    ],
-                    concluido: false,
-                    execucoes: 0
-                }
+            "treinos": [
+              {
+                "id": "A",
+                "nome": "Quadríceps e panturrilha",
+                "foco": "Foco: PERNA, GLÚTEO",
+                "exercicios": [
+                  {
+                    "id": 1,
+                    "nome": "CADEIRA EXTENSORA",
+                    "descricao": "",
+                    "series": 2,
+                    "repeticoes": "20",
+                    "carga": "40",
+                    "descanso": "60-90",
+                    "observacoesEspeciais": "Executar antes do exercício principal para pré-fadigar o músculo",
+                    "tecnica": "pre-exaustao",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262582052,
+                    "nome": "AGACHAMENTO EM LIVRE COM BARRA",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos da coxa e glúteos, o agachamento possui diversas variações e uma delas é o agachamento com barra. considerado um dos melhores exercícios para desenvolvimento dos músculos das pernas e da metade infe",
+                    "series": 4,
+                    "repeticoes": "10-12",
+                    "carga": "15-25kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262588989,
+                    "nome": "LEVANTAMENTO TERRA",
+                    "descricao": "O levantamento terra é ótimo exercício para aumentar força e potência muscular. ele trabalha os principais músculos do corpo: eretor da espinha, glúteos, quadríceps, trapézio, latíssimo do dorso, deltoide posterior, antebraço e até bíceps femoral.  indica",
+                    "series": 3,
+                    "repeticoes": "10-12",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262592240,
+                    "nome": "LEG PRESS INCLINADO",
+                    "descricao": "Progressão de Cargas \n",
+                    "series": 4,
+                    "repeticoes": "12-10-10-8",
+                    "carga": "70kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262592806,
+                    "nome": "HACK",
+                    "descricao": "",
+                    "series": 3,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262593239,
+                    "nome": "PANTURRILHA SENTADO",
+                    "descricao": "Exercício bi-set, + livre. para fortalecimento e hipertrofia dos músculos das panturrilhas. ",
+                    "series": 5,
+                    "repeticoes": "15",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262593689,
+                    "nome": "CADEIRA ADUTORA",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos da coxa, com enfoque a região interna próximo a virilha. trabalha os músculos adutor largo.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "70kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  }
+                ],
+                "gruposMusculares": [
+                  "perna",
+                  "gluteo"
+                ],
+                "concluido": false,
+                "execucoes": 0
+              },
+              {
+                "id": "B",
+                "nome": "Costas e Bíceps",
+                "foco": "Foco: BÍCEPS, COSTAS",
+                "exercicios": [
+                  {
+                    "id": 11,
+                    "nome": "PUXADA ALTA ARTICULADA",
+                    "descricao": "O exercício trabalha o fortalecimento e hipertrofia dos músculos das costas, mais especificamente a dorsal e trapézio.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "10",
+                    "descanso": "60-90",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756263936166,
+                    "nome": "PULLEY FECHADO",
+                    "descricao": "Exercício para fortalecimento e hipertrofia da região das dorsais, abrange também, os músculos auxiliares, tais como, trapézio e bíceps braquial. realiza no aparelho. indicado a praticante de musculação nível iniciante ao avançado.",
+                    "series": 4,
+                    "repeticoes": "10-12",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756264225210,
+                    "nome": "REMADA CAVALINHO",
+                    "descricao": "É um exercício composto que recruta todos os músculos das costas, principalmente dorsal, trapézio e romboides.",
+                    "series": 3,
+                    "repeticoes": "12",
+                    "carga": "5kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756264226510,
+                    "nome": "PULL DOWN COM CORDA",
+                    "descricao": "O exercício tem como objetivo trabalhar o fortalecimento e hipertrofia dos músculos das costas com ênfase no latíssimo do dorso, dando aspecto de costas mais largas.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756264231546,
+                    "nome": "FACE PULL",
+                    "descricao": "É um exercício muito útil para o fortalecimento de músculos da região dorsal e uma boa ferramenta para corrigir problemas posturais causados pelo desequilíbrio entre os músculos do peitoral e das costas.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756264619498,
+                    "nome": "ROSCA SCOTT",
+                    "descricao": "Um dos exercícios mais clássicos da musculação, consegue recrutar isoladamente as fibras que se propõe. basicamente, por ser um exercício mono articular, a rosca scott imprime maior intensidade nos músculos dos bíceps.",
+                    "series": 4,
+                    "repeticoes": "12",
+                    "carga": "5kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756264623466,
+                    "nome": "ROSCA UNILATERAL CROSS OVER",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos bíceps, com enfoque aos músculos bíceps braquiais. realiza em um aparelho de fácil execução. indicado a praticante de musculação nível iniciante e intermediário.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "25kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756264626651,
+                    "nome": "ROSCA INVERSA NO CROSS",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos dos antebraços e bíceps.",
+                    "series": 3,
+                    "repeticoes": "12",
+                    "carga": "25kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  }
+                ],
+                "gruposMusculares": [
+                  "biceps",
+                  "costas"
+                ],
+                "concluido": false,
+                "execucoes": 0
+              },
+              {
+                "id": "C",
+                "nome": "Glúteo e Posterior ",
+                "foco": "Foco: PERNA, GLÚTEO",
+                "exercicios": [
+                  {
+                    "id": 21,
+                    "nome": "ABDUÇÃO CROSS OVER",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos da coxa e glúteos, com enfoque a região lateral de coxa. trabalha os músculos vasto laterais e glúteos máximos.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "Leve",
+                    "descanso": "60-90",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262562261,
+                    "nome": "ELEVAÇÃO PÉLVICA NO APARELHO",
+                    "descricao": "O exercício trabalha a musculatura do glúteo, fortalece a região da lombar e promove estabilidade na articulação do quadril, além de ser uma excelente aliada no ganho muscular da região dos glúteos.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262563023,
+                    "nome": "CADEIRA ABDUTORA",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos da coxa, com enfoque na região interna próximo a virilha. trabalha os músculos adutor largo.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "70kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262563572,
+                    "nome": "STIFF",
+                    "descricao": "Exercício funcional para fortalecimento e hipertrofia. considerado um exercício chave para ganhar massa muscular. trabalha enorme quantidade grupo musculares, auxilia na postura e desenvolver a força.",
+                    "series": 4,
+                    "repeticoes": "12",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262564023,
+                    "nome": "MESA FLEXORA",
+                    "descricao": "Exercício para fortalecimento e hipertrofia da região das coxas, com enfoque nos músculos posteriores de coxa, bíceps femorais. realiza no aparelho com auxílio de roldanas. indicado a praticante que deseja realizar um trabalho muscular isolado dos músculo",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756262564489,
+                    "nome": "CADEIRA FLEXORA",
+                    "descricao": "Ele se apresenta como um dos exercícios capazes de trabalhar os isquiotibias e promover o aumento de força e hipertrofia nestes.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "40kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  }
+                ],
+                "gruposMusculares": [
+                  "perna",
+                  "gluteo"
+                ],
+                "concluido": false,
+                "execucoes": 0
+              },
+              {
+                "id": "D",
+                "nome": "Peito, ombro e tríceps",
+                "foco": "Foco: TRÍCEPS, PEITO, OMBRO",
+                "exercicios": [
+                  {
+                    "id": 31,
+                    "nome": "SUPINO INCLINADO COM HALTERES",
+                    "descricao": "Exercício para fortalecimento e hipertrofia da região peitoral, com enfoque nos músculos peitoral maior e menor, músculos auxiliares deltoides anteriores. realiza em um banco inclinado. ajuda a modelar e tonificar a parte superior do corpo, estimula a coo",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "Leve",
+                    "descanso": "60-90",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265614758,
+                    "nome": "SUPINO RETO NO APARELHO",
+                    "descricao": "Exercício para fortalecimento e hipertrofia da região peitoral, com enfoque aos músculos peitoral maior e menor. realiza no aparelho com o auxílio de roldanas. indicado a praticante de musculação nível iniciante e intermediário.",
+                    "series": 3,
+                    "repeticoes": "10+10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "Reduzir carga imediatamente após falha e continuar",
+                    "tecnica": "drop-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265615425,
+                    "nome": "CRUCIFIXO NO VOADOR",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos peitorais, com enfoque aos músculos peitoral maior e menor e músculos auxiliares, tais como: deltoides anteriores.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "10",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265615941,
+                    "nome": "DESENVOLVIMENTO COM HALTERES",
+                    "descricao": "",
+                    "series": 3,
+                    "repeticoes": "10",
+                    "carga": "5kg",
+                    "descanso": "30 seg",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265862448,
+                    "nome": "ELEVAÇÃO FRONTAL COM HALTERES",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos da região dos ombros, com enfoque nos deltoides e trapézios.",
+                    "series": 3,
+                    "repeticoes": "10",
+                    "carga": "5kg",
+                    "descanso": "30",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265977874,
+                    "nome": "TRÍCEPS CROSS OVER",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos tríceps, com enfoque o tríceps braquial.",
+                    "series": 4,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "30 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265978925,
+                    "nome": "TRÍCEPS TESTA",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos tríceps, com enfoque o tríceps braquial.",
+                    "series": 3,
+                    "repeticoes": "10",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756265979806,
+                    "nome": "TRÍCEPS FRANCÊS",
+                    "descricao": "Exercício para fortalecimento e hipertrofia dos músculos tríceps, com enfoque o tríceps braquial.",
+                    "series": 3,
+                    "repeticoes": "10",
+                    "carga": "5kg",
+                    "descanso": "30 segundos",
+                    "observacoesEspeciais": "Executar em sequência com próximo exercício, sem descanso",
+                    "tecnica": "bi-set",
+                    "concluido": false
+                  },
+                  {
+                    "id": 1756266101982,
+                    "nome": "ABDOMINAL NO APARELHO",
+                    "descricao": "Exercício para fortalecimento e hipertrofia da região abdominal, reto abdominal, realizado no aparelho. indicado a praticante de musculação nível intermediário e avançado. fácil execução.",
+                    "series": 4,
+                    "repeticoes": "5",
+                    "carga": "20kg",
+                    "descanso": "90 segundos",
+                    "observacoesEspeciais": "",
+                    "tecnica": "",
+                    "concluido": false
+                  }
+                ],
+                "gruposMusculares": [
+                  "triceps",
+                  "peito",
+                  "ombro"
+                ],
+                "concluido": false,
+                "execucoes": 0
+              }
             ],
-            observacoes: {
-                frequencia: "3x por semana com 1 dia de descanso entre sessões",
-                progressao: "Aumente as repetições gradualmente antes de adicionar peso",
-                descanso: "90 segundos entre séries",
-                hidratacao: "Beba água antes, durante e após o treino"
+            "observacoes": {
+              "geral": "",
+              "frequencia": "4x por semana",
+              "progressao": "Aumente a carga gradualmente quando conseguir completar todas as repetições",
+              "descanso": "60-90 segundos entre séries",
+              "hidratacao": "Mantenha-se bem hidratado durante todo o treino",
+              "consulta": "Acompanhamento profissional recomendado"
+            },
+            "tecnicas_aplicadas": {
+              "pre-exaustao": "Exercício de isolamento antes do composto para pré-fadigar o músculo alvo",
+              "bi-set": "Dois exercícios executados em sequência sem descanso",
+              "drop-set": "Redução progressiva da carga na mesma série"
             },
             execucoesPlanCompleto: 0
         };

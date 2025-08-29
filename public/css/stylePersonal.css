@@ -1633,3 +1633,427 @@ body.editor-fullscreen .exercise-inline-editor.fullscreen-mode.btn {
     padding-top: 60px; /* Altura do header */
     display: flex;
 }
+
+/* CSS para adicionar ao stylePersonal.css */
+
+/* Status de compartilhamento nos cards */
+.share-status {
+    margin: 12px 0;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 6px;
+    text-align: center;
+}
+
+.share-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.share-status small {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+}
+
+/* Notificação de compartilhamento */
+.share-quick-info {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.share-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #155724;
+}
+
+.share-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.share-header .close-btn:hover {
+    background: #f8f9fa;
+}
+
+.share-id-display {
+    margin-bottom: 15px;
+}
+
+.share-id-display label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 14px;
+}
+
+.id-copy-group {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.share-id-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid #28a745;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 2px;
+    color: #155724;
+    background: #f8fff9;
+    outline: none;
+}
+
+.share-id-input:focus {
+    border-color: #20c997;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
+}
+
+.share-instructions {
+    padding: 12px;
+    background: #e7f3ff;
+    border-radius: 6px;
+    border-left: 4px solid #0066cc;
+}
+
+.share-instructions small {
+    color: #495057;
+    line-height: 1.4;
+}
+
+/* Animações */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+/* Botões de ação nos cards */
+.plan-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.plan-card-actions .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    min-width: auto;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+    border: 1px solid #28a745;
+}
+
+.btn-success:hover {
+    background: #218838;
+    border-color: #1e7e34;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+    border: 1px solid #ffc107;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    border-color: #d39e00;
+    transform: translateY(-1px);
+}
+
+/* Estados responsivos */
+@media (max-width: 768px) {
+    .share-notification {
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        right: 10px !important;
+        max-width: none !important;
+    }
+    
+    .id-copy-group {
+        flex-direction: column;
+    }
+    
+    .plan-card-actions {
+        flex-direction: column;
+    }
+    
+    .plan-card-actions .btn-small {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Melhorias de acessibilidade */
+.btn-small:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.share-id-input:focus {
+    outline: none;
+}
+
+/* Estados de carregamento */
+.btn-small:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-small.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-small.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Indicador visual para planos compartilhados */
+.plan-card.shared {
+    border-left: 4px solid #28a745;
+}
+
+.plan-card.shared::before {
+    content: '🔗';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 18px;
+    opacity: 0.7;
+}
+
+/* Tooltip para IDs */
+.share-badge[title] {
+    cursor: help;
+}
+
+.share-badge:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transition: background-color 0.2s ease;
+}
+const styles = document.createElement('style');
+    styles.textContent = `
+        .migration-loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .migration-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .migration-loading-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            min-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        
+        .migration-loading-header {
+            margin-bottom: 25px;
+        }
+        
+        .migration-loading-header h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .migration-loading-icon {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .migration-progress-container {
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .migration-progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .migration-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+        
+        .migration-progress-text {
+            position: absolute;
+            top: 50%;
+            right: -50px;
+            transform: translateY(-50%);
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .migration-status-text {
+            color: #666;
+            font-size: 14px;
+            margin: 15px 0;
+            min-height: 20px;
+        }
+        
+        .migration-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .migration-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+        
+        .migration-success {
+            color: #2ecc71;
+        }
+        
+        .migration-error {
+            color: #e74c3c;
+        }
+    `;
+    
+    document.head.appendChild(styles);
+    document.body.appendChild(loadingContainer);
+    
+    return loadingContainer;
+}
