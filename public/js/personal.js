@@ -8045,7 +8045,53 @@ async savePlan() {
 // ====================================
 
 async showPlanList() {
-    this.loadSavedPlans();
+            // 5. BUSCA INTELIGENTE DO CORE (5 ESTRATÉGIAS)
+            let core = null;
+        
+            console.log('Iniciando busca inteligente do JSFitCore...');
+            
+            // ESTRATÉGIA 1: this.core - Referência direta
+            if (this.core && this.isValidCoreInstance(this.core)) {
+                core = this.core;
+                console.log('Core encontrado em this.core');
+            }
+            // ESTRATÉGIA 2: window.core - Instância global
+            else if (window.core && this.isValidCoreInstance(window.core)) {
+                core = window.core;
+                this.core = core; // Atualizar referência local
+                console.log('Core encontrado em window.core');
+            }
+            // ESTRATÉGIA 3: window.app.core - Dentro do objeto app
+            else if (window.app && window.app.core && this.isValidCoreInstance(window.app.core)) {
+                core = window.app.core;
+                this.core = core; // Atualizar referência local
+                console.log('Core encontrado em window.app.core');
+            }
+            // ESTRATÉGIA 4: Procurar instâncias globais conhecidas
+            else if (this.findGlobalCoreInstance()) {
+                core = this.findGlobalCoreInstance();
+                this.core = core; // Atualizar referência local
+                console.log('Core encontrado em instância global:', core.constructor?.name || 'unknown');
+            }
+            // ESTRATÉGIA 5: Criar nova instância como último recurso
+            else if (window.JSFitCore && typeof window.JSFitCore === 'function') {
+                console.log('Criando nova instância do JSFitCore...');
+                try {
+                    core = new window.JSFitCore();
+                    await this.initializeCoreInstance(core);
+                    this.core = core;
+                    window.core = core; // Salvar globalmente para próximas vezes
+                    console.log('Nova instância criada e inicializada');
+                } catch (initError) {
+                    console.error('Erro ao criar nova instância:', initError);
+                    core = null;
+                }
+            }
+            
+            if (!core) {
+                console.warn('JSFitCore não encontrado em nenhuma estratégia');
+            }
+       
     try {
         console.log('📋 Iniciando showPlanList...');
         
