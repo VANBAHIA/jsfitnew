@@ -336,32 +336,61 @@ class PersonalApp {
     }
 
 
-    showMainApplication() {
-        try {
-            // Usar AuthManager se disponível
-            if (window.authManager && typeof window.authManager.showMainApp === 'function') {
-                window.authManager.showMainApp();
-            } else {
-                // Fallback manual
-                const authContainer = document.getElementById('authContainer');
-                const mainContainer = document.querySelector('.container');
-                
-                if (authContainer) {
-                    authContainer.style.display = 'none';
-                }
-                if (mainContainer) {
-                    mainContainer.style.display = 'block';
-                }
+ // Método auxiliar para mostrar aplicação principal
+showMainApplication() {
+    try {
+        // Usar AuthManager se disponível
+        if (window.authManager && typeof window.authManager.showMainApp === 'function') {
+            window.authManager.showMainApp();
+        } else {
+            // Fallback manual
+            const authContainer = document.getElementById('authContainer');
+            const mainContainer = document.querySelector('.container');
+            
+            if (authContainer) {
+                authContainer.style.display = 'none';
             }
-            
-            // Inicializar dados da aplicação
-            this.continueInitialization();
-            
-        } catch (error) {
-            console.error('❌ Erro ao mostrar aplicação principal:', error);
+            if (mainContainer) {
+                mainContainer.style.display = 'block';
+            }
         }
+        
+        // Mostrar lista de planos
+        setTimeout(() => {
+            this.showPlanList();
+        }, 100);
+        
+    } catch (error) {
+        console.error('❌ Erro ao mostrar aplicação principal:', error);
     }
-    
+}
+
+// Método auxiliar para salvar no localStorage do usuário específico
+async saveToUserLocalStorage() {
+    try {
+        if (!this.currentUserId) {
+            throw new Error('UserId não disponível para localStorage');
+        }
+        
+        const storageKey = `jsfitapp_plans_${this.currentUserId}`;
+        const dataToSave = {
+            userId: this.currentUserId,
+            userEmail: this.userEmail,
+            plans: this.savedPlans,
+            savedAt: new Date().toISOString(),
+            version: '2.0'
+        };
+        
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        console.log(`💾 ${this.savedPlans.length} planos salvos no localStorage do usuário`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao salvar no localStorage específico:', error);
+        throw error;
+    }
+}
+
+
 // CORREÇÃO 2: Modificar continueInitialization para não chamar populateGroupFilter
 async continueInitialization() {
     try {
@@ -951,11 +980,13 @@ async deletePlanFromFirebase(planId) {
     }
 }
 
-    async onUserAuthenticated(user) {
+async onUserAuthenticated(user) {
+    try {
         console.log('✅ Usuário autenticado via AuthManager:', user.email);
         
-        // CRÍTICO: Limpar dados do usuário anterior
+        // CORREÇÃO CRÍTICA: Limpar TODOS os dados do usuário anterior
         this.savedPlans = [];
+        this.currentPlan = this.getEmptyPlan();
         
         // Verificar se mudou de usuário
         const previousUserId = this.currentUserId;
@@ -963,14 +994,26 @@ async deletePlanFromFirebase(planId) {
         
         if (previousUserId && previousUserId !== newUserId) {
             console.log(`🔄 Mudança de usuário detectada: ${previousUserId} → ${newUserId}`);
+            
             // Limpar localStorage do usuário anterior
-            Object.keys(localStorage).forEach(key => {
-                if (key.includes(previousUserId)) {
-                    localStorage.removeItem(key);
-                    console.log(`🗑️ Removido: ${key}`);
-                }
-            });
+            try {
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('jsfitapp_plans_') && key.includes(previousUserId)) {
+                        localStorage.removeItem(key);
+                        console.log(`🗑️ Removido dados antigos: ${key}`);
+                    }
+                });
+            } catch (cleanupError) {
+                console.warn('⚠️ Erro na limpeza de dados antigos:', cleanupError);
+            }
         }
+        
+        // ATUALIZAR todas as propriedades de autenticação IMEDIATAMENTE
+        this.currentUser = user;
+        this.isUserAuthenticated = true;
+        this.currentUserId = user.uid;
+        this.userEmail = user.email;
+        this.userDisplayName = user.displayName || user.email?.split('@')[0] || 'Usuário';
         
         // Verificar se já está processando para evitar múltiplas chamadas
         if (this.isProcessingAuthentication) {
@@ -981,21 +1024,72 @@ async deletePlanFromFirebase(planId) {
         this.isProcessingAuthentication = true;
         
         try {
-            this.hideInitializationLoading?.();
+            // Ocultar loading se existir
+            if (typeof this.hideInitializationLoading === 'function') {
+                this.hideInitializationLoading();
+            }
             
-            // Chamar método de inicialização apenas uma vez
-            await this.initializeAuthenticatedUser(user);
+            // Mostrar aplicação principal
+            this.showMainApplication();
+            
+            // Carregar dados específicos do usuário atual
+            await this.loadUserSpecificData();
+            
+            console.log('✅ Usuário inicializado com sucesso');
             
         } catch (error) {
             console.error('❌ Erro no processamento de autenticação:', error);
+            this.showMessage('Erro ao carregar dados do usuário', 'error');
         } finally {
             // Garantir que flag é resetada
             setTimeout(() => {
                 this.isProcessingAuthentication = false;
             }, 1000);
         }
+        
+    } catch (criticalError) {
+        console.error('💥 Erro crítico no onUserAuthenticated:', criticalError);
+        this.showMessage('Erro crítico na autenticação', 'error');
+        this.isProcessingAuthentication = false;
     }
-    
+}
+
+    // Método auxiliar para carregar dados específicos do usuário
+async loadUserSpecificData() {
+    try {
+        console.log(`📊 Carregando dados específicos para usuário: ${this.currentUserId}`);
+        
+        // 1. Carregar planos do usuário atual
+        if (this.core && this.core.firebaseConnected) {
+            try {
+                const firebasePlans = await this.core.loadPlansFromFirebase();
+                if (firebasePlans && Array.isArray(firebasePlans)) {
+                    // FILTRO RIGOROSO por userId
+                    this.savedPlans = firebasePlans.filter(plan => 
+                        plan.userId === this.currentUserId
+                    );
+                    console.log(`✅ ${this.savedPlans.length} planos carregados do Firebase`);
+                    
+                    // Criar backup local
+                    await this.saveToUserLocalStorage();
+                    return;
+                }
+            } catch (firebaseError) {
+                console.warn('⚠️ Erro Firebase, usando localStorage:', firebaseError);
+            }
+        }
+        
+        // 2. Fallback para localStorage específico do usuário
+        await this.loadFromUserLocalStorage();
+        
+        console.log(`📋 Total de planos carregados: ${this.savedPlans.length}`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar dados do usuário:', error);
+        this.savedPlans = [];
+    }
+}
+
 
     // MÉTODO AUXILIAR: Modo fallback para funcionamento offline
     initializeFallbackMode() {
@@ -8045,79 +8139,66 @@ async savePlan() {
 // ====================================
 
 async showPlanList() {
-            // 5. BUSCA INTELIGENTE DO CORE (5 ESTRATÉGIAS)
-            let core = null;
-        
-            console.log('Iniciando busca inteligente do JSFitCore...');
-            
-            // ESTRATÉGIA 1: this.core - Referência direta
-            if (this.core && this.isValidCoreInstance(this.core)) {
-                core = this.core;
-                console.log('Core encontrado em this.core');
-            }
-            // ESTRATÉGIA 2: window.core - Instância global
-            else if (window.core && this.isValidCoreInstance(window.core)) {
-                core = window.core;
-                this.core = core; // Atualizar referência local
-                console.log('Core encontrado em window.core');
-            }
-            // ESTRATÉGIA 3: window.app.core - Dentro do objeto app
-            else if (window.app && window.app.core && this.isValidCoreInstance(window.app.core)) {
-                core = window.app.core;
-                this.core = core; // Atualizar referência local
-                console.log('Core encontrado em window.app.core');
-            }
-            // ESTRATÉGIA 4: Procurar instâncias globais conhecidas
-            else if (this.findGlobalCoreInstance()) {
-                core = this.findGlobalCoreInstance();
-                this.core = core; // Atualizar referência local
-                console.log('Core encontrado em instância global:', core.constructor?.name || 'unknown');
-            }
-            // ESTRATÉGIA 5: Criar nova instância como último recurso
-            else if (window.JSFitCore && typeof window.JSFitCore === 'function') {
-                console.log('Criando nova instância do JSFitCore...');
-                try {
-                    core = new window.JSFitCore();
-                    await this.initializeCoreInstance(core);
-                    this.core = core;
-                    window.core = core; // Salvar globalmente para próximas vezes
-                    console.log('Nova instância criada e inicializada');
-                } catch (initError) {
-                    console.error('Erro ao criar nova instância:', initError);
-                    core = null;
-                }
-            }
-            
-            if (!core) {
-                console.warn('JSFitCore não encontrado em nenhuma estratégia');
-            }
-       
     try {
         console.log('📋 Iniciando showPlanList...');
         
-        // VERIFICAÇÃO OBRIGATÓRIA DE AUTENTICAÇÃO
-        if (!this.isUserAuthenticated || !this.currentUserId) {
+        // CORREÇÃO CRÍTICA: Sempre obter userId atual dinamicamente
+        const currentUserId = this.getUserId() || 
+                             window.authManager?.getCurrentUser()?.uid ||
+                             window.firebaseAuth?.currentUser?.uid;
+        
+        const isAuthenticated = !!(currentUserId && 
+                                 (window.authManager?.isUserAuthenticated() || 
+                                  window.firebaseAuth?.currentUser));
+        
+        if (!currentUserId || !isAuthenticated) {
             console.warn('❌ Usuário não autenticado para visualizar planos');
             this.showMessage('Você precisa estar logado para ver seus planos', 'warning');
             this.showAuthenticationScreen();
             return;
         }
         
-        console.log(`👤 Carregando planos para usuário: ${this.currentUserId}`);
+        // ATUALIZAR propriedades da classe com dados atuais
+        this.currentUserId = currentUserId;
+        this.isUserAuthenticated = isAuthenticated;
+        this.userEmail = window.authManager?.getCurrentUser()?.email || 
+                        window.firebaseAuth?.currentUser?.email || 
+                        'unknown';
+        this.userDisplayName = window.authManager?.getCurrentUser()?.displayName ||
+                              this.userEmail?.split('@')[0] ||
+                              'Usuário';
         
-        // Garantir que savedPlans existe
-        if (!this.savedPlans || !Array.isArray(this.savedPlans)) {
+        console.log(`👤 Carregando planos para usuário: ${currentUserId}`);
+        
+        // LIMPAR dados anteriores sempre
+        this.savedPlans = [];
+        
+        // Carregar planos específicos do usuário atual
+        try {
+            // Prioridade 1: Firebase com filtro rigoroso por usuário
+            if (this.core && this.core.firebaseConnected) {
+                console.log('🔥 Carregando do Firebase...');
+                const firebasePlans = await this.core.loadPlansFromFirebase();
+                
+                if (firebasePlans && Array.isArray(firebasePlans)) {
+                    // FILTRO RIGOROSO: só planos do usuário atual
+                    this.savedPlans = firebasePlans.filter(plan => 
+                        plan.userId === currentUserId
+                    );
+                    console.log(`✅ ${this.savedPlans.length} planos carregados do Firebase`);
+                    
+                    // Criar backup local
+                    await this.saveToUserLocalStorage();
+                } else {
+                    console.log('ℹ️ Nenhum plano encontrado no Firebase');
+                }
+            } else {
+                console.warn('⚠️ Firebase não conectado, carregando do localStorage');
+                await this.loadFromUserLocalStorage();
+            }
+        } catch (loadError) {
+            console.error('❌ Erro ao carregar planos:', loadError);
             this.savedPlans = [];
-        }
-        
-        // Carregar planos específicos do usuário se lista estiver vazia
-        if (this.savedPlans.length === 0) {
-            await this.loadUserSpecificPlans();
-        } else {
-            // Filtrar planos para garantir que são do usuário atual
-            this.savedPlans = this.savedPlans.filter(plan => 
-                plan.userId === this.currentUserId
-            );
         }
         
         console.log(`📊 Exibindo ${this.savedPlans.length} planos do usuário`);
@@ -8140,6 +8221,7 @@ async showPlanList() {
         this.renderPlanList();
     }
 }
+
 
 async loadUserSpecificPlans() {
     try {
@@ -8174,6 +8256,7 @@ async loadUserSpecificPlans() {
     }
 }
 
+// Método auxiliar para carregar do localStorage do usuário específico
 async loadFromUserLocalStorage() {
     try {
         const key = `jsfitapp_plans_${this.currentUserId}`;
