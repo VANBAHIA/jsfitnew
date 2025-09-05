@@ -8045,6 +8045,7 @@ async savePlan() {
 // ====================================
 
 async showPlanList() {
+    this.loadSavedPlans();
     try {
         console.log('📋 Iniciando showPlanList...');
         
@@ -8348,6 +8349,32 @@ async sharePlan(planId) {
 
 async savePlan() {
     try {
+// No início do método savePlan(), adicionar:
+console.log('🔍 DEBUG SAVE - Estado inicial:');
+console.log('- Core existe:', !!this.core);
+console.log('- Firebase conectado:', this.core?.firebaseConnected);
+console.log('- Método savePlanToFirebase existe:', typeof this.core?.savePlanToFirebase);
+console.log('- UserID atual:', this.currentUserId);
+
+// Antes da tentativa de salvamento Firebase, adicionar:
+if (this.core && this.core.firebaseConnected) {
+    console.log('🔥 INICIANDO SALVAMENTO FIREBASE...');
+    console.log('- Dados do plano:', {
+        nome: planData.nome,
+        userId: planData.userId,
+        treinos: planData.treinos?.length
+    });
+    
+    try {
+        firebaseId = await this.core.savePlanToFirebase(planData);
+        console.log('✅ FIREBASE SALVAMENTO SUCESSO:', firebaseId);
+    } catch (firebaseError) {
+        console.error('❌ FIREBASE SALVAMENTO FALHOU:', firebaseError);
+    }
+} else {
+    console.error('❌ FIREBASE NÃO DISPONÍVEL PARA SALVAMENTO');
+}
+
         console.log('Iniciando processo de salvamento do plano...');
         
         // 1. VERIFICAÇÃO OBRIGATÓRIA DE AUTENTICAÇÃO
