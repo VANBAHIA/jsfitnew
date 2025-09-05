@@ -8141,6 +8141,7 @@ async savePlan() {
 async showPlanList() {
     try {
         console.log('📋 Iniciando showPlanList...');
+        this.ensureCoreAvailable()
         
         // CORREÇÃO CRÍTICA: Sempre obter userId atual dinamicamente
         const currentUserId = this.getUserId() || 
