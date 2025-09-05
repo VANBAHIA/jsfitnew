@@ -7935,14 +7935,26 @@ async savePlan() {
             treinos: planData.treinos.length
         });
         
-        // 5. INICIAR PROCESSO DE SALVAMENTO
+        // 5. DEBUG FIREBASE - AGORA COM planData DISPONÍVEL
+        console.log('🔍 DEBUG SAVE - Estado inicial:');
+        console.log('- Core existe:', !!this.core);
+        console.log('- Firebase conectado:', this.core?.firebaseConnected);
+        console.log('- Método savePlanToFirebase existe:', typeof this.core?.savePlanToFirebase);
+        console.log('- UserID atual:', this.currentUserId);
+        console.log('- Dados do plano:', {
+            nome: planData.nome,
+            userId: planData.userId,
+            treinos: planData.treinos?.length
+        });
+        
+        // 6. INICIAR PROCESSO DE SALVAMENTO
         this.showMessage('Salvando plano...', 'info');
         
         let firebaseSuccess = false;
         let firebaseId = null;
         let localBackupSuccess = false;
         
-        // 6. TENTATIVA DE SALVAMENTO NO FIREBASE (PRIORITÁRIO)
+        // 7. TENTATIVA DE SALVAMENTO NO FIREBASE (PRIORITÁRIO)
         if (this.core) {
             try {
                 console.log('🔥 Tentando salvar no Firebase...');
@@ -8000,7 +8012,7 @@ async savePlan() {
             planData.sync_status = 'core_unavailable';
         }
         
-        // 7. BACKUP LOCAL OBRIGATÓRIO (SEMPRE EXECUTAR)
+        // 8. BACKUP LOCAL OBRIGATÓRIO (SEMPRE EXECUTAR)
         try {
             console.log('💿 Criando backup local...');
             
@@ -8034,7 +8046,7 @@ async savePlan() {
                     planData.edited_at = new Date().toISOString();
                     
                     this.savedPlans[existingIndex] = planData;
-                    console.log('📝 Plano existente atualizado na lista');
+                    console.log('🔄 Plano existente atualizado na lista');
                 } else {
                     // Plano não encontrado na lista, adicionar
                     this.savedPlans.push(planData);
@@ -8065,7 +8077,7 @@ async savePlan() {
             }
         }
         
-        // 8. FINALIZAÇÃO E LIMPEZA
+        // 9. FINALIZAÇÃO E LIMPEZA
         this.isEditing = false;
         this.currentPlan = this.getEmptyPlan();
         
@@ -8081,7 +8093,7 @@ async savePlan() {
             currentPlanIdField.value = '';
         }
         
-        // 9. MENSAGEM DE RESULTADO
+        // 10. MENSAGEM DE RESULTADO
         if (firebaseSuccess && localBackupSuccess) {
             this.showMessage('Plano salvo com sucesso no Firebase!', 'success');
             console.log('🎉 Salvamento completo: Firebase + Backup local');
@@ -8102,7 +8114,7 @@ async savePlan() {
             return;
         }
         
-        // 10. LOG FINAL E NAVEGAÇÃO
+        // 11. LOG FINAL E NAVEGAÇÃO
         console.log('📊 Resultado do salvamento:', {
             planId: planData.id,
             planName: planData.nome,
@@ -8131,6 +8143,11 @@ async savePlan() {
             timestamp: new Date().toISOString()
         });
     }
+}
+
+// Método auxiliar para gerar ID local
+generateLocalId() {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
 
 
@@ -8477,396 +8494,7 @@ async sharePlan(planId) {
     }
 }
 
-async savePlan() {
-    try {
-// No início do método savePlan(), adicionar:
-console.log('🔍 DEBUG SAVE - Estado inicial:');
-console.log('- Core existe:', !!this.core);
-console.log('- Firebase conectado:', this.core?.firebaseConnected);
-console.log('- Método savePlanToFirebase existe:', typeof this.core?.savePlanToFirebase);
-console.log('- UserID atual:', this.currentUserId);
 
-// Antes da tentativa de salvamento Firebase, adicionar:
-if (this.core && this.core.firebaseConnected) {
-    console.log('🔥 INICIANDO SALVAMENTO FIREBASE...');
-    console.log('- Dados do plano:', {
-        nome: planData.nome,
-        userId: planData.userId,
-        treinos: planData.treinos?.length
-    });
-    
-    try {
-        firebaseId = await this.core.savePlanToFirebase(planData);
-        console.log('✅ FIREBASE SALVAMENTO SUCESSO:', firebaseId);
-    } catch (firebaseError) {
-        console.error('❌ FIREBASE SALVAMENTO FALHOU:', firebaseError);
-    }
-} else {
-    console.error('❌ FIREBASE NÃO DISPONÍVEL PARA SALVAMENTO');
-}
-
-        console.log('Iniciando processo de salvamento do plano...');
-        
-        // 1. VERIFICAÇÃO OBRIGATÓRIA DE AUTENTICAÇÃO
-        if (!this.isUserAuthenticated || !this.currentUserId) {
-            this.showMessage('Você precisa estar logado para salvar planos', 'error');
-            this.showAuthenticationScreen();
-            return;
-        }
-        
-        console.log(`Salvando plano para usuário: ${this.currentUserId}`);
-        
-        // 2. OBTER DADOS DO FORMULÁRIO
-        const currentPlanId = document.getElementById('currentPlanId')?.value;
-        const isEditingPlan = this.isEditing && currentPlanId;
-        
-        const birthDate = document.getElementById('studentBirthDate')?.value;
-        const calculatedAge = birthDate ? this.calculateAge(birthDate) : 25;
-        
-        // 3. CONSTRUIR OBJETO DO PLANO COM DADOS OBRIGATÓRIOS
-        const planData = {
-            // ID: manter existente se editando, senão será gerado
-            id: isEditingPlan ? currentPlanId : null,
-            
-            // DADOS OBRIGATÓRIOS DE USUÁRIO
-            userId: this.currentUserId,  // ESSENCIAL
-            userEmail: this.userEmail || 'unknown',
-            userDisplayName: this.userDisplayName || 'Usuário',
-            
-            // DADOS DO PLANO
-            nome: document.getElementById('planName')?.value?.trim() || '',
-            
-            // DADOS DO ALUNO
-            aluno: {
-                nome: document.getElementById('studentName')?.value?.trim() || '',
-                dataNascimento: birthDate || '',
-                cpf: document.getElementById('studentCpf')?.value?.trim() || '',
-                idade: calculatedAge,
-                altura: document.getElementById('studentHeight')?.value?.trim() || '1,75m',
-                peso: document.getElementById('studentWeight')?.value?.trim() || '75kg'
-            },
-            
-            // CONFIGURAÇÕES DO PLANO
-            dias: this.selectedDays || 1,
-            dataInicio: document.getElementById('planStartDate')?.value || new Date().toISOString().split('T')[0],
-            dataFim: document.getElementById('planEndDate')?.value || '',
-            
-            // PERFIL DERIVADO
-            perfil: {
-                idade: calculatedAge,
-                altura: document.getElementById('studentHeight')?.value?.trim() || '1,75m',
-                peso: document.getElementById('studentWeight')?.value?.trim() || '75kg',
-                porte: this.calculateBodyType(
-                    document.getElementById('studentHeight')?.value || '1,75m',
-                    document.getElementById('studentWeight')?.value || '75kg'
-                ),
-                objetivo: document.getElementById('planObjective')?.value || 'Condicionamento geral'
-            },
-            
-            // TREINOS (cópia profunda para evitar referências)
-            treinos: JSON.parse(JSON.stringify(this.currentPlan?.treinos || [])),
-            
-            // OBSERVAÇÕES
-            observacoes: {
-                geral: document.getElementById('planObservations')?.value?.trim() || ''
-            },
-            
-            // METADADOS DE CONTROLE
-            created_at: isEditingPlan ? 
-                (this.currentPlan?.created_at || new Date().toISOString()) : 
-                new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            version: '2.0'
-        };
-        
-        // 4. VALIDAÇÕES ESSENCIAIS
-        if (!planData.nome) {
-            this.showMessage('Nome do plano é obrigatório', 'error');
-            document.getElementById('planName')?.focus();
-            return;
-        }
-        
-        if (!planData.aluno.nome) {
-            this.showMessage('Nome do aluno é obrigatório', 'error');
-            document.getElementById('studentName')?.focus();
-            return;
-        }
-        
-        if (!planData.treinos || planData.treinos.length === 0) {
-            this.showMessage('O plano deve ter pelo menos um treino configurado', 'error');
-            return;
-        }
-        
-        console.log('Dados validados:', {
-            nome: planData.nome,
-            aluno: planData.aluno.nome,
-            userId: planData.userId,
-            treinos: planData.treinos.length
-        });
-        
-        // 5. BUSCA INTELIGENTE DO CORE (5 ESTRATÉGIAS)
-        let core = null;
-        
-        console.log('Iniciando busca inteligente do JSFitCore...');
-        
-        // ESTRATÉGIA 1: this.core - Referência direta
-        if (this.core && this.isValidCoreInstance(this.core)) {
-            core = this.core;
-            console.log('Core encontrado em this.core');
-        }
-        // ESTRATÉGIA 2: window.core - Instância global
-        else if (window.core && this.isValidCoreInstance(window.core)) {
-            core = window.core;
-            this.core = core; // Atualizar referência local
-            console.log('Core encontrado em window.core');
-        }
-        // ESTRATÉGIA 3: window.app.core - Dentro do objeto app
-        else if (window.app && window.app.core && this.isValidCoreInstance(window.app.core)) {
-            core = window.app.core;
-            this.core = core; // Atualizar referência local
-            console.log('Core encontrado em window.app.core');
-        }
-        // ESTRATÉGIA 4: Procurar instâncias globais conhecidas
-        else if (this.findGlobalCoreInstance()) {
-            core = this.findGlobalCoreInstance();
-            this.core = core; // Atualizar referência local
-            console.log('Core encontrado em instância global:', core.constructor?.name || 'unknown');
-        }
-        // ESTRATÉGIA 5: Criar nova instância como último recurso
-        else if (window.JSFitCore && typeof window.JSFitCore === 'function') {
-            console.log('Criando nova instância do JSFitCore...');
-            try {
-                core = new window.JSFitCore();
-                await this.initializeCoreInstance(core);
-                this.core = core;
-                window.core = core; // Salvar globalmente para próximas vezes
-                console.log('Nova instância criada e inicializada');
-            } catch (initError) {
-                console.error('Erro ao criar nova instância:', initError);
-                core = null;
-            }
-        }
-        
-        if (!core) {
-            console.warn('JSFitCore não encontrado em nenhuma estratégia');
-        }
-        
-        // 6. INICIAR PROCESSO DE SALVAMENTO
-        this.showMessage('Salvando plano...', 'info');
-        
-        let firebaseSuccess = false;
-        let firebaseId = null;
-        let localBackupSuccess = false;
-        
-        // 7. TENTATIVA DE SALVAMENTO NO FIREBASE (PRIORITÁRIO)
-        if (core) {
-            try {
-                console.log('Tentando salvar no Firebase...');
-                
-                // Verificar e preparar conexão Firebase
-                const firebaseReady = await this.ensureFirebaseReady(core);
-                
-                if (firebaseReady) {
-                    // Validar autenticação Firebase
-                    const firebaseUserId = core.getUserId();
-                    if (!firebaseUserId) {
-                        throw new Error('Usuário não autenticado no Firebase');
-                    }
-                    
-                    // Sincronizar userIds se diferentes
-                    if (firebaseUserId !== this.currentUserId) {
-                        console.warn('Discrepância de userId detectada:', {
-                            local: this.currentUserId,
-                            firebase: firebaseUserId
-                        });
-                        // Firebase é autoridade - atualizar dados locais
-                        planData.userId = firebaseUserId;
-                        this.currentUserId = firebaseUserId;
-                    }
-                    
-                    // Salvar no Firebase
-                    console.log('Executando salvamento no Firebase...');
-                    firebaseId = await core.savePlanToFirebase(planData);
-                    
-                    // Atualizar dados do plano com resposta do Firebase
-                    planData.id = firebaseId;
-                    planData.saved_in_firebase = true;
-                    planData.firebase_timestamp = new Date().toISOString();
-                    planData.sync_status = 'synced';
-                    
-                    firebaseSuccess = true;
-                    console.log(`Plano salvo no Firebase: ${firebaseId}`);
-                } else {
-                    throw new Error('Firebase não está pronto para uso');
-                }
-                
-            } catch (firebaseError) {
-                console.error('Erro ao salvar no Firebase:', firebaseError);
-                
-                // Marcar para retry posterior
-                planData.firebase_save_failed = true;
-                planData.firebase_error = firebaseError.message;
-                planData.firebase_error_code = firebaseError.code || 'unknown';
-                planData.firebase_error_timestamp = new Date().toISOString();
-                planData.retry_firebase = true;
-                planData.sync_status = 'pending';
-                
-                firebaseSuccess = false;
-            }
-        } else {
-            console.warn('JSFitCore não disponível para salvamento Firebase');
-            planData.core_missing = true;
-            planData.core_missing_timestamp = new Date().toISOString();
-            planData.sync_status = 'core_unavailable';
-        }
-        
-        // 8. BACKUP LOCAL OBRIGATÓRIO (SEMPRE EXECUTAR)
-        try {
-            console.log('Criando backup local obrigatório...');
-            
-            // Gerar ID local se necessário
-            if (!planData.id) {
-                planData.id = this.generateLocalId();
-                planData.local_id_generated = true;
-                planData.local_id_timestamp = new Date().toISOString();
-            }
-            
-            // Marcar origem e status dos dados
-            if (firebaseSuccess) {
-                planData.backup_in_localstorage = true;
-                planData.primary_source = 'firebase';
-                planData.firebase_id = firebaseId;
-            } else {
-                planData.saved_in_localstorage_only = true;
-                planData.needs_firebase_sync = true;
-                planData.primary_source = 'localstorage';
-                planData.local_save_timestamp = new Date().toISOString();
-            }
-            
-            // Atualizar lista em memória com verificações de segurança
-            if (isEditingPlan) {
-                const existingIndex = this.savedPlans.findIndex(p => 
-                    (p.id === planData.id || (currentPlanId && p.id === currentPlanId)) &&
-                    p.userId === this.currentUserId // VERIFICAÇÃO DE SEGURANÇA
-                );
-                
-                if (existingIndex >= 0) {
-                    // Preservar metadados importantes do plano original
-                    const existingPlan = this.savedPlans[existingIndex];
-                    planData.original_created_at = existingPlan.created_at;
-                    planData.edit_count = (existingPlan.edit_count || 0) + 1;
-                    planData.edited_at = new Date().toISOString();
-                    planData.edit_history = existingPlan.edit_history || [];
-                    planData.edit_history.push({
-                        edited_at: new Date().toISOString(),
-                        firebase_success: firebaseSuccess,
-                        version: '2.0'
-                    });
-                    
-                    this.savedPlans[existingIndex] = planData;
-                    console.log('Plano existente atualizado na lista (userId verificado)');
-                } else {
-                    // Plano não encontrado para edição, adicionar como novo
-                    this.savedPlans.push(planData);
-                    console.log('Plano não encontrado para edição, adicionado como novo');
-                }
-            } else {
-                // Novo plano
-                planData.edit_count = 0;
-                planData.creation_timestamp = new Date().toISOString();
-                this.savedPlans.push(planData);
-                console.log('Novo plano adicionado à lista');
-            }
-            
-            // Salvar no localStorage específico do usuário
-            await this.saveToUserLocalStorage();
-            localBackupSuccess = true;
-            
-            console.log('Backup local criado com sucesso');
-            
-        } catch (localError) {
-            console.error('ERRO CRÍTICO no backup local:', localError);
-            
-            // Se Firebase também falhou, é erro crítico
-            if (!firebaseSuccess) {
-                this.showMessage('ERRO CRÍTICO: Não foi possível salvar o plano!', 'error');
-                return;
-            } else {
-                console.warn('Backup local falhou, mas Firebase foi bem-sucedido');
-                localBackupSuccess = false;
-            }
-        }
-        
-        // 9. FINALIZAÇÃO E LIMPEZA DE ESTADO
-        this.isEditing = false;
-        this.currentPlan = this.getEmptyPlan();
-        
-        // Limpar interface de edição
-        const cancelBtn = document.getElementById('cancelEditBtn');
-        if (cancelBtn) {
-            cancelBtn.style.display = 'none';
-        }
-        
-        const currentPlanIdField = document.getElementById('currentPlanId');
-        if (currentPlanIdField) {
-            currentPlanIdField.value = '';
-        }
-        
-        // 10. AGENDAR OPERAÇÕES DE RETRY SE NECESSÁRIO
-        if (!firebaseSuccess && typeof this.scheduleFirebaseRetry === 'function') {
-            console.log('Agendando retry do Firebase para plano:', planData.id);
-            this.scheduleFirebaseRetry(planData.id);
-        }
-        
-        // 11. MENSAGENS DE RESULTADO DETALHADAS
-        if (firebaseSuccess && localBackupSuccess) {
-            this.showMessage('Plano salvo com sucesso no Firebase!', 'success');
-            console.log('Salvamento completo: Firebase + Backup local');
-        } else if (firebaseSuccess) {
-            this.showMessage('Plano salvo no Firebase (backup local falhou)', 'warning');
-            console.log('Salvamento parcial: Firebase OK, backup local falhou');
-        } else if (localBackupSuccess) {
-            this.showMessage('Plano salvo localmente (Firebase indisponível)', 'warning');
-            console.log('Salvamento local: Firebase falhou, backup local OK');
-        } else {
-            this.showMessage('Erro crítico: não foi possível salvar o plano', 'error');
-            console.error('Falha total no salvamento');
-            return;
-        }
-        
-        // 12. LOG FINAL DETALHADO
-        console.log('Resultado completo do salvamento:', {
-            planId: planData.id,
-            planName: planData.nome,
-            userId: planData.userId,
-            firebaseSuccess: firebaseSuccess,
-            firebaseId: firebaseId,
-            localBackupSuccess: localBackupSuccess,
-            isEditing: isEditingPlan,
-            coreStrategy: core ? this.getCoreStrategy(core) : 'none',
-            timestamp: new Date().toISOString()
-        });
-        
-        // 13. NAVEGAÇÃO FINAL
-        setTimeout(() => {
-            this.showPlanList();
-        }, 1500);
-        
-    } catch (criticalError) {
-        console.error('ERRO CRÍTICO no savePlan:', criticalError);
-        this.showMessage(`Erro crítico ao salvar: ${criticalError.message}`, 'error');
-        
-        // Log detalhado para debugging
-        console.error('Detalhes do erro crítico:', {
-            message: criticalError.message,
-            stack: criticalError.stack,
-            userId: this.currentUserId,
-            isAuthenticated: this.isUserAuthenticated,
-            coreAvailable: !!this.core,
-            timestamp: new Date().toISOString()
-        });
-    }
-}
 
 // MÉTODO AUXILIAR: BUSCA INTELIGENTE DO CORE
 // ========================================
