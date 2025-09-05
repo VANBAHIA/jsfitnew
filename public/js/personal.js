@@ -3,190 +3,1443 @@
 // Sistema Completo de Criação de Planos de Treino
 // Usando JSFitCore compartilhado
 // =============================================
+// ADICIONAR NO INÍCIO DO ARQUIVO personal.js:
+
 
 class PersonalApp {
+
     constructor() {
-
-
-
-// Inicializar core compartilhado com as configurações corretas
-        this.core = new JSFitCore(this.firebaseConfig);
-
+        this.currentUser = null;
+        this.isAuthenticated = false;
+        this.auth = null;
         
-        // Estados específicos do personal
-        this.currentPlan = {
-            id: null,
-            nome: '',
-            aluno: { nome: '', idade: 25, altura: '1,75m', peso: '75kg' },
-            dias: 1,
-            dataInicio: '',
-            dataFim: '',
-            perfil: { objetivo: 'Hipertrofia e ganho de massa muscular' },
-            observacoes: {},
-            treinos: []
-        };
-        this.pendingDeletions = [];
-        this.autoSyncInterval = null;
-        this.cleanupInterval = null;
-        this.debugUpdateInterval = null;
-
+        // Garantir inicialização de todas as propriedades
+        this.isUserAuthenticated = false;
+        this.currentUserId = null;
+        this.userEmail = null;
+        this.userDisplayName = null;
         this.savedPlans = [];
-        this.currentExerciseIndex = null;
-        this.currentWorkoutIndex = null;
-        this.selectedDays = 1;
-        this.isEditing = false;
-        this.currentScrollPosition = 0;
-            // Sincronização Firebase prioritária
-    this.pendingDeletions = [];
-    this.autoSyncInterval = null;
-    this.cleanupInterval = null;
-    this.debugUpdateInterval = null;
-    this.localAutoSaveInterval = null;
-    
-    // Controle de progresso
-    this.progressInterval = null;
-    
-    // Base de exercícios de fallback
-    this.fallbackExercises = [];
-    
-    console.log('Constructor atualizado com suporte Firebase prioritário');
-        
-        // Estado do compartilhamento
-        this.sharingState = {
-            isSharing: false,
-            currentShareId: null,
-            lastSharedPlan: null
-        };
+        this.deletePlan = this.deletePlan.bind(this);
 
-        // Configurações de tipos de plano usando core
-        this.planTypeConfiguration = {
-            days: 3,
-            configuration: {},
-            muscleGroups: [
-                { id: 'antebraco', name: 'ANTEBRAÇO', icon: '💪' },
-                { id: 'abdome', name: 'ABDOME', icon: '🎯' },
-                { id: 'biceps', name: 'BÍCEPS', icon: '💪' },
-                { id: 'triceps', name: 'TRÍCEPS', icon: '🔥' },
-                { id: 'peito', name: 'PEITO', icon: '💥' },
-                { id: 'perna', name: 'PERNA', icon: '🦵' },
-                { id: 'gluteo', name: 'GLÚTEO', icon: '🍑' },
-                { id: 'costas', name: 'COSTAS', icon: '🏔️' },
-                { id: 'ombro', name: 'OMBRO', icon: '🚁' },
-                { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
-            ],
-            presetConfigurations: {
-                1: {
-                    A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps'] }
-                },
-                2: {
-                    A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
-                    B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
-                },
-                3: {
-                    A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-                    B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-                    C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
-                },
-                4: {
-                    A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-                    B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-                    C: { name: 'Ombros e Abdome', groups: ['ombro', 'abdome'] },
-                    D: { name: 'Pernas e Glúteos', groups: ['perna', 'gluteo'] }
-                },
-                5: {
-                    A: { name: 'Peito', groups: ['peito'] },
-                    B: { name: 'Costas', groups: ['costas'] },
-                    C: { name: 'Ombros', groups: ['ombro'] },
-                    D: { name: 'Braços', groups: ['biceps', 'triceps', 'antebraco'] },
-                    E: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
-                },
-                6: {
-                    A: { name: 'Peito', groups: ['peito'] },
-                    B: { name: 'Costas', groups: ['costas'] },
-                    C: { name: 'Ombros', groups: ['ombro'] },
-                    D: { name: 'Bíceps', groups: ['biceps', 'antebraco'] },
-                    E: { name: 'Tríceps', groups: ['triceps'] },
-                    F: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+        // Recuperar estado imediatamente se disponível
+        this.recoverAuthStateOnInit();
+
+               // Configurações de tipos de plano usando core
+               this.planTypeConfiguration = {
+                days: 3,
+                configuration: {},
+                muscleGroups: [
+                    { id: 'antebraco', name: 'ANTEBRAÇO', icon: '💪' },
+                    { id: 'abdome', name: 'ABDOME', icon: '🎯' },
+                    { id: 'biceps', name: 'BÍCEPS', icon: '💪' },
+                    { id: 'triceps', name: 'TRÍCEPS', icon: '🔥' },
+                    { id: 'peito', name: 'PEITO', icon: '💥' },
+                    { id: 'perna', name: 'PERNA', icon: '🦵' },
+                    { id: 'gluteo', name: 'GLÚTEO', icon: '🍑' },
+                    { id: 'costas', name: 'COSTAS', icon: '🏔️' },
+                    { id: 'ombro', name: 'OMBRO', icon: '🚁' },
+                    { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
+                ],
+                presetConfigurations: {
+                    1: {
+                        A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps'] }
+                    },
+                    2: {
+                        A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
+                        B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
+                    },
+                    3: {
+                        A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
+                        B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
+                        C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
+                    },
+                    4: {
+                        A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
+                        B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
+                        C: { name: 'Ombros e Abdome', groups: ['ombro', 'abdome'] },
+                        D: { name: 'Pernas e Glúteos', groups: ['perna', 'gluteo'] }
+                    },
+                    5: {
+                        A: { name: 'Peito', groups: ['peito'] },
+                        B: { name: 'Costas', groups: ['costas'] },
+                        C: { name: 'Ombros', groups: ['ombro'] },
+                        D: { name: 'Braços', groups: ['biceps', 'triceps', 'antebraco'] },
+                        E: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+                    },
+                    6: {
+                        A: { name: 'Peito', groups: ['peito'] },
+                        B: { name: 'Costas', groups: ['costas'] },
+                        C: { name: 'Ombros', groups: ['ombro'] },
+                        D: { name: 'Bíceps', groups: ['biceps', 'antebraco'] },
+                        E: { name: 'Tríceps', groups: ['triceps'] },
+                        F: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
+                    }
+                }
+            };
+    
+            // Estado da configuração de músculos da IA
+            this.aiMuscleConfig = {
+                enabled: false,
+                days: 3,
+                workouts: {}
+            };
+    
+            // Base de técnicas avançadas
+            this.tecnicasDatabase = {
+                // Técnicas existentes
+                'pre-exaustao': 'Exercício de isolamento antes do composto para pré-fadigar o músculo alvo',
+                'pos-exaustao': 'Exercício de isolamento após o composto para finalizar o músculo',
+                'bi-set': 'Dois exercícios executados em sequência sem descanso',
+                'tri-set': 'Três exercícios executados em sequência sem descanso',
+                'drop-set': 'Redução progressiva da carga na mesma série',
+                'rest-pause': 'Pause breves durante a série para completar mais repetições',
+                'serie-queima': 'Repetições parciais no final da série até a falha',
+                'tempo-controlado': 'Execução lenta e controlada (3-4 segundos na fase excêntrica)',
+                'pausa-contracao': 'Pausa de 1-2 segundos na contração máxima',
+                
+                // Novas técnicas
+                'super-set-antagonista': 'Dois exercícios para músculos antagonistas executados sem descanso',
+                'super-set-mesmo-musculo': 'Dois exercícios para o mesmo músculo executados sem descanso',
+                'cluster-set': 'Série dividida em mini-séries com descansos curtos entre elas',
+                'mecanico-drop-set': 'Mudança de exercício do mais difícil para o mais fácil sem descanso',
+                'strip-set': 'Remoção de peso progressiva usando anilhas menores',
+                'negativas': 'Foco na fase excêntrica com carga superior ao 1RM concêntrico',
+                'forcadas': 'Repetições assistidas pelo parceiro após atingir a falha',
+                'parciais': 'Repetições em amplitude reduzida, geralmente no ponto forte',
+                '21s': 'Série de 21 repetições: 7 parciais baixas + 7 parciais altas + 7 completas',
+                'iso-hold': 'Contração isométrica sustentada por tempo determinado',
+                'meta-contracao': 'Contração isométrica máxima sem movimento articular',
+                'explosivas': 'Execução com máxima velocidade na fase concêntrica',
+                'ondulatorio': 'Variação da carga dentro da mesma série (ex: 12-10-8-6)',
+                'piramide-crescente': 'Aumento progressivo da carga e redução das repetições',
+                'piramide-decrescente': 'Redução progressiva da carga e aumento das repetições',
+                'piramide-dupla': 'Pirâmide crescente seguida de decrescente na mesma série',
+                'rest-pause-cluster': 'Combinação de rest-pause com micro-pausas planejadas',
+                'tempo-contraste': 'Alternância entre repetições lentas e explosivas',
+                'pausa-stretch': 'Pausa na posição de maior alongamento muscular',
+                'serie-composta': 'Exercício composto seguido de isolamento para o mesmo músculo',
+                'serie-reversa': 'Exercício de isolamento seguido de composto (pré-exaustão)',
+                'circuito': 'Sequência de exercícios executados com mínimo descanso',
+                'escada-ascendente': 'Aumento progressivo das repetições (1,2,3,4...)',
+                'escada-descendente': 'Redução progressiva das repetições (10,9,8,7...)',
+                'myo-reps': 'Série principal seguida de mini-séries com descansos de 15 segundos',
+                'dante-trudel': 'Rest-pause específico: série até falha + 15s + repetições até falha',
+                'static-holds': 'Sustentação isométrica em pontos específicos da amplitude',
+                'velocidade-compensatoria': 'Máxima velocidade intencional com cargas submáximas',
+                'contrast-loading': 'Alternância entre carga alta e baixa para potencialização',
+                'wave-loading': 'Ondulação da intensidade em ciclos dentro do treino',
+                'accommodating-resistance': 'Uso de elásticos ou correntes para variar resistência',
+                'intra-set-stretching': 'Alongamento ativo entre repetições da mesma série',
+                'mechanical-advantage': 'Exploração de vantagens mecânicas em diferentes amplitudes',
+                'pre-stretch': 'Alongamento passivo imediatamente antes da série',
+                'post-activation-potentiation': 'Ativação com carga alta seguida de exercício explosivo',
+                'blood-flow-restriction': 'Restrição do fluxo sanguíneo com cargas leves',
+                'eccentric-overload': 'Sobrecarga específica na fase excêntrica',
+                'pause-reps': 'Pausa completa em ponto específico da amplitude',
+                'tempo-emphasis': 'Ênfase em fase específica do movimento (concêntrica/excêntrica)',
+                'range-of-motion-partials': 'Parciais em diferentes amplitudes de movimento',
+                'antagonist-paired-sets': 'Séries alternadas entre músculos antagonistas',
+                'density-training': 'Máximo volume em tempo fixo determinado',
+                'volume-loading': 'Alto volume com intensidade moderada para sobrecarga metabólica'
+            };
+
+
+    }
+    
+    
+    async init() {
+        try {
+            console.log('🚀 Iniciando aplicação JSFit...');
+            
+            // Evitar múltiplas inicializações
+            if (this.initializationInProgress) {
+                console.log('⏸️ Inicialização já em progresso');
+                return;
+            }
+            
+            if (this.initializationComplete) {
+                console.log('✅ Aplicação já inicializada');
+                return;
+            }
+            
+            this.initializationInProgress = true;
+            
+            // 1. Garantir instância AuthManager válida
+            if (!window.authManager || !window.authManager._isAuthManagerInstance) {
+                console.log('🔄 Recriando AuthManager...');
+                window.authManager = new AuthManager();
+            }
+            
+            // 2. Verificar dependências essenciais
+            console.log('🔍 Verificando dependências...');
+            
+            const timeout = 10000;
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < timeout) {
+                const jsfitCoreReady = typeof window.JSFitCore === 'function';
+                const authReady = !!(window.authManager && window.authManager._isAuthManagerInstance);
+                const domReady = document.readyState === 'complete' || document.readyState === 'interactive';
+                
+                if ((Date.now() - startTime) % 2000 < 200) {
+                    console.log('📋 Status das dependências:', {
+                        JSFitCore: jsfitCoreReady ? '✅' : '❌',
+                        AuthManager: authReady ? '✅' : '❌', 
+                        DOM: domReady ? '✅' : '❌'
+                    });
+                }
+                
+                if (jsfitCoreReady && authReady && domReady) {
+                    console.log('✅ Todas as dependências prontas');
+                    break;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            // 3. Inicializar JSFitCore
+            try {
+                if (!this.core && window.JSFitCore) {
+                    console.log('🔧 Inicializando JSFitCore...');
+                    this.core = new window.JSFitCore();
+                    await this.core.initializeFirebase();
+                    console.log('✅ JSFitCore inicializado');
+                }
+            } catch (coreError) {
+                console.warn('⚠️ JSFitCore falhou, criando fallback:', coreError.message);
+                this.core = this.createFallbackCore();
+            }
+
+            if (this.core) {
+                // Carregar exercícios independente de autenticação
+                await this.core.loadExerciseDatabase();
+                console.log('✅ Base de exercícios carregada');
+            }
+            
+            // 4. Inicializar AuthManager apenas se necessário
+            let authInitialized = false;
+            
+            // Verificar se já está funcionando
+            if (window.authManager.isUserAuthenticated && window.authManager.isUserAuthenticated()) {
+                console.log('✅ AuthManager já funcionando com usuário logado');
+                authInitialized = true;
+            } else if (window.authManager.isInitialized) {
+                console.log('✅ AuthManager já inicializado');
+                authInitialized = true;
+            } else {
+                // Tentar inicializar
+                try {
+                    console.log('🔐 Inicializando AuthManager...');
+                    await window.authManager.initialize();
+                    authInitialized = true;
+                    console.log('✅ AuthManager inicializado');
+                } catch (authError) {
+                    console.warn('❌ Falha na inicialização do AuthManager:', authError.message);
                 }
             }
-        };
-
-        // Estado da configuração de músculos da IA
-        this.aiMuscleConfig = {
-            enabled: false,
-            days: 3,
-            workouts: {}
-        };
-
-        // Base de técnicas avançadas
-        this.tecnicasDatabase = {
-            // Técnicas existentes
-            'pre-exaustao': 'Exercício de isolamento antes do composto para pré-fadigar o músculo alvo',
-            'pos-exaustao': 'Exercício de isolamento após o composto para finalizar o músculo',
-            'bi-set': 'Dois exercícios executados em sequência sem descanso',
-            'tri-set': 'Três exercícios executados em sequência sem descanso',
-            'drop-set': 'Redução progressiva da carga na mesma série',
-            'rest-pause': 'Pause breves durante a série para completar mais repetições',
-            'serie-queima': 'Repetições parciais no final da série até a falha',
-            'tempo-controlado': 'Execução lenta e controlada (3-4 segundos na fase excêntrica)',
-            'pausa-contracao': 'Pausa de 1-2 segundos na contração máxima',
             
-            // Novas técnicas
-            'super-set-antagonista': 'Dois exercícios para músculos antagonistas executados sem descanso',
-            'super-set-mesmo-musculo': 'Dois exercícios para o mesmo músculo executados sem descanso',
-            'cluster-set': 'Série dividida em mini-séries com descansos curtos entre elas',
-            'mecanico-drop-set': 'Mudança de exercício do mais difícil para o mais fácil sem descanso',
-            'strip-set': 'Remoção de peso progressiva usando anilhas menores',
-            'negativas': 'Foco na fase excêntrica com carga superior ao 1RM concêntrico',
-            'forcadas': 'Repetições assistidas pelo parceiro após atingir a falha',
-            'parciais': 'Repetições em amplitude reduzida, geralmente no ponto forte',
-            '21s': 'Série de 21 repetições: 7 parciais baixas + 7 parciais altas + 7 completas',
-            'iso-hold': 'Contração isométrica sustentada por tempo determinado',
-            'meta-contracao': 'Contração isométrica máxima sem movimento articular',
-            'explosivas': 'Execução com máxima velocidade na fase concêntrica',
-            'ondulatorio': 'Variação da carga dentro da mesma série (ex: 12-10-8-6)',
-            'piramide-crescente': 'Aumento progressivo da carga e redução das repetições',
-            'piramide-decrescente': 'Redução progressiva da carga e aumento das repetições',
-            'piramide-dupla': 'Pirâmide crescente seguida de decrescente na mesma série',
-            'rest-pause-cluster': 'Combinação de rest-pause com micro-pausas planejadas',
-            'tempo-contraste': 'Alternância entre repetições lentas e explosivas',
-            'pausa-stretch': 'Pausa na posição de maior alongamento muscular',
-            'serie-composta': 'Exercício composto seguido de isolamento para o mesmo músculo',
-            'serie-reversa': 'Exercício de isolamento seguido de composto (pré-exaustão)',
-            'circuito': 'Sequência de exercícios executados com mínimo descanso',
-            'escada-ascendente': 'Aumento progressivo das repetições (1,2,3,4...)',
-            'escada-descendente': 'Redução progressiva das repetições (10,9,8,7...)',
-            'myo-reps': 'Série principal seguida de mini-séries com descansos de 15 segundos',
-            'dante-trudel': 'Rest-pause específico: série até falha + 15s + repetições até falha',
-            'static-holds': 'Sustentação isométrica em pontos específicos da amplitude',
-            'velocidade-compensatoria': 'Máxima velocidade intencional com cargas submáximas',
-            'contrast-loading': 'Alternância entre carga alta e baixa para potencialização',
-            'wave-loading': 'Ondulação da intensidade em ciclos dentro do treino',
-            'accommodating-resistance': 'Uso de elásticos ou correntes para variar resistência',
-            'intra-set-stretching': 'Alongamento ativo entre repetições da mesma série',
-            'mechanical-advantage': 'Exploração de vantagens mecânicas em diferentes amplitudes',
-            'pre-stretch': 'Alongamento passivo imediatamente antes da série',
-            'post-activation-potentiation': 'Ativação com carga alta seguida de exercício explosivo',
-            'blood-flow-restriction': 'Restrição do fluxo sanguíneo com cargas leves',
-            'eccentric-overload': 'Sobrecarga específica na fase excêntrica',
-            'pause-reps': 'Pausa completa em ponto específico da amplitude',
-            'tempo-emphasis': 'Ênfase em fase específica do movimento (concêntrica/excêntrica)',
-            'range-of-motion-partials': 'Parciais em diferentes amplitudes de movimento',
-            'antagonist-paired-sets': 'Séries alternadas entre músculos antagonistas',
-            'density-training': 'Máximo volume em tempo fixo determinado',
-            'volume-loading': 'Alto volume com intensidade moderada para sobrecarga metabólica'
-        };
-
-        this.tecnicasPorNivel = {
-            iniciante: ['tempo-controlado', 'pausa-contracao'],
-            intermediario: ['pre-exaustao', 'pos-exaustao', 'bi-set', 'drop-set', 'rest-pause', 'serie-queima'],
-            avancado: ['pre-exaustao', 'pos-exaustao', 'bi-set', 'tri-set', 'drop-set', 'rest-pause', 'serie-queima']
-        };
-
+            // 5. Verificar sessão ou mostrar login
+            if (authInitialized) {
+                try {
+                    const sessionRestored = await window.authManager.checkAndRestoreSession();
+                    
+                    if (sessionRestored) {
+                        console.log('✅ Sessão restaurada');
+                        const currentUser = window.authManager.getCurrentUser();
+                        if (currentUser) {
+                            await this.initializeAuthenticatedUser(currentUser);
+                        }
+                    } else {
+                        console.log('👤 Mostrando tela de login');
+                        this.showAuthenticationScreen();
+                    }
+                } catch (sessionError) {
+                    console.error('❌ Erro na verificação de sessão:', sessionError);
+                    this.showAuthenticationScreen();
+                }
+            } else {
+                console.log('❌ AuthManager indisponível, mostrando login');
+                this.showAuthenticationScreen();
+            }
+            
+            // 6. Finalizar inicialização
+            this.setupEventListeners();
+            this.initializationComplete = true;
+            this.initializationInProgress = false;
+            
+            console.log('✅ Aplicação inicializada com sucesso!');
+            console.log('📊 Status final:', {
+                core: !!this.core,
+                auth: authInitialized,
+                userAuthenticated: window.authManager?.isUserAuthenticated?.(),
+                currentUser: window.authManager?.getCurrentUser?.()?.email || 'none'
+                
+            });
+            
+            
+        } catch (error) {
+            console.error('❌ Erro crítico na inicialização:', error);
+            this.initializationInProgress = false;
+            
+            try {
+                console.log('🔄 Tentando modo fallback...');
+                await this.initializeFallbackMode();
+            } catch (fallbackError) {
+                console.error('❌ Fallback falhou:', fallbackError);
+                this.initializeEmergencyMode();
+            }
+        }
         
     }
 
- // 3. MÉTODO DE IMPORT MODIFICADO PARA PRIORIZAR FIREBASE
+    debugUserAndPlans() {
+        console.log('🔍 === DIAGNÓSTICO COMPLETO ===');
+        console.log('CurrentUserId:', this.currentUserId);
+        console.log('SavedPlans total:', this.savedPlans.length);
+        
+        this.savedPlans.forEach((plan, i) => {
+            console.log(`Plano ${i}: ${plan.nome}`);
+            console.log(`  - ID: ${plan.id}`);
+            console.log(`  - UserID: ${plan.userId}`);
+            console.log(`  - Match: ${plan.userId === this.currentUserId}`);
+        });
+    }
+
+    async loadSavedPlansWithVerification() {
+        console.log('🔍 DIAGNÓSTICO loadSavedPlansWithVerification:');
+        console.log('- this.isUserAuthenticated:', this.isUserAuthenticated);
+        console.log('- this.currentUserId:', this.currentUserId);
+        console.log('- AuthManager userId:', window.authManager?.getCurrentUser()?.uid);
+        console.log('- Firebase Auth userId:', window.firebaseAuth?.currentUser?.uid);
+        
+        if (!this.isUserAuthenticated) {
+            console.warn('Usuário não autenticado, não carregando planos');
+            this.savedPlans = [];
+            return;
+        }
+        
+        try {
+            if (this.core && this.core.firebaseConnected) {
+                const firebasePlans = await this.core.loadPlansFromFirebase();
+                if (firebasePlans && Array.isArray(firebasePlans)) {
+                    this.savedPlans = firebasePlans;
+                    console.error('PLANOS CARREGADOS AQUI;11:', error);
+                    return;
+                }
+            }
+            
+            this.savedPlans = [];
+        } catch (error) {
+            console.error('Erro ao carregar planos:', error);
+            this.savedPlans = [];
+        }
+    }
+
+
+    showMainApplication() {
+        try {
+            // Usar AuthManager se disponível
+            if (window.authManager && typeof window.authManager.showMainApp === 'function') {
+                window.authManager.showMainApp();
+            } else {
+                // Fallback manual
+                const authContainer = document.getElementById('authContainer');
+                const mainContainer = document.querySelector('.container');
+                
+                if (authContainer) {
+                    authContainer.style.display = 'none';
+                }
+                if (mainContainer) {
+                    mainContainer.style.display = 'block';
+                }
+            }
+            
+            // Inicializar dados da aplicação
+            this.continueInitialization();
+            
+        } catch (error) {
+            console.error('❌ Erro ao mostrar aplicação principal:', error);
+        }
+    }
+    
+// CORREÇÃO 2: Modificar continueInitialization para não chamar populateGroupFilter
+async continueInitialization() {
+    try {
+        if (this.authenticationComplete) {
+            console.log('⚠️ Inicialização já concluída, ignorando...');
+            return;
+        }
+        
+        this.authenticationComplete = true;
+        
+        // GARANTIR savedPlans existe
+        this.savedPlans = this.savedPlans || [];
+        
+        this.setDefaultDates();
+        this.setupEventListeners();
+        await this.loadPlanTypeConfiguration();
+        
+        // Carregar planos com verificação
+        try {
+            await this.loadSavedPlansWithVerification();
+        } catch (loadError) {
+            console.warn('Erro ao carregar planos:', loadError);
+            this.savedPlans = []; // Fallback seguro
+        }
+        
+
+       
+        
+        console.log('✅ Inicialização completa finalizada');
+       
+        
+    } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+        this.savedPlans = this.savedPlans || [];
+        this.showPlanList();
+    }
+}
+    
+    // Método para mostrar tela de autenticação
+    showAuthenticationScreen() {
+        try {
+            console.log('🔐 Exibindo tela de autenticação');
+            
+            const authContainer = document.getElementById('authContainer');
+            const mainContainer = document.querySelector('.container');
+            
+            if (authContainer) {
+                authContainer.style.display = 'flex';
+            }
+            if (mainContainer) {
+                mainContainer.style.display = 'none';
+            }
+            
+            // Focar no campo de email
+            setTimeout(() => {
+                const emailField = document.getElementById('loginEmail');
+                if (emailField) {
+                    emailField.focus();
+                }
+            }, 200);
+            
+        } catch (error) {
+            console.error('❌ Erro ao mostrar tela de auth:', error);
+        }
+    }
+    
+    // Método de fallback melhorado
+    async initializeFallbackMode() {
+        console.log('🚨 Modo fallback ativado');
+        
+        try {
+            // Criar core básico se não existir
+            if (!this.core) {
+                this.core = this.createFallbackCore();
+            }
+            
+            // Mostrar interface básica
+            this.showAuthenticationScreen();
+            
+            // Configurar listeners básicos
+            this.setupBasicEventListeners();
+            
+            console.log('✅ Modo fallback inicializado');
+            
+        } catch (error) {
+            console.error('❌ Erro no fallback:', error);
+            throw error;
+        }
+    }
+    
+    // Modo de emergência
+    initializeEmergencyMode() {
+        console.log('🆘 Modo de emergência ativado');
+        
+        try {
+            // Mostrar mensagem de erro
+            const body = document.body;
+            if (body) {
+                const errorDiv = document.createElement('div');
+                errorDiv.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+                               background: rgba(0,0,0,0.9); color: white; display: flex; 
+                               align-items: center; justify-content: center; z-index: 9999;
+                               font-family: Arial, sans-serif;">
+                        <div style="text-align: center; padding: 2rem; max-width: 500px;">
+                            <h2>🆘 Erro de Inicialização</h2>
+                            <p>A aplicação encontrou um erro crítico durante a inicialização.</p>
+                            <p>Por favor, recarregue a página ou entre em contato com o suporte.</p>
+                            <button onclick="window.location.reload()" 
+                                    style="margin-top: 1rem; padding: 0.5rem 1rem; 
+                                           background: #007bff; color: white; border: none; 
+                                           border-radius: 4px; cursor: pointer;">
+                                🔄 Recarregar Página
+                            </button>
+                        </div>
+                    </div>
+                `;
+                body.appendChild(errorDiv);
+            }
+            
+            console.log('🆘 Interface de emergência exibida');
+            
+        } catch (emergencyError) {
+            console.error('❌ Erro crítico no modo de emergência:', emergencyError);
+            // Último recurso: alert
+            alert('Erro crítico na aplicação. Por favor, recarregue a página.');
+        }
+    }
+    
+    // Método para configurar listeners básicos
+    setupBasicEventListeners() {
+        try {
+            // Event listener para formulário de login
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (window.authManager && typeof window.authManager.login === 'function') {
+                        window.authManager.login(e);
+                    } else {
+                        console.error('❌ AuthManager não disponível para login');
+                    }
+                });
+            }
+            
+            // Outros listeners básicos podem ser adicionados aqui
+            console.log('✅ Event listeners básicos configurados');
+            
+        } catch (error) {
+            console.error('❌ Erro ao configurar listeners básicos:', error);
+        }
+    }
+    
+    // Método para criar core de fallback
+    createFallbackCore() {
+        console.log('🔧 Criando JSFitCore de fallback');
+        
+        return {
+            showNotification: (message, type = 'info') => {
+                console.log(`${type.toUpperCase()}: ${message}`);
+                
+                // Tentar mostrar notificação visual simples
+                try {
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed; top: 20px; right: 20px; z-index: 1000;
+                        padding: 1rem; border-radius: 4px; color: white;
+                        background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#007bff'};
+                        max-width: 300px; word-wrap: break-word;
+                    `;
+                    notification.textContent = message;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 5000);
+                } catch (notificationError) {
+                    console.warn('⚠️ Erro ao mostrar notificação visual:', notificationError);
+                }
+            },
+            
+            loadUserData: async (userId) => {
+                console.log('📊 Fallback: loadUserData chamado para', userId);
+                // Implementação básica ou vazia
+                return {};
+            },
+            
+            isInitialized: true,
+            version: 'fallback-1.0'
+        };
+    }
+
+  // MÉTODO AUXILIAR: getEmptyPlan
+    // =============================================
+    getEmptyPlan() {
+        return {
+            id: null,
+            nome: '',
+            aluno: { 
+                nome: '', 
+                idade: 25, 
+                altura: '1,75m', 
+                peso: '75kg',
+                dataNascimento: '',
+                cpf: ''
+            },
+            dias: 1,
+            dataInicio: '',
+            dataFim: '',
+            perfil: { 
+                objetivo: 'Hipertrofia e ganho de massa muscular',
+                idade: 25,
+                altura: '1,75m',
+                peso: '75kg',
+                porte: 'médio'
+            },
+            observacoes: {},
+            treinos: [],
+            tecnicas_aplicadas: {}
+        };
+    }
+  
+
+
+
+
+// Método auxiliar para limpar dados
+clearUserData() {
+    console.log('🧹 Limpando dados do usuário...');
+    this.savedPlans = [];
+    
+    if (this.updatePlansList) {
+        this.updatePlansList();
+    }
+    
+    if (this.core?.showNotification) {
+        this.core.showNotification('Sessão encerrada. Faça login para acessar seus planos.', 'info');
+    }
+}
+
+// Flags de controle
+setLoginInProgress(inProgress = true) {
+    this.isLoginInProgress = inProgress;
+    console.log('🔄 Login progress flag:', inProgress);
+}
+
+// Método que deve ser chamado após tentativas de login
+async onLoginAttempt() {
+    console.log('🔄 Tentativa de login detectada, verificando status...');
+    
+    // Marcar que login não está mais em progresso
+    this.setLoginInProgress(false);
+    
+    // Aguardar um tempo para o Firebase processar
+    setTimeout(async () => {
+        const loginSuccess = await this.checkUserLoginStatus();
+        if (!loginSuccess) {
+            console.log('🔄 Primeira verificação falhou, tentando novamente...');
+            setTimeout(async () => {
+                const secondAttempt = await this.checkUserLoginStatus();
+                if (!secondAttempt) {
+                    console.log('🔄 Segunda verificação falhou, forçando verificação direta...');
+                    this.forceAuthCheck();
+                }
+            }, 1000);
+        }
+    }, 500);
+}
+
+// Método para forçar verificação direta do Firebase
+async forceAuthCheck() {
+    console.log('🔍 Forçando verificação direta do Firebase...');
+    
+    try {
+        // Verificar se há um usuário autenticado no Firebase diretamente
+        if (window.authManager && window.authManager.auth && window.authManager.auth.currentUser) {
+            const firebaseUser = window.authManager.auth.currentUser;
+            console.log('🎯 Usuário encontrado diretamente no Firebase:', firebaseUser.uid);
+            
+            if (firebaseUser.uid && firebaseUser.uid.trim() !== '') {
+                await this.onUserAuthenticated(firebaseUser);
+                return true;
+            }
+        }
+        
+        // Tentar recarregar o usuário atual
+        if (window.authManager && window.authManager.reloadCurrentUser) {
+            await window.authManager.reloadCurrentUser();
+            const reloadedUser = window.authManager.getCurrentUser();
+            
+            if (reloadedUser && reloadedUser.uid && reloadedUser.uid.trim() !== '') {
+                console.log('🎯 Usuário recarregado com sucesso:', reloadedUser.uid);
+                await this.onUserAuthenticated(reloadedUser);
+                return true;
+            }
+        }
+        
+        console.log('❌ Nenhum usuário válido encontrado na verificação forçada');
+        return false;
+        
+    } catch (error) {
+        console.error('❌ Erro na verificação forçada:', error);
+        return false;
+    }
+}
+
+async waitForAuth() {
+    // Primeiro aguardar auth existir
+    let attempts = 0;
+    while (!window.authManager && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    // Depois inicializar se necessário
+    if (window.authManager && typeof window.authManager.initialize === 'function') {
+        await window.authManager.initialize();
+    }
+}
+
+    
+    // Métodos auxiliares que você precisa implementar:
+    async finishInitialization() {
+        if (window.authManager?.isUserAuthenticated()) {
+            await this.onUserAuthenticated(window.authManager.getCurrentUser());
+        } else {
+            this.hideInitializationLoading?.();
+            this.showAuthContainer?.();
+        }
+    }
+    
+ 
+    
+
+    showInitializationLoading(message) {
+        // Implementar loading screen
+        console.log('Loading:', message);
+    }
+    
+
+    
+    hideInitializationLoading() {
+        console.log('Ocultando loading...');
+    }
+    
+    showMainApp() {
+        console.log('Mostrando app principal...');
+    }
+    
+    showAuthContainer() {
+        console.log('Mostrando tela de login...');
+    }
+
+    
+    // MÉTODO AUXILIAR: Mostrar mensagem de forma segura
+    showMessage(message, type = 'info', duration = 4000) {
+        try {
+            // Verificar se core existe e tem o método
+            if (this.core && typeof this.core.showNotification === 'function') {
+                this.core.showNotification(message, type, duration);
+            } else {
+                // Fallback: usar método próprio ou console
+                console.log(`[${type.toUpperCase()}] ${message}`);
+                this.createSimpleNotification(message, type);
+            }
+        } catch (error) {
+            console.error('Erro ao mostrar mensagem:', error);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            // Último recurso: alert para erros críticos
+            if (type === 'error') {
+                alert(message);
+            }
+        }
+    }
+
+ 
+    async initializeAuthenticatedUser(user) {
+        try {
+            console.log('👤 Inicializando dados do usuário:', user.uid);
+            
+            // Definir propriedades de autenticação
+            this.currentUser = user;
+            this.isUserAuthenticated = true;
+            this.currentUserId = user.uid;
+            this.userEmail = user.email;
+            this.userDisplayName = user.displayName || user.email?.split('@')[0] || 'Usuário';
+            
+            // CORREÇÃO CRÍTICA: Garantir que o core está disponível
+            if (!this.core) {
+                console.log('🔧 Core não encontrado, buscando instância...');
+                this.core = this.findCoreInstance();
+            }
+            
+
+            
+            // Mostrar aplicação principal diretamente
+            this.showMainApplication();
+            
+            console.log('✅ Usuário inicializado com sucesso');
+            
+        } catch (error) {
+            console.error('❌ Erro ao inicializar usuário:', error);
+        }
+    }
+
+    // 2. MÉTODO PARA ENCONTRAR A INSTÂNCIA DO CORE
+findCoreInstance() {
+    // Estratégia 1: Verificar se já existe globalmente
+    if (window.app && window.app.core) {
+        console.log('✅ Core encontrado em window.app.core');
+        return window.app.core;
+    }
+    
+    // Estratégia 2: Verificar outras localizações globais
+    if (window.core) {
+        console.log('✅ Core encontrado em window.core');
+        return window.core;
+    }
+    
+    // Estratégia 3: Criar nova instância se JSFitCore está disponível
+    if (window.JSFitCore && typeof window.JSFitCore === 'function') {
+        console.log('🔧 Criando nova instância do JSFitCore...');
+        try {
+            const newCore = new window.JSFitCore();
+            // Inicializar se necessário
+            if (typeof newCore.initializeFirebase === 'function') {
+                newCore.initializeFirebase();
+            }
+            window.core = newCore; // Salvar globalmente
+            return newCore;
+        } catch (error) {
+            console.error('❌ Erro ao criar JSFitCore:', error);
+        }
+    }
+    
+    console.warn('⚠️ Nenhuma instância do Core encontrada');
+    return null;
+}
+
+
+// 4. MÉTODO DELETEPLANS CORRIGIDO COM BUSCA DINÂMICA DO CORE
+async deletePlan(planId) {
+    console.log('🔍 === DIAGNÓSTICO COMPLETO DE DELEÇÃO ===');
+    console.log('Plan ID recebido:', planId);
+    console.log('User ID atual:', this.currentUserId);
+
+    if (!planId || !this.canPerformAction()) {
+        return;
+    }
+
+    // BUSCAR E DIAGNOSTICAR O PLANO
+    const planToDelete = this.savedPlans.find(p => 
+        p.id === planId && p.userId === this.currentUserId
+    );
+
+    if (!planToDelete) {
+        console.error('❌ Plano não encontrado na lista local');
+        this.showMessage('Plano não encontrado', 'error');
+        return;
+    }
+
+    const planName = planToDelete.nome || 'Plano sem nome';
+    if (!confirm(`Tem certeza que deseja excluir "${planName}"?`)) {
+        return;
+    }
+
+    try {
+        this.showMessage('Excluindo plano...', 'info');
+
+        // CORREÇÃO CRÍTICA: BUSCA DINÂMICA DO CORE
+        let coreInstance = this.core;
+        
+        if (!coreInstance) {
+            console.log('🔍 Core não encontrado, buscando dinamicamente...');
+            coreInstance = this.findCoreInstance();
+            
+            if (coreInstance) {
+                this.core = coreInstance; // Atualizar referência
+                console.log('✅ Core encontrado e atualizado');
+            }
+        }
+
+        console.log('🔥 === DIAGNÓSTICO FIREBASE ===');
+        console.log('Core existe:', !!coreInstance);
+        console.log('Core conectado:', coreInstance?.firebaseConnected);
+        console.log('Método deletePlanFromFirebase existe:', typeof coreInstance?.deletePlanFromFirebase === 'function');
+
+        let firebaseDeleted = false;
+        let firebaseError = null;
+        let firebaseAttempted = false;
+
+        // TENTAR DELETAR DO FIREBASE
+        if (coreInstance && coreInstance.firebaseConnected) {
+            if (typeof coreInstance.deletePlanFromFirebase === 'function') {
+                try {
+                    console.log('🔥 Iniciando deleção Firebase...');
+                    firebaseAttempted = true;
+                    
+                    await coreInstance.deletePlanFromFirebase(planId);
+                    firebaseDeleted = true;
+                    console.log('✅ Deletado do Firebase com sucesso');
+                    
+                } catch (error) {
+                    firebaseError = error;
+                    console.error('❌ Erro na deleção Firebase:', error);
+                    
+                    if (error.code === 'not-found' || 
+                        error.message?.includes('not found')) {
+                        console.log('ℹ️ Plano não existe no Firebase (sucesso)');
+                        firebaseDeleted = true;
+                        firebaseError = null;
+                    }
+                }
+            } else {
+                console.error('❌ Método deletePlanFromFirebase não existe');
+                firebaseError = new Error('Método deletePlanFromFirebase não disponível');
+            }
+        } else {
+            console.warn('⚠️ Firebase não conectado ou core indisponível');
+        }
+
+        // DELETAR LOCALMENTE
+        console.log('💾 === DELEÇÃO LOCAL ===');
+        const initialLength = this.savedPlans.length;
+        this.savedPlans = this.savedPlans.filter(plan => 
+            !(plan.id === planId && plan.userId === this.currentUserId)
+        );
+        
+        const localDeleted = this.savedPlans.length < initialLength;
+        
+        if (localDeleted) {
+            await this.saveToUserLocalStorage();
+            console.log('✅ Backup localStorage atualizado');
+        }
+
+        // ATUALIZAR INTERFACE
+        this.renderPlanList();
+
+        // MENSAGENS DE RESULTADO
+        console.log('📊 === RELATÓRIO FINAL ===');
+        console.log('Firebase tentado:', firebaseAttempted);
+        console.log('Firebase deletado:', firebaseDeleted);
+        console.log('Local deletado:', localDeleted);
+        
+        if (firebaseDeleted && localDeleted) {
+            this.showMessage(`✅ "${planName}" excluído completamente!`, 'success');
+        } else if (localDeleted && !firebaseDeleted) {
+            this.showMessage(`⚠️ "${planName}" excluído localmente. ${firebaseError?.message || 'Firebase indisponível'}`, 'warning');
+        } else if (firebaseDeleted && !localDeleted) {
+            this.showMessage(`❌ Problema: deletado do Firebase mas não localmente`, 'error');
+        } else {
+            this.showMessage(`❌ Erro ao excluir "${planName}"`, 'error');
+        }
+        
+    } catch (criticalError) {
+        console.error('💥 ERRO CRÍTICO:', criticalError);
+        this.showMessage(`Erro crítico: ${criticalError.message}`, 'error');
+    }
+}
+
+// 3. MÉTODO DELETEPLANTFROMFIREBASE PARA O JSFITCORE (adicionar ao jsfitcore.js)
+async deletePlanFromFirebase(planId) {
+    try {
+        console.log(`🗑️ Deletando plano ${planId} do Firebase...`);
+        
+        if (!this.firebaseConnected) {
+            throw new Error('Firebase não conectado');
+        }
+        
+        if (!planId) {
+            throw new Error('Plan ID é obrigatório');
+        }
+        
+        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        
+        const planRef = doc(window.db, 'plans', planId);
+        await deleteDoc(planRef);
+        
+        console.log(`✅ Plano ${planId} deletado do Firebase`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao deletar plano do Firebase:', error);
+        throw error;
+    }
+}
+
+    async onUserAuthenticated(user) {
+        console.log('✅ Usuário autenticado via AuthManager:', user.email);
+        
+        // CRÍTICO: Limpar dados do usuário anterior
+        this.savedPlans = [];
+        
+        // Verificar se mudou de usuário
+        const previousUserId = this.currentUserId;
+        const newUserId = user.uid;
+        
+        if (previousUserId && previousUserId !== newUserId) {
+            console.log(`🔄 Mudança de usuário detectada: ${previousUserId} → ${newUserId}`);
+            // Limpar localStorage do usuário anterior
+            Object.keys(localStorage).forEach(key => {
+                if (key.includes(previousUserId)) {
+                    localStorage.removeItem(key);
+                    console.log(`🗑️ Removido: ${key}`);
+                }
+            });
+        }
+        
+        // Verificar se já está processando para evitar múltiplas chamadas
+        if (this.isProcessingAuthentication) {
+            console.log('⏸️ Já processando autenticação, ignorando...');
+            return;
+        }
+        
+        this.isProcessingAuthentication = true;
+        
+        try {
+            this.hideInitializationLoading?.();
+            
+            // Chamar método de inicialização apenas uma vez
+            await this.initializeAuthenticatedUser(user);
+            
+        } catch (error) {
+            console.error('❌ Erro no processamento de autenticação:', error);
+        } finally {
+            // Garantir que flag é resetada
+            setTimeout(() => {
+                this.isProcessingAuthentication = false;
+            }, 1000);
+        }
+    }
+    
+
+    // MÉTODO AUXILIAR: Modo fallback para funcionamento offline
+    initializeFallbackMode() {
+        try {
+            console.log('🔄 Iniciando modo fallback...');
+            
+            // Tentar criar core mínimo se ainda não existe
+            if (!this.core) {
+                try {
+                    
+                    console.log('⚠️ JSFitCore criado em modo offline');
+                } catch (coreError) {
+                    console.error('❌ Falha ao criar JSFitCore em modo fallback:', coreError);
+                }
+            }
+            
+            // Configurar interface básica
+            this.setupEventListeners();
+            
+            // Carregar dados locais se possível
+            this.loadLocalData();
+            
+            // Mostrar interface com funcionalidade limitada
+            this.showMainInterface();
+            
+            this.showMessage('Aplicação iniciada em modo offline. Algumas funcionalidades podem estar limitadas.', 'warning');
+            
+        } catch (error) {
+            console.error('❌ Erro crítico no modo fallback:', error);
+            alert('Erro crítico na aplicação. Por favor, recarregue a página.');
+        }
+    }
+    
+
+    // Método melhorado para aguardar AuthManager
+async waitForAuthManager() {
+    
+    
+    console.log('⏳ Aguardando AuthManager ficar disponível...');
+    
+    const timeout = 5000; // 5 segundos
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeout) {
+        if (window.authManager && 
+            typeof window.authManager === 'object' &&
+            (typeof window.authManager.initialize === 'function' || 
+             typeof window.authManager.getCurrentUser === 'function')) {
+            console.log('✅ AuthManager detectado e pronto');
+            return true;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    console.warn('⚠️ Timeout aguardando AuthManager');
+    return false;
+}
+
+
+async waitForDependencies() {
+    console.log('🔍 Verificando dependências...');
+    
+    const timeout = 8000; // Reduzido para 8 segundos
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeout) {
+        // Verificações corrigidas
+        const jsfitCoreReady = typeof window.JSFitCore === 'function';
+        
+        // CORREÇÃO: Verificação mais flexível do AuthManager
+        const authReady = !!(window.authManager && (
+            typeof window.authManager.initialize === 'function' ||
+            typeof window.authManager.getCurrentUser === 'function' ||
+            window.authManager.constructor.name === 'AuthManager'
+        ));
+        
+        const domReady = document.readyState === 'complete' || document.readyState === 'interactive';
+        
+        // Log apenas a cada 2 segundos para evitar spam
+        if ((Date.now() - startTime) % 2000 < 200) {
+            console.log('📋 Status das dependências:', {
+                JSFitCore: jsfitCoreReady ? '✅' : '❌',
+                AuthManager: authReady ? '✅' : '❌', 
+                DOM: domReady ? '✅' : '❌'
+            });
+        }
+        
+        // MUDANÇA: Continuar se JSFitCore e DOM estão prontos
+        // AuthManager é opcional agora
+        if (jsfitCoreReady && domReady) {
+            if (authReady) {
+                console.log('✅ Todas as dependências carregadas');
+            } else {
+                console.log('⚠️ Continuando sem AuthManager inicializado');
+            }
+            return true;
+        }
+        
+        // Aguardar menos tempo entre verificações
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    console.warn('⚠️ Timeout nas dependências, forçando continuação...');
+    return false;
+}
+
+
+async checkCurrentUser() {
+    const timeout = 2000; // Apenas 2 segundos
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeout) {
+        if (window.authManager && window.authManager.getCurrentUser) {
+            const user = window.authManager.getCurrentUser();
+            if (user && user.uid) {
+                return user;
+            }
+        }
+        
+        // Verificar também no Firebase Auth diretamente
+        if (window.authManager && window.authManager.auth && window.authManager.auth.currentUser) {
+            const firebaseUser = window.authManager.auth.currentUser;
+            if (firebaseUser.uid) {
+                return firebaseUser;
+            }
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    return null;
+}
+
+
+// ========================================
+// MÉTODO showMainInterface SEGURO
+// ========================================
+
+showMainInterface() {
+    try {
+        // Esconder tela de autenticação
+        const authContainer = document.getElementById('authContainer');
+        if (authContainer) {
+            authContainer.style.display = 'none';
+        }
+        
+        // Mostrar container principal
+        const mainContainer = document.querySelector('.container');
+        if (mainContainer) {
+            mainContainer.style.display = 'block';
+        }
+        
+        // Ir para lista de planos
+        this.showPlanList();
+        
+    } catch (error) {
+        console.error('Erro ao mostrar interface principal:', error);
+    }
+}
+
+// 3. MÉTODO DE FALLBACK CORRIGIDO
+async initializeFallbackModeFixed() {
+    try {
+        console.log('🔄 Iniciando modo fallback corrigido...');
+        
+        // Garantir que core existe
+        if (!this.core) {
+            this.core = {
+                firebaseConnected: false,
+                exerciseDatabaseLoaded: false,
+                showNotification: (message, type) => {
+                    console.log(`${type.toUpperCase()}: ${message}`);
+                    this.createSimpleNotification(message, type);
+                }
+            };
+        }
+        
+        // Garantir propriedades mínimas
+        this.savedPlans = this.savedPlans || [];
+        this.isUserAuthenticated = false;
+        this.currentUserId = null;
+        
+        // Configurar interface básica
+        this.setupEventListeners();
+        
+        // Carregar dados locais se possível
+        this.loadLocalData();
+        
+        // Mostrar interface
+        this.showMainInterface();
+        
+        this.core.showNotification('Aplicação iniciada em modo offline. Algumas funcionalidades podem estar limitadas.', 'warning');
+        
+        console.log('✅ Modo fallback inicializado');
+        
+    } catch (error) {
+        console.error('❌ Erro no modo fallback:', error);
+        throw error;
+    }
+}
+
+
+// 5. MÉTODO loadLocalData MELHORADO
+loadLocalData() {
+    try {
+        // Tentar carregar planos do localStorage
+        const localPlans = localStorage.getItem('jsfitapp_plans');
+        if (localPlans) {
+            this.savedPlans = JSON.parse(localPlans);
+            console.log(`📋 ${this.savedPlans.length} planos carregados do localStorage`);
+        } else {
+            this.savedPlans = [];
+        }
+        
+        this.updatePlansList();
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar dados locais:', error);
+        this.savedPlans = [];
+    }
+}
+
+
+// 7. MÉTODO updatePlansList SEGURO
+updatePlansList() {
+    try {
+        if (typeof this.renderPlanList === 'function') {
+            this.renderPlanList();
+        }
+    } catch (error) {
+        console.error('❌ Erro ao atualizar lista de planos:', error);
+    }
+}
+
+// 8. MÉTODO createSimpleNotification MELHORADO
+createSimpleNotification(message, type = 'info') {
+    try {
+        // Remover notificações anteriores
+        document.querySelectorAll('.simple-notification').forEach(n => n.remove());
+
+        const notification = document.createElement('div');
+        notification.className = `simple-notification notification-${type}`;
+        
+        const colors = {
+            success: '#4caf50',
+            error: '#f44336',
+            warning: '#ff9800',
+            info: '#2196f3'
+        };
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: ${colors[type] || colors.info};
+            font-family: Arial, sans-serif;
+        `;
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Auto-remover após 4 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 4000);
+        
+    } catch (error) {
+        console.error('Erro ao criar notificação:', error);
+        // Fallback para console
+        console.log(`${type.toUpperCase()}: ${message}`);
+    }
+}
+
+updateLoadingMessage(message) {
+    this.loadingMessage = message;
+    const messageElement = document.getElementById('initLoadingMessage');
+    if (messageElement) {
+        messageElement.textContent = message;
+    }
+    
+    // Simular progresso baseado na mensagem
+    const progressElement = document.getElementById('initProgressFill');
+    if (progressElement) {
+        const progressMap = {
+            'Inicializando sistema...': 10,
+            'Conectando ao Firebase...': 25,
+            'Configurando autenticação...': 40,
+            'Carregando configurações...': 55,
+            'Carregando tipos de plano...': 65,
+            'Carregando seus planos...': 75,
+            'Carregando base de exercícios...': 85,
+            'Configurando interface...': 90,
+            'Sincronizando dados...': 95
+        };
+        
+        const progress = progressMap[message] || 50;
+        progressElement.style.width = progress + '%';
+    }
+}
+
+
+async checkAndMigrateUserData() {
+    try {
+        if (!this.isUserAuthenticated) return;
+        
+        // Verificar se já foi feita migração para este usuário
+        const migrationKey = `jsfitapp_migration_${this.currentUserId}`;
+        const migrationDone = localStorage.getItem(migrationKey);
+        
+        if (!migrationDone) {
+            console.log('🔄 Primeira vez do usuário, verificando migração...');
+            
+            // Verificar se há dados antigos para migrar
+            const oldData = localStorage.getItem('jsfitapp_plans');
+            if (oldData) {
+                console.log('📦 Encontrados dados antigos, iniciando migração...');
+                await this.migrateOldDataToUser(oldData);
+            }
+            
+            // Migrar planos no Firebase se necessário
+            const result = await this.core.migrateExistingPlansToUser();
+            if (result.migrated > 0) {
+                console.log(`✅ ${result.migrated} planos migrados do Firebase`);
+                // Recarregar planos após migração
+                await this.loadSavedPlansWithVerification();
+                this.renderPlanList();
+            }
+            
+            // Marcar migração como concluída
+            localStorage.setItem(migrationKey, new Date().toISOString());
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro na verificação/migração:', error);
+    }
+}
+
+async migrateOldDataToUser(oldDataString) {
+    try {
+        const oldPlans = JSON.parse(oldDataString);
+        if (Array.isArray(oldPlans) && oldPlans.length > 0) {
+            
+            const shouldMigrate = confirm(
+                `Encontramos ${oldPlans.length} plano(s) de uso anterior.\n\n` +
+                `Deseja importar estes planos para sua conta?\n\n` +
+                `(Recomendado: SIM)`
+            );
+            
+            if (shouldMigrate) {
+                let migratedCount = 0;
+                
+                for (const plan of oldPlans) {
+                    try {
+                        // Adicionar à lista atual
+                        plan.migrated_from_old = true;
+                        plan.migrated_at = new Date().toISOString();
+                        this.savedPlans.push(plan);
+                        migratedCount++;
+                    } catch (error) {
+                        console.error('Erro ao migrar plano individual:', error);
+                    }
+                }
+                
+                if (migratedCount > 0) {
+                    // Salvar planos migrados
+                    this.savePlansToStorage();
+                    
+                    // Tentar salvar no Firebase
+                    if (this.core && this.core.firebaseConnected) {
+                        for (const plan of this.savedPlans.filter(p => p.migrated_from_old)) {
+                            try {
+                                await this.savePlan(plan);
+                            } catch (error) {
+                                console.warn('Erro ao salvar plano migrado no Firebase:', error);
+                            }
+                        }
+                    }
+                    
+                    this.showMessage(`${migratedCount} plano(s) importado(s) para sua conta!`, 'success');
+                    
+                    // Remover dados antigos após migração bem-sucedida
+                    localStorage.removeItem('jsfitapp_plans');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erro na migração de dados antigos:', error);
+    }
+}
+
+
+
+
+
+clearOldUserData() {
+    try {
+        const keys = Object.keys(localStorage);
+        const currentUserId = this.currentUserId;
+        
+        keys.forEach(key => {
+            // Remover dados de outros usuários (opcional)
+            if (key.startsWith('jsfitapp_plans_') && !key.includes(currentUserId)) {
+                const confirmClear = confirm(
+                    'Foram encontrados dados de outro usuário. Deseja removê-los para liberar espaço?'
+                );
+                if (confirmClear) {
+                    localStorage.removeItem(key);
+                }
+            }
+        });
+    } catch (error) {
+        console.warn('Erro na limpeza de dados antigos:', error);
+    }
+}
+
+
+
+
+getConfigStorageKey() {
+    const userId = this.currentUserId || 'anonymous';
+    return `jsfitapp_plan_configuration_${userId}`;
+}
+
+// 7. CORRIGIR MÉTODO DE CARREGAMENTO DE PLANOS
+async loadSavedPlansWithVerification() {
+    if (!this.isUserAuthenticated) {
+        console.warn('Usuário não autenticado, não carregando planos');
+        this.savedPlans = [];
+        return;
+    }
+    
+   
+}
+
 async importPlan(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -214,28 +1467,68 @@ async importPlan(event) {
                 errors: 0
             };
             
+            // Verificar e garantir que this.core existe
+            if (!this.core) {
+                console.warn('Core não disponível, tentando acessar via window');
+                this.core = window.app?.core || window.core;
+                
+                if (!this.core) {
+                    console.error('Core não encontrado, criando objeto mínimo');
+                    this.core = {
+                        generateId: () => Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                        firebaseConnected: false,
+                        savePlanToFirebase: null
+                    };
+                }
+            }
+            
+            // Garantir que savedPlans existe
+            if (!this.savedPlans) {
+                this.savedPlans = [];
+                console.warn('savedPlans não existia, inicializando array vazio');
+            }
+            
             for (const planData of plansToImport) {
                 try {
+                    // Função inline para gerar ID seguro
+                    const generateId = () => {
+                        if (this.core && typeof this.core.generateId === 'function') {
+                            try {
+                                return this.core.generateId();
+                            } catch (error) {
+                                console.warn('Erro no generateId do core, usando fallback');
+                                return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                            }
+                        }
+                        return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                    };
+                    
                     // Preparar dados
-                    planData.id = null; // Forçar novo ID
+                    planData.id = null;
                     planData.nome = planData.nome + ' (Importado)';
                     planData.imported_at = new Date().toISOString();
                     
-                    // Normalizar estrutura
-                    this.normalizePlanStructure(planData);
+                    // Normalizar estrutura se método existir
+                    if (typeof this.normalizePlanStructure === 'function') {
+                        this.normalizePlanStructure(planData);
+                    }
                     
-                    // PRIORIDADE 1: TENTAR FIREBASE
+                    // TENTAR FIREBASE PRIMEIRO
                     let savedToFirebase = false;
                     
-                    if (this.core && this.core.firebaseConnected) {
+                    if (this.core && 
+                        this.core.firebaseConnected && 
+                        typeof this.core.savePlanToFirebase === 'function') {
                         try {
                             const firebaseId = await this.core.savePlanToFirebase(planData);
-                            planData.id = firebaseId;
-                            planData.saved_in_firebase = true;
-                            savedToFirebase = true;
-                            results.firebase_success++;
                             
-                            console.log(`Plano ${planData.nome} salvo no Firebase: ${firebaseId}`);
+                            if (firebaseId) {
+                                planData.id = firebaseId;
+                                planData.saved_in_firebase = true;
+                                savedToFirebase = true;
+                                results.firebase_success++;
+                                console.log(`Plano ${planData.nome} salvo no Firebase: ${firebaseId}`);
+                            }
                             
                         } catch (firebaseError) {
                             console.error(`Erro Firebase para ${planData.nome}:`, firebaseError);
@@ -243,19 +1536,18 @@ async importPlan(event) {
                         }
                     }
                     
-                    // PRIORIDADE 2: BACKUP LOCAL
+                    // BACKUP LOCAL se Firebase falhou
                     if (!savedToFirebase) {
-                        planData.id = this.core.generateId();
+                        planData.id = generateId();
                         planData.saved_in_localstorage_only = true;
                         planData.retry_firebase = true;
                         results.localStorage_only++;
-                        
-                        console.log(`Plano ${planData.nome} salvo apenas localmente`);
+                        console.log(`Plano ${planData.nome} salvo apenas localmente: ${planData.id}`);
                     } else {
                         planData.backup_in_localstorage = true;
                     }
                     
-                    // Adicionar à lista local (sempre)
+                    // Adicionar à lista local sempre
                     this.savedPlans.push(planData);
                     
                 } catch (planError) {
@@ -264,11 +1556,39 @@ async importPlan(event) {
                 }
             }
             
-            // Salvar backup local
-            this.saveToLocalStorageAsBackup();
+            // Salvar backup local com fallbacks
+            try {
+                if (typeof this.saveToLocalStorageAsBackup === 'function') {
+                    this.saveToLocalStorageAsBackup();
+                } else {
+                    // Fallback manual para localStorage
+                    const userId = this.getCurrentUserId ? this.getCurrentUserId() : 
+                                  (this.core && this.core.getUserId ? this.core.getUserId() : null);
+                    
+                    if (userId && this.savedPlans) {
+                        const storageKey = `jsfitapp_plans_${userId}`;
+                        localStorage.setItem(storageKey, JSON.stringify(this.savedPlans));
+                        console.log('Backup manual do localStorage realizado');
+                    }
+                }
+            } catch (backupError) {
+                console.error('Erro no backup:', backupError);
+            }
             
-            // Atualizar interface
-            this.renderPlanList();
+            // Atualizar interface com fallbacks
+            try {
+                if (typeof this.renderPlanList === 'function') {
+                    this.renderPlanList();
+                } else if (typeof this.updatePlansList === 'function') {
+                    this.updatePlansList();
+                } else if (typeof this.showPlanList === 'function') {
+                    this.showPlanList();
+                } else {
+                    console.warn('Nenhum método de renderização encontrado');
+                }
+            } catch (uiError) {
+                console.error('Erro ao atualizar interface:', uiError);
+            }
             
             // Mensagem de resultado
             if (results.errors === 0) {
@@ -289,11 +1609,13 @@ async importPlan(event) {
                 );
             }
             
-            // Agendar retry para planos que falharam no Firebase
-            this.scheduleFailedPlansRetry();
+            // Agendar retry se método existir
+            if (typeof this.scheduleFailedPlansRetry === 'function') {
+                this.scheduleFailedPlansRetry();
+            }
             
         } catch (error) {
-            console.error('Erro ao importar:', error);
+            console.error('Erro geral ao importar:', error);
             this.showMessage('Erro ao importar arquivo. Verifique o formato.', 'error');
         }
     };
@@ -302,148 +1624,307 @@ async importPlan(event) {
     event.target.value = '';
 }
 
-    loadSavedPlans() {
-        try {
-            const stored = localStorage.getItem('jsfitapp_plans');
-            if (stored) {
-                this.savedPlans = JSON.parse(stored);
-                
-                // Migrate old plans to new structure
-                this.savedPlans.forEach(plan => {
-                    if (!plan.aluno && plan.perfil) {
-                        plan.aluno = {
-                            nome: '',
-                            dataNascimento: '',
-                            cpf: '',
-                            idade: plan.perfil.idade || 25,
-                            altura: plan.perfil.altura || '1,75m',
-                            peso: plan.perfil.peso || '75kg'
-                        };
-                    }
-                    
-                    // Ensure exercises have all required fields
-                    if (plan.treinos) {
-                        plan.treinos.forEach(treino => {
-                            if (treino.exercicios) {
-                                treino.exercicios.forEach(ex => {
-                                    if (!ex.descanso) ex.descanso = '90 segundos';
-                                    if (!ex.observacoesEspeciais) ex.observacoesEspeciais = '';
-                                    if (!ex.tecnica) ex.tecnica = '';
-                                });
-                            }
-                        });
-                    }
-                    
-                    // Add tecnicas_aplicadas if not present
-                    if (!plan.tecnicas_aplicadas) {
-                        plan.tecnicas_aplicadas = {};
-                    }
-                    
-                    // Ensure perfil has porte field
-                    if (plan.perfil && !plan.perfil.porte) {
-                        plan.perfil.porte = this.core.calculateBodyType(
-                            plan.perfil.altura || '1,75m',
-                            plan.perfil.peso || '75kg'
-                        );
-                    }
-                });
-                
-                this.savePlansToStorage(); // Save migrated data
-            }
-        } catch (error) {
-            console.error('Erro ao carregar planos:', error);
-            this.savedPlans = [];
-        }
-    }
-
     savePlansToStorage() {
+        
+        if (!this.isUserAuthenticated) {
+            console.warn('Usuário não autenticado, não salvando no localStorage');
+            return;
+        }
+        
         try {
-            localStorage.setItem('jsfitapp_plans', JSON.stringify(this.savedPlans));
+            const key = this.getLocalStorageKey();
+            const dataToSave = {
+                plans: this.savedPlans,
+                userId: this.currentUserId,
+                savedAt: new Date().toISOString(),
+                userEmail: this.userEmail
+            };
+            
+            localStorage.setItem(key, JSON.stringify(dataToSave));
+            console.log(`💾 ${this.savedPlans.length} planos salvos no localStorage para usuário ${this.currentUserId}`);
         } catch (error) {
-            console.error('Erro ao salvar planos:', error);
+            console.error('❌ Erro ao salvar no localStorage:', error);
         }
     }
 
 
-    // =============================================
-    // INICIALIZAÇÃO DA APLICAÇÃO
-    // =============================================
-
-// MÉTODO init() COMPLETO COM TODAS AS CORREÇÕES PARA PERSISTÊNCIA
-
-async init() {
-    console.log('Inicializando JS Fit Personal App...');
-
-    try {
-        // 1. Inicializar Firebase via core
-        console.log('Inicializando Firebase...');
-        await this.core.initializeFirebase();
-
-        // 2. Configurações básicas
-        console.log('Definindo configurações básicas...');
-        this.setDefaultDates();
-        this.setupEventListeners();
+// ============================================
+// MÉTODO PARA AGUARDAR PROCESSAMENTO DE LOGIN
+// ============================================
+async waitForLoginProcessing() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 120; // 12 segundos
         
-        // 3. Configurar handlers de persistência
-        this.setupBeforeUnloadHandler();
-        this.setupVisibilityChangeHandler();
-
-        // 4. Carregar configuração de tipos de plano
-        console.log('Carregando configuração de tipos de plano...');
-        await this.loadPlanTypeConfiguration();
-
-        // 5. CARREGAR PLANOS COM VERIFICAÇÃO ROBUSTA
-        console.log('Carregando planos salvos...');
-        await this.loadSavedPlansWithVerification();
-
-        // 6. Carregar base de exercícios via core
-        console.log('Carregando base de exercícios...');
-        await this.core.loadExerciseDatabase();
-
-        // 7. Popular interface
-        console.log('Populando interface...');
-        this.populateGroupFilter();
-        this.populateExerciseSelect();
-
-        // 8. Mostrar interface principal
-        console.log('Mostrando interface principal...');
-        this.showPlanList();
-
-        // 9. Verificar e restaurar planos perdidos
-        console.log('Verificando planos perdidos...');
-        await this.verifyAndRestorePlans();
+        const checkProcessing = () => {
+            // Se não existe AuthManager, resolver imediatamente
+            if (!window.authManager) {
+                console.log('⚠️ AuthManager não encontrado, pulando aguardo de processamento');
+                resolve();
+                return;
+            }
+            
+            // Verificar se o processamento foi finalizado
+            if (window.authManager.loginInProgress === false) {
+                console.log('✅ Processamento de login finalizado');
+                resolve();
+                return;
+            }
+            
+            // Verificar timeout
+            attempts++;
+            if (attempts >= maxAttempts) {
+                console.log('⏰ Timeout no processamento de login, continuando...');
+                resolve();
+                return;
+            }
+            
+            // Log de progresso a cada 2 segundos
+            if (attempts % 20 === 0) {
+                console.log(`🔄 Aguardando processamento... (${attempts/10}s)`);
+            }
+            
+            setTimeout(checkProcessing, 100);
+        };
         
-        // 10. Iniciar auto-save
-        console.log('Iniciando auto-save...');
-       // this.startAutoSave();
-        
-        // 11. Sincronizar dados importados
-        console.log('Sincronizando dados importados...');
-        await this.syncAfterImport();
+        // Aguardar 1 segundo antes de começar a verificar
+        // para dar tempo do AuthManager inicializar
+        setTimeout(checkProcessing, 1000);
+    });
+}
 
-        // 12. Verificar integridade dos dados
-        this.verifyDataIntegrity();
 
-        console.log('Aplicação inicializada com sucesso');
-        this.showMessage('Aplicação carregada com sucesso!', 'success', 2000);
+// ============================================
+// MÉTODO SEGURO PARA CARREGAR EXERCÍCIOS
+// ============================================
 
-        // Debug opcional
-        if (console.debug) {
-            this.debugDataState();
-        }
 
-    } catch (error) {
-        console.error('Erro na inicialização:', error);
-        
-        // Fallback: inicialização offline robusta
-        console.log('Iniciando modo de fallback...');
-        await this.initializeFallbackMode();
-        
-        this.showMessage('Iniciado em modo offline. Algumas funcionalidades podem estar limitadas.', 'warning');
+
+
+onUserLogout() {
+    console.log('🚪 Callback: Usuário deslogado');
+    
+    // Limpar estado
+    this.currentUserId = null;
+    this.isUserAuthenticated = false;
+    this.userDisplayName = '';
+    this.userEmail = '';
+    this.savedPlans = [];
+    
+    // Limpar interface
+    this.showAuthenticationScreen();
+    this.updatePlansList();
+    
+    // Mostrar mensagem
+    if (this.core?.showNotification) {
+        this.core.showNotification('Sessão encerrada', 'info');
     }
 }
 
-// FINALIZAÇÃO DO SISTEMA FIREBASE PRIORITÁRIO
+
+// ============================================
+// MÉTODO APRIMORADO PARA VERIFICAR AUTHMANAGER
+// ============================================
+async checkAuthManager() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 segundos
+        
+        const checkAuth = () => {
+            attempts++;
+            
+            if (window.authManager && typeof window.authManager.initialize === 'function') {
+                console.log('✅ AuthManager encontrado');
+                resolve(true);
+            } else if (attempts >= maxAttempts) {
+                console.log('⚠️ Timeout: AuthManager não encontrado - continuando sem auth');
+                resolve(false);
+            } else {
+                // Log de progresso a cada segundo
+                if (attempts % 10 === 0) {
+                    console.log(`🔍 Procurando AuthManager... (${attempts/10}s)`);
+                }
+                setTimeout(checkAuth, 100);
+            }
+        };
+        
+        checkAuth();
+    });
+}
+
+
+
+
+
+
+// ============================================
+// MÉTODO AUXILIAR: loadUserPlans
+// ============================================
+async loadUserPlans() {
+    try {
+        console.log('📊 Carregando planos do usuário...');
+        
+        if (this.core && this.core.firebaseConnected) {
+            // Tentar carregar do Firebase primeiro
+            try {
+                const firebasePlans = await this.core.loadPlansFromFirebase();
+                if (firebasePlans && Array.isArray(firebasePlans)) {
+                    this.savedPlans = firebasePlans;
+                    console.log(`✅ ${firebasePlans.length} planos carregados do Firebase`);
+                    
+                    // Criar backup local
+                    this.saveToLocalStorageAsBackup();
+                    return;
+                }
+            } catch (firebaseError) {
+                console.warn('⚠️ Erro ao carregar do Firebase:', firebaseError);
+            }
+        }
+        
+        // Fallback: carregar do localStorage
+        console.log('📂 Carregando backup do localStorage...');
+        await this.loadFromLocalStorageAsBackup();
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar planos:', error);
+        this.savedPlans = [];
+    }
+}
+
+
+onUserLoggedOut() {
+    console.log('👋 Callback: Usuário deslogado');
+    
+    // Limpar estado da aplicação
+    this.currentUserId = null;
+    this.isUserAuthenticated = false;
+    this.currentUser = null;
+    this.userDisplayName = '';
+    this.userEmail = '';
+    this.savedPlans = [];
+    
+    // Mostrar tela de login
+    this.showAuthenticationScreen();
+    this.updatePlansList();
+    
+    if (this.core?.showNotification) {
+        this.core.showNotification('Sessão encerrada', 'info');
+    }
+}
+
+
+
+
+
+showCriticalError(error) {
+    console.error('💥 ERRO CRÍTICO:', error);
+    
+    const errorContainer = document.createElement('div');
+    errorContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999;
+        font-family: monospace;
+    `;
+    
+    errorContainer.innerHTML = `
+        <div style="text-align: center; max-width: 600px; padding: 20px;">
+            <h2>❌ Erro Crítico na Inicialização</h2>
+            <p style="margin: 20px 0;">${error.message}</p>
+            <button onclick="location.reload()" style="
+                background: #ff4444;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+            ">
+                🔄 Recarregar Página
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(errorContainer);
+}
+
+// ============================================
+// MÉTODOS AUXILIARES DE INTERFACE
+
+hideAuthContainer() {
+    const authContainer = document.getElementById('authContainer');
+    if (authContainer) {
+        authContainer.style.display = 'none';
+    }
+}
+
+loadPlansFromLocalStorage() {
+    try {
+        const userId = this.currentUserId || 'anonymous';
+        const storageKey = `jsfitapp_plans_${userId}`;
+        const stored = localStorage.getItem(storageKey);
+        
+        if (stored) {
+            this.savedPlans = JSON.parse(stored);
+            console.log(`✅ ${this.savedPlans.length} planos carregados do localStorage`);
+        } else {
+            this.savedPlans = [];
+            console.log('ℹ️ Nenhum plano encontrado no localStorage');
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar do localStorage:', error);
+        this.savedPlans = [];
+    }
+}
+
+// Método para carregar dados do usuário
+async loadUserData() {
+    try {
+        console.log('📊 Carregando dados do usuário...');
+        
+        // Carregar planos salvos se método existir
+        if (typeof this.loadSavedPlans === 'function') {
+            await this.loadSavedPlans();
+        }
+        
+        // Carregar configurações se método existir
+        if (this.core?.loadPlanTypeConfiguration) {
+            await this.core.loadPlanTypeConfiguration();
+        }
+        
+        // Migrar planos existentes se método existir
+        if (this.core?.migrateExistingPlansToUser) {
+            await this.core.migrateExistingPlansToUser();
+        }
+        
+        console.log('✅ Dados do usuário carregados');
+        
+    } catch (error) {
+        console.warn('⚠️ Erro ao carregar dados do usuário:', error);
+    }
+}
+
+
+// Método para verificação adicional no constructor/inicialização
+ensureJSFitCoreExists() {
+    if (!this.core.JSFitCore) {
+        console.error('❌ JSFitCore não foi carregado. Verifique se o arquivo shared/jsfitcore.js está sendo importado.');
+        throw new Error('JSFitCore não está disponível. Verifique o carregamento do arquivo jsfitcore.js');
+    }
+    
+    if (!this.core) {
+        console.log('🔧 Criando nova instância do JSFitCore...');
+        this.core = new JSFitCore();
+    }
+}
 
 // 1. INICIALIZAÇÃO AUTOMÁTICA DA SINCRONIZAÇÃO
 startAutoSync() {
@@ -685,19 +2166,6 @@ async validateFirebaseIntegrity() {
     }
 }
 
-// 6. ATUALIZAR O MÉTODO init() PARA INCLUIR AUTO-SYNC
-// Adicione estas linhas no final do método init() existente:
-
-/*
-        // 13. Iniciar auto-sync (Firebase prioritário)
-        console.log('Iniciando auto-sync...');
-        this.startAutoSync();
-        
-        // 14. Setup handler de reconexão Firebase
-        if (this.core) {
-            this.core.onFirebaseReconnect = () => this.handleFirebaseReconnection();
-        }
-*/
 
 // 7. MÉTODO PARA BACKUP COMPLETO ANTES DE OPERAÇÕES CRÍTICAS
 createPreOperationBackup(operation) {
@@ -969,109 +2437,8 @@ debugDataState() {
     this.updateDebugInfo();
 }
 
-// MÉTODO PARA VALIDAR CONSISTÊNCIA ENTRE MEMÓRIA E LOCALSTORAGE
-validateDataConsistency() {
-    try {
-        const memoryCount = this.savedPlans ? this.savedPlans.length : 0;
-        const localData = localStorage.getItem('jsfitapp_plans');
-        const localCount = localData ? JSON.parse(localData).length : 0;
-        
-        const isConsistent = memoryCount === localCount;
-        
-        console.log(`Consistência de dados: ${isConsistent ? 'OK' : 'PROBLEMA'}`);
-        console.log(`Memória: ${memoryCount}, localStorage: ${localCount}`);
-        
-        if (!isConsistent) {
-            this.showMessage(
-                `Inconsistência detectada: ${memoryCount} em memória vs ${localCount} localmente`, 
-                'warning'
-            );
-            
-            // Oferecer correção automática
-            if (confirm('Deseja corrigir a inconsistência sincronizando os dados?')) {
-                if (memoryCount > localCount) {
-                    // Memória tem mais dados, salvar no localStorage
-                    this.savePlansToStorage();
-                    this.showMessage('Dados da memória salvos no localStorage', 'success');
-                } else if (localCount > memoryCount) {
-                    // localStorage tem mais dados, carregar na memória
-                    this.loadFromLocalStorageOnly();
-                    this.renderPlanList();
-                    this.showMessage('Dados do localStorage carregados na memória', 'success');
-                }
-            }
-        }
-        
-        return isConsistent;
-        
-    } catch (error) {
-        console.error('Erro ao validar consistência:', error);
-        return false;
-    }
-}
 
-// MÉTODO PARA LIMPEZA COMPLETA DOS DADOS (USAR COM CUIDADO)
-clearAllData() {
-    if (confirm('ATENÇÃO: Isso irá apagar TODOS os planos salvos. Tem certeza?')) {
-        if (confirm('Última chance! Todos os dados serão perdidos permanentemente!')) {
-            // Limpar memória
-            this.savedPlans = [];
-            
-            // Limpar localStorage
-            localStorage.removeItem('jsfitapp_plans');
-            
-            // Limpar backups
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('jsfitapp_backup_')) {
-                    localStorage.removeItem(key);
-                }
-            });
-            
-            // Atualizar interface
-            this.renderPlanList();
-            
-            this.showMessage('Todos os dados foram apagados', 'info');
-            console.log('Limpeza completa de dados executada');
-        }
-    }
-}
-
-// MÉTODO PARA EXPORTAR DADOS PARA DEBUG
-exportDebugData() {
-    try {
-        const debugData = {
-            timestamp: new Date().toISOString(),
-            memoryPlans: this.savedPlans || [],
-            localStoragePlans: this.getLocalStoragePlans(),
-            configuration: this.planTypeConfiguration,
-            firebaseConnected: this.core?.firebaseConnected || false,
-            userAgent: navigator.userAgent,
-            url: window.location.href
-        };
-        
-        const dataStr = JSON.stringify(debugData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        
-        const exportFileDefaultName = `jsfitapp_debug_${new Date().toISOString().slice(0,10)}.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-        
-        this.showMessage('Dados de debug exportados', 'success');
-        
-    } catch (error) {
-        console.error('Erro ao exportar dados de debug:', error);
-        this.showMessage('Erro ao exportar dados de debug', 'error');
-    }
-}
-
-    // =============================================
-    // MÉTODOS QUE USAM O CORE
-    // =============================================
-
-    // Usar métodos do core para exercícios
+   // Usar métodos do core para exercícios
     findExerciseByName(name) {
         return this.core.findExerciseByName(name);
     }
@@ -1092,154 +2459,80 @@ exportDebugData() {
         return this.core.exerciseExists(exerciseName);
     }
 
-    // Usar métodos do core para utilitários
-    showMessage(message, type, duration) {
-        return this.core.showNotification(message, type, duration);
-    }
+ 
 
-
-
-    // =============================================
-    // MÉTODOS ESPECÍFICOS DO PERSONAL
-    // =============================================
-
-    
-
-    async loadSavedPlans() {
-        try {
-            // Tentar carregar via core
-            const firebasePlans = await this.core.loadPlansFromFirebase();
-            this.savedPlans = firebasePlans || [];
-            
-        } catch (error) {
-            console.error('Erro ao carregar planos do Firebase:', error);
-            
-            // Fallback para localStorage
-            try {
-                const stored = localStorage.getItem('jsfitapp_plans');
-                if (stored) {
-                    this.savedPlans = JSON.parse(stored);
-                    this.showMessage('Dados carregados localmente.', 'warning');
-                }
-            } catch (localError) {
-                console.error('Erro no fallback localStorage:', localError);
-                this.savedPlans = [];
-            }
-        }
-    }
-
- // SISTEMA DE DELEÇÃO COM FIREBASE PRIORITÁRIO
-
-async deletePlan(planId) {
-    if (!confirm('Tem certeza que deseja excluir este plano?')) return;
-
-    try {
-        this.showMessage('Excluindo plano...', 'info');
-
-        const plan = this.savedPlans.find(p => p.id === planId);
-        if (!plan) {
-            this.showMessage('Plano não encontrado', 'error');
-            return;
-        }
-
-        let firebaseDeleted = false;
-        let localDeleted = false;
-
-        // PRIORIDADE 1: DELETAR DO FIREBASE PRIMEIRO
-        if (this.core && this.core.firebaseConnected) {
-            try {
-                console.log(`Deletando do Firebase: ${plan.nome} (ID: ${planId})`);
-                await this.core.deletePlanFromFirebase(planId);
-                firebaseDeleted = true;
-                console.log('Deletado do Firebase com sucesso');
-                
-            } catch (firebaseError) {
-                console.error('Erro ao deletar do Firebase:', firebaseError);
-                
-                // Se o erro for 404 (não encontrado), considerar como sucesso
-                if (firebaseError.code === 'not-found' || firebaseError.message.includes('not found')) {
-                    console.log('Plano não existia no Firebase (considerado sucesso)');
-                    firebaseDeleted = true;
-                } else {
-                    firebaseDeleted = false;
-                    
-                    // Marcar para deleção posterior
-                    plan.pending_firebase_deletion = true;
-                    plan.deletion_error = firebaseError.message;
-                    
-                    console.warn('Falha na deleção Firebase, marcado para retry');
-                }
-            }
-        } else {
-            console.warn('Firebase não conectado - deletando apenas localmente');
-            plan.pending_firebase_deletion = true;
-        }
-
-        // PRIORIDADE 2: DELETAR DO LOCALSTORAGE (SEMPRE EXECUTAR)
-        try {
-            // Remover da lista local
-            const initialLength = this.savedPlans.length;
-            this.savedPlans = this.savedPlans.filter(p => p.id !== planId);
-            localDeleted = this.savedPlans.length < initialLength;
-            
-            if (localDeleted) {
-                // Atualizar backup local
-                this.saveToLocalStorageAsBackup();
-                console.log('Removido da lista local e backup atualizado');
-            }
-            
-        } catch (localError) {
-            console.error('Erro ao deletar localmente:', localError);
-            localDeleted = false;
-        }
-
-        // ATUALIZAR INTERFACE
-        this.renderPlanList();
-
-        // MENSAGENS DE RESULTADO
-        if (firebaseDeleted && localDeleted) {
-            this.showMessage('Plano excluído com sucesso!', 'success');
-        } else if (localDeleted && !firebaseDeleted) {
-            this.showMessage('Plano excluído localmente (Firebase indisponível)', 'warning');
-            // Agendar retry da deleção no Firebase
-            this.scheduleFirebaseDeletionRetry(planId, plan.nome);
-        } else if (!localDeleted) {
-            this.showMessage('Erro ao excluir plano', 'error');
-            // Reverter se possível
-            if (firebaseDeleted) {
-                console.error('INCONSISTÊNCIA: Deletado do Firebase mas não localmente');
-            }
-        }
-        
-    } catch (error) {
-        console.error('Erro geral ao deletar plano:', error);
-        this.showMessage('Erro ao excluir plano. Tente novamente.', 'error');
-    }
-}
 
 // 2. MÉTODO PARA BACKUP SECUNDÁRIO NO LOCALSTORAGE
+
 saveToLocalStorageAsBackup() {
+    if (!this.isUserAuthenticated) {
+        console.warn('Usuário não autenticado, não salvando no localStorage');
+        return false;
+    }
+    
     try {
-        const backupData = {
+        const key = this.getLocalStorageKey();
+        const dataToSave = {
             plans: this.savedPlans,
-            last_backup: new Date().toISOString(),
+            userId: this.currentUserId,
+            savedAt: new Date().toISOString(),
+            userEmail: this.userEmail,
             backup_type: 'secondary',
             firebase_primary: true
         };
         
-        localStorage.setItem('jsfitapp_plans', JSON.stringify(this.savedPlans));
-        localStorage.setItem('jsfitapp_backup_meta', JSON.stringify(backupData));
-        
-        console.log('Backup secundário no localStorage criado');
+        localStorage.setItem(key, JSON.stringify(dataToSave));
+        console.log(`💾 Backup local criado com ${this.savedPlans.length} planos`);
         return true;
         
     } catch (error) {
-        console.error('Erro ao criar backup localStorage:', error);
+        console.error('❌ Erro ao criar backup localStorage:', error);
         return false;
     }
 }
 
-
+// 10. ADICIONAR MÉTODO DE MIGRAÇÃO DE ESTRUTURA
+migratePlanStructure(plan) {
+    // Garantir estrutura mínima do plano
+    if (!plan.aluno) {
+        plan.aluno = {
+            nome: plan.perfil?.nome || '',
+            dataNascimento: '',
+            cpf: '',
+            idade: plan.perfil?.idade || 25,
+            altura: plan.perfil?.altura || '1,75m',
+            peso: plan.perfil?.peso || '75kg'
+        };
+    }
+    
+    // Garantir que exercícios tenham todos os campos
+    if (plan.treinos) {
+        plan.treinos.forEach(treino => {
+            if (treino.exercicios) {
+                treino.exercicios.forEach(ex => {
+                    if (!ex.descanso) ex.descanso = '90 segundos';
+                    if (!ex.observacoesEspeciais) ex.observacoesEspeciais = '';
+                    if (!ex.tecnica) ex.tecnica = '';
+                });
+            }
+        });
+    }
+    
+    // Garantir técnicas aplicadas
+    if (!plan.tecnicas_aplicadas) {
+        plan.tecnicas_aplicadas = {};
+    }
+    
+    // Garantir porte no perfil
+    if (plan.perfil && !plan.perfil.porte) {
+        plan.perfil.porte = this.calculateBodyType(
+            plan.perfil.altura || plan.aluno?.altura || '1,75m',
+            plan.perfil.peso || plan.aluno?.peso || '75kg'
+        );
+    }
+    
+    return plan;
+}
 
 // 4. MÉTODO PARA NORMALIZAR ESTRUTURA DE PLANOS
 normalizePlanStructure(planData) {
@@ -1275,7 +2568,7 @@ normalizePlanStructure(planData) {
     
     // Porte
     if (planData.perfil && !planData.perfil.porte) {
-        planData.perfil.porte = this.core.calculateBodyType(
+        planData.perfil.porte = this.calculateBodyType(
             planData.perfil.altura || planData.aluno?.altura || '1,75m',
             planData.perfil.peso || planData.aluno?.peso || '75kg'
         );
@@ -1289,7 +2582,6 @@ scheduleFirebaseRetry(planId) {
         await this.retryFirebaseSave(planId);
     }, 30000);
 }
-
 
 
 async retryFirebaseSave(planId) {
@@ -1374,33 +2666,104 @@ async loadSavedPlans() {
     }
 }
 
+// CORREÇÃO 2: Modificar loadFromLocalStorageAsBackup para aceitar estado recuperado
 async loadFromLocalStorageAsBackup() {
-   
+    // Verificar autenticação com fallback
+    const isAuthenticated = this.isUserAuthenticated || 
+                           (window.authManager && window.authManager.isUserAuthenticated()) ||
+                           localStorage.getItem('jsfitapp_user');
+    
+    if (!isAuthenticated) {
+        console.warn('⚠️ Usuário não autenticado, tentando carregar dados gerais...');
+        
+        // Como último recurso, tentar carregar qualquer dado disponível
+        const allKeys = Object.keys(localStorage).filter(key => key.startsWith('jsfitapp_plans_'));
+        
+        for (const key of allKeys) {
+            try {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed.plans && Array.isArray(parsed.plans) && parsed.plans.length > 0) {
+                        this.savedPlans = parsed.plans;
+                        console.log(`📂 Dados carregados de ${key}:`, this.savedPlans.length);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Erro ao tentar ${key}:`, e);
+            }
+        }
+        
+        this.savedPlans = [];
+        return;
+    }
+    
+    // Resto do método existente...
     try {
-        const stored = localStorage.getItem('jsfitapp_plans');
+        const userId = this.currentUserId || window.authManager?.getCurrentUser()?.uid;
+        if (!userId) {
+            console.warn('UserId não encontrado');
+            return;
+        }
+        
+        const key = `jsfitapp_plans_${userId}`;
+        const stored = localStorage.getItem(key);
+        
         if (stored) {
-            const parsedPlans = JSON.parse(stored);
-            if (Array.isArray(parsedPlans)) {
-                this.savedPlans = parsedPlans.map(plan => {
-                    // Marcar que foi carregado do backup
-                    plan.loaded_from_backup = true;
-                    return this.migratePlanStructure(plan);
-                });
-                console.log(`${this.savedPlans.length} planos carregados do backup localStorage`);
-                
-                // Agendar sincronização com Firebase quando possível
-                this.scheduleFailedPlansRetry();
+            const data = JSON.parse(stored);
+            
+            if (data.plans && Array.isArray(data.plans)) {
+                this.savedPlans = data.plans;
+                console.log(`📂 ${this.savedPlans.length} planos carregados do backup localStorage`);
             } else {
+                console.log('ℹ️ Estrutura de dados inválida no localStorage');
                 this.savedPlans = [];
             }
         } else {
+            console.log('ℹ️ Nenhum backup local encontrado');
             this.savedPlans = [];
         }
     } catch (error) {
-        console.error('Erro ao carregar backup localStorage:', error);
+        console.error('❌ Erro ao carregar backup localStorage:', error);
         this.savedPlans = [];
     }
 }
+
+// CORREÇÃO 4: Método para recuperar estado na inicialização
+recoverAuthStateOnInit() {
+    try {
+        // Verificar AuthManager
+        if (window.authManager && window.authManager.isUserAuthenticated()) {
+            const user = window.authManager.getCurrentUser();
+            if (user) {
+                this.isUserAuthenticated = true;
+                this.currentUserId = user.uid;
+                this.currentUser = user;
+                this.userEmail = user.email;
+                console.log('🔄 Estado recuperado na inicialização:', user.email);
+            }
+        }
+        
+        // Verificar localStorage como backup
+        if (!this.isUserAuthenticated) {
+            const storedUser = localStorage.getItem('jsfitapp_user');
+            if (storedUser) {
+                const userData = JSON.parse(storedUser);
+                if (userData.sessionActive) {
+                    this.isUserAuthenticated = true;
+                    this.currentUserId = userData.uid;
+                    this.userEmail = userData.email;
+                    console.log('🔄 Estado recuperado do localStorage:', userData.email);
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Erro ao recuperar estado na inicialização:', error);
+    }
+}
+
+
 
 
 
@@ -1482,51 +2845,6 @@ cleanupPendingDeletions() {
     }
 }
 
-// MÉTODOS AUSENTES - ADICIONAR À CLASSE PersonalApp
-
-// 1. MÉTODO MELHORADO PARA CARREGAR PLANOS COM VERIFICAÇÃO
-async loadSavedPlansWithVerification() {
-    try {
-        console.log('Carregando planos com verificação...');
-        
-        // Carregar planos usando método melhorado
-        await this.loadSavedPlans();
-        
-        // Verificar se os planos foram carregados corretamente
-        if (!Array.isArray(this.savedPlans)) {
-            console.warn('savedPlans não é um array, inicializando como array vazio');
-            this.savedPlans = [];
-        }
-        
-        console.log(`${this.savedPlans.length} planos carregados na memória`);
-        
-        // Verificar integridade de cada plano
-        let plansRemoved = 0;
-        this.savedPlans = this.savedPlans.filter(plan => {
-            if (!plan || !plan.id) {
-                plansRemoved++;
-                console.warn('Plano inválido removido:', plan);
-                return false;
-            }
-            return true;
-        });
-        
-        if (plansRemoved > 0) {
-            console.log(`${plansRemoved} plano(s) inválido(s) removido(s)`);
-            // Salvar lista limpa
-            this.saveToLocalStorageAsBackup();
-        }
-        
-        // Log detalhado dos planos carregados
-        this.savedPlans.forEach((plan, index) => {
-            console.log(`  ${index + 1}. ${plan.nome} (ID: ${plan.id})`);
-        });
-        
-    } catch (error) {
-        console.error('Erro ao carregar planos com verificação:', error);
-        this.savedPlans = [];
-    }
-}
 
 // 2. VERIFICAR E RESTAURAR PLANOS PERDIDOS
 async verifyAndRestorePlans() {
@@ -1697,44 +3015,6 @@ performAutomaticFixes(issues) {
     if (fixesApplied > 0) {
         console.log(`${fixesApplied} correção(ões) automática(s) aplicada(s)`);
         this.saveToLocalStorageAsBackup();
-    }
-}
-
-// 7. MODO DE FALLBACK ROBUSTO PARA QUANDO FIREBASE FALHA
-async initializeFallbackMode() {
-    try {
-        console.log('Iniciando modo offline...');
-        
-        // Configurações básicas (já feitas, mas garantir)
-        this.setDefaultDates();
-        this.setupEventListeners();
-        
-        // Carregar apenas do localStorage
-        await this.loadFromLocalStorageAsBackup();
-        
-        // Usar base de exercícios embutida se core falhar
-        if (!this.core.exerciseDatabaseLoaded) {
-            console.log('Usando base de exercícios de fallback...');
-            this.initializeFallbackExerciseDatabase();
-        }
-        
-        // Popular interface
-        this.populateGroupFilter();
-        this.populateExerciseSelect();
-        this.showPlanList();
-        
-        // Configurar auto-save local apenas
-        this.startLocalOnlyAutoSave();
-        
-        console.log('Modo offline inicializado');
-        
-    } catch (fallbackError) {
-        console.error('Erro crítico no modo fallback:', fallbackError);
-        
-        // Último recurso: interface mínima
-        this.savedPlans = [];
-        this.showPlanList();
-        this.showMessage('Aplicação iniciada em modo mínimo. Algumas funcionalidades não estarão disponíveis.', 'warning');
     }
 }
 
@@ -2089,14 +3369,6 @@ updateSyncStatusDisplay() {
 }
 
 
-    savePlansToStorage() {
-        try {
-            localStorage.setItem('jsfitapp_plans', JSON.stringify(this.savedPlans));
-        } catch (error) {
-            console.error('Erro ao salvar no localStorage:', error);
-        }
-    }
-
     // =============================================
     // MÉTODOS DE INTERFACE E CONFIGURAÇÃO
     // =============================================
@@ -2149,8 +3421,6 @@ async handleOnlineStatusChange(isOnline) {
     }
 }
 
-
-
 // MÉTODO PARA FORÇAR SINCRONIZAÇÃO MANUAL
 async forceSyncAllPlans() {
     try {
@@ -2191,124 +3461,130 @@ async forceSyncAllPlans() {
 }
 
 
-    populateGroupFilter() {
-        const groupFilter = document.getElementById('exerciseGroupFilter');
-        if (!groupFilter) return;
+// CORREÇÃO 1: Modificar populateGroupFilter para ser defensivo
+populateGroupFilter() {
+    const groupFilter = document.getElementById('exerciseGroupFilter');
+    if (!groupFilter) {
+        console.log('ℹ️ exerciseGroupFilter não disponível no momento');
+        return; // Sair silenciosamente sem erro
+    }
 
-        // Salvar valor atual
-        const currentValue = groupFilter.value;
+    // Salvar valor atual
+    const currentValue = groupFilter.value;
 
-        // Limpar opções (exceto "todos")
-        groupFilter.innerHTML = '<option value="todos">📋 Todos os Grupos</option>';
+    // Limpar opções (exceto "todos")
+    groupFilter.innerHTML = '<option value="todos">📋 Todos os Grupos</option>';
 
-        // Usar core para obter grupos
-        const groups = this.core.getAllExerciseGroups();
+    try {
+        // Resto do código original permanece igual...
+        if (!this.core) {
+            console.warn('⚠️ Core não disponível, usando grupos padrão');
+            this.populateDefaultGroups(groupFilter);
+            return;
+        }
+
+        if (!this.core.exerciseDatabaseLoaded || !this.core.exerciseDatabase) {
+            console.warn('⚠️ Base de exercícios não carregada, usando grupos padrão');
+            this.populateDefaultGroups(groupFilter);
+            return;
+        }
+
+        // Continuar com o código original...
+        const groups = this.getExerciseGroupsFromDatabase();
         
+        if (!groups || groups.length === 0) {
+            console.warn('⚠️ Nenhum grupo encontrado, usando grupos padrão');
+            this.populateDefaultGroups(groupFilter);
+            return;
+        }
+
         groups.forEach(grupo => {
             const option = document.createElement('option');
             option.value = grupo.toLowerCase();
-            option.textContent = `💪 ${this.core.capitalizeFirstLetter(grupo)}`;
+            option.textContent = `💪 ${this.capitalizeGroup(grupo)}`;
             groupFilter.appendChild(option);
         });
 
-        // Restaurar valor se ainda existe
-        if (currentValue && currentValue !== '') {
-            const optionExists = Array.from(groupFilter.options).some(opt => opt.value === currentValue);
-            if (optionExists) {
-                groupFilter.value = currentValue;
-            }
-        }
+        console.log(`✅ ${groups.length} grupos adicionados ao filtro`);
+
+    } catch (error) {
+        console.error('❌ Erro ao popular grupos:', error);
+        this.populateDefaultGroups(groupFilter);
     }
 
-    populateExerciseSelect(filterGroup = 'todos') {
-        const exerciseSelect = document.getElementById('exerciseName');
-        if (!exerciseSelect) return;
-
-        // Salvar opção custom e valor atual
-        const currentValue = exerciseSelect.value;
-
-        // Limpar todas as opções
-        exerciseSelect.innerHTML = '';
-
-        // Recriar opção custom
-        const newCustomOption = document.createElement('option');
-        newCustomOption.value = 'custom';
-        newCustomOption.textContent = '✏️ Exercício Personalizado';
-        exerciseSelect.appendChild(newCustomOption);
-
-        // Usar core para obter exercícios
-        if (this.core.exerciseDatabaseLoaded && this.core.exerciseDatabase.length > 0) {
-            let exercisesToShow = this.core.exerciseDatabase;
-
-            if (filterGroup && filterGroup !== 'todos') {
-                exercisesToShow = this.core.exerciseDatabase.filter(ex =>
-                    ex.grupo && ex.grupo.toLowerCase() === filterGroup.toLowerCase()
-                );
-            }
-
-            if (filterGroup === 'todos') {
-                // Mostrar agrupado
-                const groupedExercises = {};
-                exercisesToShow.forEach(ex => {
-                    const grupo = ex.grupo || 'Outros';
-                    if (!groupedExercises[grupo]) {
-                        groupedExercises[grupo] = [];
-                    }
-                    groupedExercises[grupo].push(ex);
-                });
-
-                const sortedGroups = Object.keys(groupedExercises).sort();
-
-                sortedGroups.forEach(grupo => {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = this.core.capitalizeFirstLetter(grupo);
-
-                    const exercicios = groupedExercises[grupo].sort((a, b) =>
-                        a.nome.localeCompare(b.nome, 'pt-BR')
-                    );
-
-                    exercicios.forEach(ex => {
-                        const option = document.createElement('option');
-                        option.value = ex.nome;
-                        option.textContent = ex.nome;
-
-                        if (ex.nivel) {
-                            option.textContent += ` (${ex.nivel})`;
-                        }
-
-                        optgroup.appendChild(option);
-                    });
-
-                    exerciseSelect.appendChild(optgroup);
-                });
-            } else {
-                // Mostrar apenas exercícios do grupo selecionado
-                const sortedExercises = exercisesToShow.sort((a, b) =>
-                    a.nome.localeCompare(b.nome, 'pt-BR')
-                );
-
-                sortedExercises.forEach(ex => {
-                    const option = document.createElement('option');
-                    option.value = ex.nome;
-                    option.textContent = ex.nome;
-
-                    if (ex.nivel) {
-                        option.textContent += ` (${ex.nivel})`;
-                    }
-
-                    exerciseSelect.appendChild(option);
-                });
-            }
-        }
-
-        // Restaurar valor anterior se ainda existe
-        if (currentValue && currentValue !== '') {
-            const optionExists = Array.from(exerciseSelect.options).some(opt => opt.value === currentValue);
-            if (optionExists) {
-                exerciseSelect.value = currentValue;
-            }
+    // Restaurar valor se ainda existe
+    if (currentValue && currentValue !== '') {
+        const optionExists = Array.from(groupFilter.options).some(opt => opt.value === currentValue);
+        if (optionExists) {
+            groupFilter.value = currentValue;
         }
     }
+}
+
+
+
+// MÉTODO AUXILIAR: Obter grupos da base de exercícios de forma segura
+getExerciseGroupsFromDatabase() {
+    try {
+        if (!this.core?.exerciseDatabase || !Array.isArray(this.core.exerciseDatabase)) {
+            return null;
+        }
+
+        const groups = new Set();
+        
+        this.core.exerciseDatabase.forEach(exercise => {
+            if (exercise && exercise.grupo) {
+                groups.add(exercise.grupo);
+            }
+        });
+
+        return Array.from(groups).sort();
+
+    } catch (error) {
+        console.error('❌ Erro ao extrair grupos da base:', error);
+        return null;
+    }
+}
+
+// MÉTODO AUXILIAR: Grupos padrão como fallback
+populateDefaultGroups(groupFilter) {
+    const defaultGroups = [
+        'peito', 'costas', 'ombro', 'biceps', 'triceps', 
+        'perna', 'gluteo', 'abdome', 'antebraco'
+    ];
+
+    defaultGroups.forEach(grupo => {
+        const option = document.createElement('option');
+        option.value = grupo.toLowerCase();
+        option.textContent = `💪 ${this.capitalizeGroup(grupo)}`;
+        groupFilter.appendChild(option);
+    });
+
+    console.log('✅ Grupos padrão carregados como fallback');
+}
+
+// MÉTODO AUXILIAR: Capitalizar nome do grupo de forma segura
+capitalizeGroup(grupo) {
+    if (!grupo || typeof grupo !== 'string') {
+        return 'Grupo';
+    }
+
+    const exceptions = {
+        'biceps': 'Bíceps',
+        'triceps': 'Tríceps',
+        'quadriceps': 'Quadríceps',
+        'panturrilha': 'Panturrilha',
+        'antebraco': 'Antebraço',
+        'gluteo': 'Glúteo'
+    };
+
+    const lowerGroup = grupo.toLowerCase();
+    return exceptions[lowerGroup] || 
+           grupo.charAt(0).toUpperCase() + grupo.slice(1).toLowerCase();
+}
+
+
+// MÉTODO AUXILIAR: Fallback quando core não está disponível
 
     filterExercisesByGroup() {
         const groupFilter = document.getElementById('exerciseGroupFilter');
@@ -2381,22 +3657,22 @@ async forceSyncAllPlans() {
         }
     }
 
-    // =============================================
-    // MÉTODOS DE NAVEGAÇÃO
-    // =============================================
-
     showPlanCreator(planId = null) {
         document.getElementById('planCreator').style.display = 'block';
         document.getElementById('aiPlanCreator').style.display = 'none';
         document.getElementById('planList').style.display = 'none';
         document.getElementById('planDetails').style.display = 'none';
-
+    
         if (planId) {
             this.loadPlanForEditing(planId);
         } else {
             this.resetPlanForm();
         }
+        
+        // CORREÇÃO: Aguardar mais tempo e verificar se elementos existem
+
     }
+
 
     showAIPlanCreator() {
         document.getElementById('aiPlanCreator').style.display = 'block';
@@ -2405,13 +3681,18 @@ async forceSyncAllPlans() {
         document.getElementById('planDetails').style.display = 'none';
     }
 
-    showPlanList() {
-        document.getElementById('planCreator').style.display = 'none';
-        document.getElementById('aiPlanCreator').style.display = 'none';
-        document.getElementById('planDetails').style.display = 'none';
-        document.getElementById('planList').style.display = 'block';
-        this.renderPlanList();
+ 
+    
+    // ADICIONAR ESTE MÉTODO na classe:
+syncDataFromCore() {
+    if (this.core.JSFitCore && this.core.JSFitCore.getUserPlans) {
+        this.savedPlans = this.core.JSFitCore.getUserPlans();
+        console.log('🔄 Dados sincronizados do JSFitCore:', this.savedPlans?.length || 0);
+        return true;
     }
+    return false;
+}
+
 
     backToPlanList() {
         this.showPlanList();
@@ -2603,172 +3884,502 @@ async forceSyncAllPlans() {
     }
 
 
-// Adicionar estas funções ao personal.js
 
-// 1. Modificar o método renderPlanList para incluir botão de compartilhar
+    // Corrigir getLocalStorageKey() para ser mais específico:
+getLocalStorageKey() {
+    if (!this.currentUserId) {
+        console.error('❌ Tentativa de gerar chave sem usuário autenticado');
+        return null;
+    }
+    return `jsfitapp_plans_${this.currentUserId}`;
+}
+
+
+//cORREÇÃO 2: Novo método para forçar carregamento de todas as fontes
+async forceLoadPlansFromAllSources() {
+    console.log('🔍 Forçando carregamento de planos de todas as fontes...');
+    
+    try {
+        // FONTE 1: Método loadSavedPlans se existir
+        if (typeof this.loadSavedPlans === 'function') {
+            console.log('📥 Tentativa 1: loadSavedPlans()');
+            await this.loadSavedPlans();
+            if (this.savedPlans && this.savedPlans.length > 0) {
+                console.log(`✅ Carregados via loadSavedPlans: ${this.savedPlans.length} planos`);
+                return;
+            }
+        }
+        
+        // FONTE 2: Firebase direto se disponível
+        if (this.core && this.core.firebaseConnected) {
+            console.log('📥 Tentativa 2: Firebase direto');
+            try {
+                const firebasePlans = await this.core.loadPlansFromFirebase();
+                if (firebasePlans && Array.isArray(firebasePlans) && firebasePlans.length > 0) {
+                    this.savedPlans = firebasePlans;
+                    console.log(`✅ Carregados do Firebase: ${firebasePlans.length} planos`);
+                    return;
+                }
+            } catch (fbError) {
+                console.warn('⚠️ Erro Firebase:', fbError);
+            }
+        }
+        
+        // FONTE 3: LocalStorage com chave do usuário
+        if (this.currentUserId) {
+            console.log('📥 Tentativa 3: localStorage do usuário');
+            const userKey = `jsfitapp_plans_${this.currentUserId}`;
+            const userData = localStorage.getItem(userKey);
+            
+            if (userData) {
+                try {
+                    const parsed = JSON.parse(userData);
+                    if (parsed.plans && Array.isArray(parsed.plans)) {
+                        this.savedPlans = parsed.plans;
+                        console.log(`✅ Carregados do localStorage usuário: ${this.savedPlans.length} planos`);
+                        return;
+                    }
+                } catch (parseError) {
+                    console.warn('⚠️ Erro ao parsear dados do usuário:', parseError);
+                }
+            }
+        }
+        
+        // FONTE 4: LocalStorage geral (fallback)
+        console.log('📥 Tentativa 4: localStorage geral');
+        const generalData = localStorage.getItem('jsfitapp_plans');
+        if (generalData) {
+            try {
+                const parsed = JSON.parse(generalData);
+                if (Array.isArray(parsed)) {
+                    this.savedPlans = parsed;
+                    console.log(`✅ Carregados do localStorage geral: ${this.savedPlans.length} planos`);
+                    return;
+                }
+            } catch (parseError) {
+                console.warn('⚠️ Erro ao parsear dados gerais:', parseError);
+            }
+        }
+        
+        // FONTE 5: Procurar em todas as chaves do localStorage
+        console.log('📥 Tentativa 5: Busca em todas as chaves');
+        const allKeys = Object.keys(localStorage).filter(key => key.includes('jsfit') || key.includes('plans'));
+        
+        for (const key of allKeys) {
+            try {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    
+                    // Verificar se é array de planos
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        this.savedPlans = parsed;
+                        console.log(`✅ Encontrados em ${key}: ${parsed.length} planos`);
+                        return;
+                    }
+                    
+                    // Verificar se tem propriedade plans
+                    if (parsed.plans && Array.isArray(parsed.plans) && parsed.plans.length > 0) {
+                        this.savedPlans = parsed.plans;
+                        console.log(`✅ Encontrados em ${key}.plans: ${parsed.plans.length} planos`);
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.warn(`⚠️ Erro ao processar ${key}:`, error);
+            }
+        }
+        
+        console.log('ℹ️ Nenhum plano encontrado em qualquer fonte');
+        this.savedPlans = [];
+        
+    } catch (error) {
+        console.error('❌ Erro no carregamento forçado:', error);
+        this.savedPlans = [];
+    }
+}
+
+// CORREÇÃO 3: Modificar renderPlanList para ser mais defensivo
 renderPlanList() {
+    console.log('🎨 Renderizando lista de planos...');
+    
     const container = document.getElementById('planListContent');
-    if (!container) return;
-
+    if (!container) {
+        console.error('❌ Container planListContent não encontrado');
+        return;
+    }
+    
+    // VALIDAÇÕES DEFENSIVAS CRÍTICAS
+    if (!this.savedPlans) {
+        console.warn('⚠️ savedPlans é null, inicializando como array vazio');
+        this.savedPlans = [];
+    }
+    
+    if (!Array.isArray(this.savedPlans)) {
+        console.warn('⚠️ savedPlans não é um array, convertendo:', typeof this.savedPlans);
+        this.savedPlans = [];
+    }
+    
+    console.log(`📊 Renderizando ${this.savedPlans.length} planos`);
+    
+    // CASO LISTA VAZIA
     if (this.savedPlans.length === 0) {
         container.innerHTML = `
-            <div class="plan-card">
-                <h3>Nenhum plano encontrado</h3>
-                <p>Crie seu primeiro plano de treino!</p>
-                <div class="plan-card-actions">
-                    <button class="btn btn-primary btn-small" onclick="app.showAIPlanCreator()">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <div class="workout-icon">🏋️</div>
+                </div>
+                <h3 class="empty-state-title">Nenhum plano encontrado</h3>
+                <p class="empty-state-description">
+                    Crie seu primeiro plano de treino personalizado!
+                </p>
+                <div class="empty-state-actions">
+                    <button class="btn btn-primary btn-large" onclick="app.showAIPlanCreator()">
                         🤖 Criar com IA
                     </button>
-                    <button class="btn btn-secondary btn-small" onclick="app.showPlanCreator()">
-                        ➕ Criar Manualmente
+                    <button class="btn btn-secondary btn-large" onclick="app.showPlanCreator()">
+                        ✏️ Criar Manualmente
                     </button>
+                </div>
+                <div class="debug-info" style="margin-top: 20px; font-size: 12px; color: #666;">
+                    <details>
+                        <summary>Informações de Debug</summary>
+                        <p>savedPlans.length: ${this.savedPlans ? this.savedPlans.length : 'undefined'}</p>
+                        <p>currentUserId: ${this.currentUserId || 'null'}</p>
+                        <p>isUserAuthenticated: ${this.isUserAuthenticated || false}</p>
+                        <p>localStorage keys: ${Object.keys(localStorage).filter(k => k.includes('jsfit')).length}</p>
+                        <button onclick="app.debugDataState()" class="btn btn-sm" style="margin-top: 5px;">
+                            Debug Completo
+                        </button>
+                    </details>
                 </div>
             </div>
         `;
         return;
     }
-
-    container.innerHTML = this.savedPlans.map(plan => `
-        <div class="plan-card">
-            <h3>${plan.nome}</h3>
-            <p><strong>Aluno:</strong> ${plan.aluno?.nome || 'Não informado'}</p>
-            <p><strong>Período:</strong> ${this.core.formatDate(plan.dataInicio)} até ${this.core.formatDate(plan.dataFim)}</p>
-            <p><strong>Frequência:</strong> ${plan.dias} dias por semana</p>
-            <p><strong>Objetivo:</strong> ${plan.perfil?.objetivo || 'Não especificado'}</p>
-            
-            ${plan.shareId ? `
-                <div class="share-status">
-                    <span class="share-badge">🔗 ID: ${plan.shareId}</span>
-                    <small>Compartilhado e disponível para importação</small>
-                </div>
-            ` : ''}
-            
-            <div class="plan-card-actions">
-                <button class="btn btn-primary btn-small" onclick="app.viewPlan('${plan.id}')">
-                    👁️ Visualizar
-                </button>
-                <button class="btn btn-secondary btn-small" onclick="app.editPlan('${plan.id}')">
-                    ✏️ Editar
-                </button>
-                ${plan.shareId ? `
-                    <button class="btn btn-success btn-small" onclick="app.copyShareId('${plan.shareId}')">
-                        📋 Copiar ID
-                    </button>
-                    <button class="btn btn-warning btn-small" onclick="app.stopSharing('${plan.id}')">
-                        🔒 Parar Compartilhar
-                    </button>
-                ` : `
-                    <button class="btn btn-success btn-small" onclick="app.sharePlan('${plan.id}')">
-                        🔗 Compartilhar
-                    </button>
-                `}
-                <button class="btn btn-danger btn-small" onclick="app.deletePlan('${plan.id}')">
-                    🗑️ Excluir
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// 2. Função principal de compartilhamento
-async sharePlan(planId) {
+    
+    // RENDERIZAR PLANOS EXISTENTES
     try {
-        const plan = this.savedPlans.find(p => p.id === planId);
-        if (!plan) {
-            this.showMessage('Plano não encontrado', 'error');
-            return;
+        const validPlans = this.savedPlans.filter(plan => {
+            if (!plan) {
+                console.warn('⚠️ Plano nulo encontrado');
+                return false;
+            }
+            if (!plan.id) {
+                console.warn('⚠️ Plano sem ID:', plan.nome || 'Nome indefinido');
+                // Não remover, apenas avisar
+                return true;
+            }
+            return true;
+        });
+        
+        if (validPlans.length !== this.savedPlans.length) {
+            console.log(`🧹 ${this.savedPlans.length - validPlans.length} planos inválidos encontrados (mantidos para debug)`);
         }
-
-        // Verificar se já está compartilhado
-        if (plan.shareId) {
-            this.showMessage('Este plano já está compartilhado', 'info');
-            this.showQuickShareInfo(plan.shareId, plan.nome);
-            return;
-        }
-
-        this.showMessage('Preparando plano para compartilhamento...', 'info');
-
-        // Validação básica
-        if (!plan.nome || !plan.aluno?.nome) {
-            this.showMessage('Plano deve ter nome e nome do aluno para ser compartilhado', 'warning');
-            return;
-        }
-
-        if (!plan.treinos || plan.treinos.length === 0) {
-            this.showMessage('Plano deve ter pelo menos um treino para ser compartilhado', 'warning');
-            return;
-        }
-
-        // Preparar dados para compartilhamento (sanitizar)
-        const sharedPlan = this.preparePlanForSharing(plan);
-
-        // Gerar ID de compartilhamento
-        const shareId = this.generateShareId();
-
-        // Salvar no Firebase
-        await this.saveSharedPlanToFirebase(shareId, sharedPlan);
-
-        // Atualizar plano local com ID de compartilhamento
-        plan.shareId = shareId;
-        plan.sharedAt = new Date().toISOString();
-
-        // Salvar localmente
-        await this.savePlansToStorage();
-
-        // Mostrar resultado
-        this.showQuickShareInfo(shareId, plan.nome);
-        this.renderPlanList(); // Recarregar lista para mostrar novo status
-
-    } catch (error) {
-        console.error('Erro ao compartilhar plano:', error);
-        this.showMessage(`Erro ao compartilhar: ${error.message}`, 'error');
+        
+        // Gerar HTML dos planos
+        const plansHTML = validPlans.map(plan => this.renderSinglePlan(plan)).join('');
+        
+        // Header da lista
+        const headerHTML = `
+            <div class="plan-list-header">
+                <div class="plan-list-title">
+                    <h2>Seus Planos de Treino</h2>
+                    <span class="plan-count">${validPlans.length} plano${validPlans.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="plan-list-actions">
+                    <button class="btn btn-primary btn-small" onclick="app.showAIPlanCreator()">
+                        🤖 Novo com IA
+                    </button>
+                    <button class="btn btn-secondary btn-small" onclick="app.showPlanCreator()">
+                        ✏️ Novo Manual
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = '<div class="plan-list-grid">'  + plansHTML + headerHTML + '</div>';
+        
+        console.log(`✅ ${validPlans.length} planos renderizados com sucesso`);
+        
+    } catch (renderError) {
+        console.error('❌ Erro ao renderizar planos:', renderError);
+        
+        // Fallback com informações de debug
+        container.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Erro ao carregar planos</h3>
+                <p>Dados encontrados mas houve erro na renderização.</p>
+                <div class="error-actions">
+                    <button class="btn btn-primary" onclick="app.forceLoadPlansFromAllSources().then(() => app.renderPlanList())">
+                        🔄 Tentar Recarregar
+                    </button>
+                    <button class="btn btn-secondary" onclick="app.debugDataState()">
+                        🔧 Debug Completo
+                    </button>
+                </div>
+                <details class="error-details" style="margin-top: 15px;">
+                    <summary>Detalhes do Erro</summary>
+                    <code>${renderError.message}</code>
+                    <br><br>
+                    <small>savedPlans: ${this.savedPlans ? this.savedPlans.length : 'undefined'} itens</small>
+                </details>
+            </div>
+        `;
     }
 }
 
-// 3. Preparar plano para compartilhamento (remover dados sensíveis)
-preparePlanForSharing(plan) {
-    const sharedPlan = {
-        nome: plan.nome,
-        aluno: {
-            nome: plan.aluno?.nome || '',
-            dataNascimento: plan.aluno?.dataNascimento || '',
-            idade: plan.aluno?.idade || null,
-            altura: plan.aluno?.altura || '',
-            peso: plan.aluno?.peso || ''
-            // CPF removido por segurança
-        },
-        dias: plan.dias,
-        dataInicio: plan.dataInicio,
-        dataFim: plan.dataFim,
-        perfil: {
-            objetivo: plan.perfil?.objetivo || '',
-            altura: plan.aluno?.altura || plan.perfil?.altura || '',
-            peso: plan.aluno?.peso || plan.perfil?.peso || '',
-            idade: plan.aluno?.idade || plan.perfil?.idade || null,
-            porte: plan.perfil?.porte || ''
-        },
-        treinos: plan.treinos.map(treino => ({
-            id: treino.id,
-            nome: treino.nome,
-            foco: treino.foco,
-            exercicios: treino.exercicios.map(ex => ({
-                id: ex.id,
-                nome: ex.nome,
-                descricao: ex.descricao,
-                series: ex.series,
-                repeticoes: ex.repeticoes,
-                carga: ex.carga,
-                descanso: ex.descanso,
-                observacoesEspeciais: ex.observacoesEspeciais,
-                tecnica: ex.tecnica
-            }))
-        })),
-        observacoes: plan.observacoes || {},
-        tecnicas_aplicadas: plan.tecnicas_aplicadas || {}
-    };
-
-    return sharedPlan;
+// CORREÇÃO 4: Método para verificar estado dos dados
+debugDataState() {
+    console.log('🔬 === DIAGNÓSTICO DETALHADO ===');
+    
+    // Estado da aplicação
+    console.log('📊 Estado da Aplicação:');
+    console.log('- this.savedPlans:', this.savedPlans);
+    console.log('- this.savedPlans.length:', this.savedPlans?.length);
+    console.log('- this.isUserAuthenticated:', this.isUserAuthenticated);
+    console.log('- this.currentUserId:', this.currentUserId);
+    
+    // localStorage
+    const allKeys = Object.keys(localStorage);
+    const jsfitKeys = allKeys.filter(key => key.includes('jsfit'));
+    console.log('💾 LocalStorage:');
+    console.log('- Todas as chaves:', allKeys);
+    console.log('- Chaves JSFit:', jsfitKeys);
+    
+    jsfitKeys.forEach(key => {
+        try {
+            const data = localStorage.getItem(key);
+            if (data) {
+                const parsed = JSON.parse(data);
+                console.log(`- ${key}:`, {
+                    length: data.length,
+                    type: typeof parsed,
+                    isArray: Array.isArray(parsed),
+                    plansCount: parsed.plans ? parsed.plans.length : 'N/A'
+                });
+            }
+        } catch (e) {
+            console.log(`- ${key}: ERRO ao parsear`);
+        }
+    });
+    
+    // Core e Firebase
+    console.log('🔥 Firebase/Core:');
+    console.log('- this.core exists:', !!this.core);
+    console.log('- this.core.firebaseConnected:', this.core?.firebaseConnected);
+    console.log('- window.db:', !!window.db);
+    
+    // Tentativa de recuperação
+    console.log('🚨 === TENTANDO RECUPERAÇÃO AUTOMÁTICA ===');
+    this.forceLoadPlansFromAllSources().then(() => {
+        console.log('✅ Recuperação concluída');
+        console.log('📊 Novo estado - savedPlans:', this.savedPlans?.length);
+        this.renderPlanList();
+    });
 }
+
+// CORREÇÃO 5: Adicionar este método de inicialização mais robusta
+async initializeWithRecovery() {
+    try {
+        console.log('🚀 Inicialização com recuperação...');
+        
+        // Garantir estruturas básicas
+        this.savedPlans = this.savedPlans || [];
+        
+        // Tentar carregar dados imediatamente
+        await this.forceLoadPlansFromAllSources();
+        
+        // Configurar interface
+        this.setDefaultDates();
+        this.setupEventListeners();
+        
+        // Mostrar lista
+        this.showPlanList();
+        
+        console.log('✅ Inicialização com recuperação concluída');
+        
+    } catch (error) {
+        console.error('❌ Erro na inicialização com recuperação:', error);
+    }
+}
+
+// =============================================
+// MÉTODO AUXILIAR: renderSinglePlan
+// =============================================
+renderSinglePlan(plan, coreExists = true) {
+    // Verificações de segurança para dados do plano
+    const planName = this.sanitizeText(plan.nome) || 'Plano sem nome';
+    const studentName = this.sanitizeText(plan.aluno?.nome) || 'Não informado';
+    const objective = this.sanitizeText(plan.perfil?.objetivo) || 'Não especificado';
+    const days = parseInt(plan.dias) || 1;
+    
+    // Formatação segura de datas
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'Não definido';
+        
+        if (coreExists && window.Core.formatDate) {
+            try {
+                return window.Core.formatDate(dateStr);
+            } catch (formatError) {
+                console.warn('Erro na formatação de data:', formatError);
+            }
+        }
+        
+        // Fallback manual
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR');
+        } catch (dateError) {
+            return dateStr; // Retornar string original se falhar
+        }
+    };
+    
+    const startDate = formatDate(plan.dataInicio);
+    const endDate = formatDate(plan.dataFim);
+    
+    // Informações de sincronização
+    const getSyncStatus = () => {
+        if (plan.saved_in_firebase) {
+            return '<span class="sync-status synced" title="Sincronizado com Firebase">☁️</span>';
+        } else if (plan.retry_firebase) {
+            return '<span class="sync-status pending" title="Aguardando sincronização">⏳</span>';
+        } else if (plan.saved_in_localstorage_only) {
+            return '<span class="sync-status local" title="Salvo apenas localmente">💾</span>';
+        }
+        return '';
+    };
+    
+    // Status de compartilhamento
+    const shareSection = plan.shareId ? `
+        <div class="share-status">
+            <span class="share-badge">🔗 ID: ${plan.shareId}</span>
+            <small>Compartilhado e disponível para importação</small>
+        </div>
+    ` : '';
+    
+    // Botões de ação com base no status
+    const getActionButtons = () => {
+        let buttons = `
+            <button class="btn btn-primary btn-small" onclick="app.viewPlan('${plan.id}')" title="Visualizar plano">
+                👁️ Visualizar
+            </button>
+            <button class="btn btn-secondary btn-small" onclick="app.editPlan('${plan.id}')" title="Editar plano">
+                ✏️ Editar
+            </button>
+        `;
+        
+        if (plan.shareId) {
+            buttons += `
+                <button class="btn btn-success btn-small" onclick="app.copyShareId('${plan.shareId}')" title="Copiar ID de compartilhamento">
+                    📋 Copiar ID
+                </button>
+                <button class="btn btn-warning btn-small" onclick="app.stopSharing('${plan.id}')" title="Parar compartilhamento">
+                    🔒 Parar Compartilhar
+                </button>
+            `;
+        } else {
+            buttons += `
+                <button class="btn btn-success btn-small" onclick="app.sharePlan('${plan.id}')" title="Compartilhar plano">
+                    🔗 Compartilhar
+                </button>
+            `;
+        }
+        
+        buttons += `
+            <button class="btn btn-danger btn-small" onclick="app.deletePlan('${plan.id}')" title="Excluir plano">
+                🗑️ Excluir
+            </button>
+        `;
+        
+        return buttons;
+    };
+    
+    // Informações adicionais
+    const additionalInfo = [];
+    if (plan.aluno?.idade) {
+        additionalInfo.push(`${plan.aluno.idade} anos`);
+    }
+    if (plan.aluno?.altura) {
+        additionalInfo.push(plan.aluno.altura);
+    }
+    if (plan.aluno?.peso) {
+        additionalInfo.push(plan.aluno.peso);
+    }
+    
+    const personalInfo = additionalInfo.length > 0 ? 
+        `<p class="plan-personal-info"><strong>Perfil:</strong> ${additionalInfo.join(' • ')}</p>` : '';
+    
+    // Template do plano
+    return `
+        <div class="plan-card" data-plan-id="${plan.id}">
+            <div class="plan-card-header">
+                <div class="plan-title-section">
+                    <h3 class="plan-title">${planName}</h3>
+                    ${getSyncStatus()}
+                </div>
+                <div class="plan-meta">
+                    <span class="plan-frequency">${days} dia${days !== 1 ? 's' : ''}/semana</span>
+                </div>
+            </div>
+            
+            <div class="plan-card-body">
+                <div class="plan-info-grid">
+                    <div class="plan-info-item">
+                        <span class="plan-info-label">Aluno:</span>
+                        <span class="plan-info-value">${studentName}</span>
+                    </div>
+                    <div class="plan-info-item">
+                        <span class="plan-info-label">Período:</span>
+                        <span class="plan-info-value">${startDate} até ${endDate}</span>
+                    </div>
+                    <div class="plan-info-item">
+                        <span class="plan-info-label">Objetivo:</span>
+                        <span class="plan-info-value">${objective}</span>
+                    </div>
+                </div>
+                
+                ${personalInfo}
+                ${shareSection}
+                
+                ${plan.treinos && plan.treinos.length > 0 ? `
+                    <div class="plan-workouts-preview">
+                        <small class="workouts-count">
+                            ${plan.treinos.length} treino${plan.treinos.length !== 1 ? 's' : ''} configurado${plan.treinos.length !== 1 ? 's' : ''}
+                        </small>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="plan-card-actions">
+                ${getActionButtons()}
+            </div>
+        </div>
+    `;
+}
+
+// =============================================
+// MÉTODO AUXILIAR: sanitizeText (se não existir)
+// =============================================
+sanitizeText(text) {
+    if (text === null || text === undefined) {
+        return '';
+    }
+    
+    // Converter para string e limpar
+    const str = String(text).trim();
+    
+    // Escapar caracteres HTML para prevenir XSS
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
+
 
 // 4. Gerar ID de compartilhamento de 6 caracteres
 generateShareId() {
@@ -2780,17 +4391,80 @@ generateShareId() {
     return result;
 }
 
-// 5. Salvar plano compartilhado no Firebase
+
 async saveSharedPlanToFirebase(shareId, planData) {
     try {
-        await this.core.initializeFirebase();
+        console.log('💾 Iniciando salvamento do plano compartilhado...');
+        console.log('Share ID:', shareId);
+        console.log('Plan Data:', planData?.nome || 'Nome não disponível');
 
-        if (!this.core.firebaseConnected) {
-            throw new Error('Firebase não está conectado');
+        // DIAGNÓSTICO COMPLETO DO FIREBASE
+        console.log('🔍 DIAGNÓSTICO FIREBASE:');
+        console.log('- this.core existe:', !!this.core);
+        console.log('- this.core.firebaseConnected:', this.core?.firebaseConnected);
+        console.log('- window.db existe:', !!window.db);
+        console.log('- window.firebaseApp existe:', !!window.firebaseApp);
+        console.log('- window.firebaseAuth existe:', !!window.firebaseAuth);
+
+        // BUSCAR CORE SE NECESSÁRIO
+        let coreInstance = this.core;
+        if (!coreInstance) {
+            console.log('Core não encontrado, buscando...');
+            coreInstance = this.findCoreInstance();
+            if (coreInstance) {
+                this.core = coreInstance;
+                console.log('Core encontrado e atualizado');
+            }
         }
 
+        // VERIFICAÇÕES DE PRÉ-REQUISITOS
+        if (!shareId || typeof shareId !== 'string' || shareId.length !== 6) {
+            throw new Error('Share ID inválido');
+        }
+
+        if (!planData || !planData.nome) {
+            throw new Error('Dados do plano inválidos');
+        }
+
+        // VERIFICAÇÃO DE FIREBASE MÚLTIPLA
+        let firebaseReady = false;
+
+        // Método 1: Via core
+        if (coreInstance && coreInstance.firebaseConnected) {
+            firebaseReady = true;
+            console.log('Firebase disponível via core');
+        }
+        // Método 2: Via globals do Firebase
+        else if (window.db && window.firebaseApp) {
+            firebaseReady = true;
+            console.log('Firebase disponível via window globals');
+        }
+        // Método 3: Tentar inicializar se core existe
+        else if (coreInstance && typeof coreInstance.initializeFirebase === 'function') {
+            console.log('Tentando inicializar Firebase...');
+            try {
+                await coreInstance.initializeFirebase();
+                if (coreInstance.firebaseConnected) {
+                    firebaseReady = true;
+                    console.log('Firebase inicializado com sucesso');
+                }
+            } catch (initError) {
+                console.error('Falha na inicialização:', initError);
+            }
+        }
+
+        if (!firebaseReady) {
+            throw new Error('Firebase não está disponível ou conectado');
+        }
+
+        // IMPORTAR FUNÇÕES DO FIRESTORE
         const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
 
+        if (!doc || !setDoc) {
+            throw new Error('Funções do Firestore não puderam ser importadas');
+        }
+
+        // PREPARAR DADOS DO COMPARTILHAMENTO
         const shareData = {
             shareId: shareId,
             planData: planData,
@@ -2798,19 +4472,70 @@ async saveSharedPlanToFirebase(shareId, planData) {
             isActive: true,
             expiresAt: this.getDefaultExpirationDate(),
             accessCount: 0,
-            lastAccessedAt: null
+            lastAccessedAt: null,
+            createdBy: this.currentUserId,
+            createdByEmail: this.userEmail,
+            version: '1.0',
+            platform: 'web'
         };
 
+        console.log('📝 Dados preparados para salvamento:', {
+            shareId: shareData.shareId,
+            planName: shareData.planData.nome,
+            createdBy: shareData.createdBy,
+            expiresAt: shareData.expiresAt
+        });
+
+        // SALVAR NO FIREBASE
+        console.log('🔥 Salvando no Firebase...');
         const shareRef = doc(window.db, 'shared_plans', shareId);
+        
         await setDoc(shareRef, shareData);
 
-        console.log(`Plano compartilhado salvo no Firebase: ${shareId}`);
+        console.log('✅ Plano compartilhado salvo no Firebase com sucesso');
+        console.log('- Collection: shared_plans');
+        console.log('- Document ID:', shareId);
+        console.log('- Plan Name:', planData.nome);
+
+        return shareId;
 
     } catch (error) {
-        console.error('Erro ao salvar no Firebase:', error);
-        throw new Error('Não foi possível salvar no Firebase. Verifique sua conexão.');
+        console.error('❌ ERRO DETALHADO no saveSharedPlanToFirebase:');
+        console.error('- Tipo do erro:', error.constructor.name);
+        console.error('- Mensagem:', error.message);
+        console.error('- Stack:', error.stack);
+        console.error('- Código Firebase:', error.code);
+        
+        // LOG DO CONTEXTO DO ERRO
+        console.error('- Contexto:');
+        console.error('  * shareId:', shareId);
+        console.error('  * planData existe:', !!planData);
+        console.error('  * planData.nome:', planData?.nome);
+        console.error('  * currentUserId:', this.currentUserId);
+        console.error('  * userEmail:', this.userEmail);
+        console.error('  * window.db:', !!window.db);
+
+        // CATEGORIZAR E RELANÇAR ERRO COM MENSAGEM AMIGÁVEL
+        let friendlyMessage;
+        
+        if (error.code === 'permission-denied') {
+            friendlyMessage = 'Sem permissão para salvar compartilhamento. Verifique se está logado.';
+        } else if (error.code === 'unavailable' || error.message.includes('offline')) {
+            friendlyMessage = 'Firebase temporariamente indisponível. Tente novamente.';
+        } else if (error.message.includes('Firebase não está')) {
+            friendlyMessage = 'Sistema de compartilhamento não está conectado. Aguarde alguns segundos e tente novamente.';
+        } else if (error.message.includes('importadas')) {
+            friendlyMessage = 'Erro no carregamento do sistema. Recarregue a página.';
+        } else if (error.message.includes('Share ID inválido')) {
+            friendlyMessage = 'Erro interno: ID de compartilhamento inválido.';
+        } else {
+            friendlyMessage = `Erro no compartilhamento: ${error.message}`;
+        }
+
+        throw new Error(friendlyMessage);
     }
 }
+
 
 // 6. Mostrar informações de compartilhamento rapidamente
 showQuickShareInfo(shareId, planName) {
@@ -2866,68 +4591,7 @@ showQuickShareInfo(shareId, planName) {
     }, 15000);
 }
 
-// 7. Copiar ID de compartilhamento
-async copyShareId(shareId) {
-    try {
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(shareId);
-            this.showMessage(`ID ${shareId} copiado!`, 'success');
-        } else {
-            // Fallback para navegadores mais antigos
-            const tempInput = document.createElement('input');
-            tempInput.value = shareId;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999);
-            
-            try {
-                document.execCommand('copy');
-                this.showMessage(`ID ${shareId} copiado!`, 'success');
-            } catch (err) {
-                this.showMessage(`Copie manualmente: ${shareId}`, 'info');
-            }
-            
-            document.body.removeChild(tempInput);
-        }
-    } catch (error) {
-        this.showMessage(`Erro ao copiar. ID: ${shareId}`, 'warning');
-    }
-}
 
-// 8. Parar compartilhamento
-async stopSharing(planId) {
-    if (!confirm('Deseja parar de compartilhar este plano?\nO aluno não conseguirá mais importá-lo.')) {
-        return;
-    }
-
-    try {
-        const plan = this.savedPlans.find(p => p.id === planId);
-        if (!plan || !plan.shareId) {
-            this.showMessage('Plano não está compartilhado', 'info');
-            return;
-        }
-
-        this.showMessage('Removendo compartilhamento...', 'info');
-
-        // Desativar no Firebase
-        await this.deactivateSharedPlan(plan.shareId);
-
-        // Remover ID local
-        delete plan.shareId;
-        delete plan.sharedAt;
-
-        // Salvar alterações
-        await this.savePlansToStorage();
-
-        // Atualizar interface
-        this.renderPlanList();
-        this.showMessage('Compartilhamento removido', 'success');
-
-    } catch (error) {
-        console.error('Erro ao parar compartilhamento:', error);
-        this.showMessage('Erro ao remover compartilhamento', 'error');
-    }
-}
 
 // 9. Desativar plano compartilhado no Firebase
 async deactivateSharedPlan(shareId) {
@@ -2961,10 +4625,6 @@ getDefaultExpirationDate() {
     date.setDate(date.getDate() + 30);
     return date;
 }
-
-    // =============================================
-    // MÉTODOS STUBS (A IMPLEMENTAR)
-    // =============================================
 
 
 // ✅ NOVA FUNÇÃO: Sincronizar configuração
@@ -3181,6 +4841,7 @@ showPlanTypeConfigModal() {
         console.log(`Exercício adicionado ao treino ${workoutIndex}:`, newExercise);
     }
 
+
     editExercise(workoutIndex, exerciseIndex) {
         // Salvar posição atual do scroll
         this.currentScrollPosition = window.scrollY;
@@ -3188,26 +4849,44 @@ showPlanTypeConfigModal() {
         // Fechar editor existente se houver
         this.closeInlineEditor();
         
-        // Definir índices atuais
-        this.currentWorkoutIndex = workoutIndex;  // Esta linha deve existir
+        // Definir índices atuais PRIMEIRO (propriedades da classe)
+        this.currentWorkoutIndex = workoutIndex;
         this.currentExerciseIndex = exerciseIndex;
     
-        // Verificar se exercício existe
-        if (!this.currentPlan.treinos[workoutIndex] || 
-            !this.currentPlan.treinos[workoutIndex].exercicios[exerciseIndex]) {
+        // Verificar se exercício existe usando os índices
+        if (!this.currentPlan.treinos[this.currentWorkoutIndex] || 
+            !this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex]) {
             this.showMessage('Exercício não encontrado', 'error');
             return;
         }
     
-        const exercise = this.currentPlan.treinos[workoutIndex].exercicios[exerciseIndex];
-        const workout = this.currentPlan.treinos[workoutIndex];
+        // Obter dados usando os índices salvos
+        const exercise = this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex];
+        const workout = this.currentPlan.treinos[this.currentWorkoutIndex];
     
         // Criar e mostrar editor fullscreen
-        this.createFullscreenEditor(exercise, workoutIndex, workout);
+        this.createFullscreenEditor(exercise, this.currentWorkoutIndex, workout);
+        
+        // Popular dados após inserir no DOM usando os índices salvos na classe
+        setTimeout(() => {
+            // Buscar dados novamente usando as propriedades da classe para evitar problemas de escopo
+            const currentExercise = this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex];
+            const currentWorkout = this.currentPlan.treinos[this.currentWorkoutIndex];
+            
+            // Verificação adicional de segurança
+            if (!currentExercise || !currentWorkout) {
+                console.error('Erro: dados do exercício não encontrados no setTimeout');
+                this.showMessage('Erro ao carregar dados do exercício', 'error');
+                return;
+            }
+            
+            this.populateInlineEditor(currentExercise, this.currentWorkoutIndex, currentWorkout);
+        }, 100);
         
         console.log(`Editando exercício: ${exercise.nome} (Treino ${workout.id})`);
     }
-    
+
+
     createFullscreenEditor(exercise, workoutIndex, workout) {
         // Criar HTML do editor
         const editorHTML = this.createInlineEditorHTML(exercise);
@@ -3259,7 +4938,7 @@ showPlanTypeConfigModal() {
                             <img id="exerciseGif" 
                                 src="" 
                                 alt="Demonstração do exercício" 
-                                style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color);">
+                                style="width: 300px; height: 300px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color);">
                             <div id="exerciseGifError" style="display: none; color: var(--text-secondary); font-size: 12px; margin-top: 5px;">
                                 GIF não disponível para este exercício
                             </div>
@@ -3447,6 +5126,10 @@ showPlanTypeConfigModal() {
         if (configuredGroups.length > 0) {
             setTimeout(() => {
                 this.populateContextualGroupFilter(configuredGroups, workout);
+                
+                // CORREÇÃO: Buscar core dinamicamente se perdido
+                this.ensureCoreAvailable();
+                
                 this.populateExerciseSelect('contextual');
     
                 if (currentExercise) {
@@ -3456,6 +5139,10 @@ showPlanTypeConfigModal() {
         } else {
             setTimeout(() => {
                 this.populateGroupFilter();
+                
+                // CORREÇÃO: Buscar core dinamicamente se perdido
+                this.ensureCoreAvailable();
+                
                 this.populateExerciseSelect('todos');
     
                 if (currentExercise) {
@@ -3464,6 +5151,186 @@ showPlanTypeConfigModal() {
             }, 100);
         }
     }
+
+// CORREÇÃO PARA O MÉTODO populateExerciseSelect
+populateExerciseSelect(filterGroup = 'todos') {
+    const exerciseSelect = document.getElementById('exerciseName');
+    
+    // CORREÇÃO CRÍTICA: Verificar se o elemento existe
+    if (!exerciseSelect) {
+        console.warn('⚠️ exerciseName select não encontrado - pulando população');
+        return; // SAIR SILENCIOSAMENTE
+    }
+
+    console.log(`📋 Populando exercícios para grupo: ${filterGroup}`);
+
+    // Verificar se base está carregada
+    if (!this.core || !this.core.exerciseDatabaseLoaded || !this.core.exerciseDatabase || this.core.exerciseDatabase.length === 0) {
+        console.error('❌ Base de exercícios não carregada ou vazia');
+        exerciseSelect.innerHTML = '<option value="custom">✏️ Base de exercícios não disponível</option>';
+        return;
+    }
+
+    console.log(`📊 Base disponível: ${this.core.exerciseDatabase.length} exercícios`);
+
+    // Salvar valor atual
+    const currentValue = exerciseSelect.value;
+
+    // Limpar e adicionar opção custom
+    exerciseSelect.innerHTML = '';
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = '✏️ Exercício Personalizado';
+    exerciseSelect.appendChild(customOption);
+
+    try {
+        let exercisesToShow = [];
+
+        if (filterGroup === 'todos' || filterGroup === 'contextual') {
+            // Mostrar todos os exercícios
+            exercisesToShow = [...this.core.exerciseDatabase];
+        } else {
+            // Filtrar por grupo específico usando os nomes EXATOS do banco
+            const targetGroup = this.normalizeGroupName(filterGroup);
+            console.log(`🔍 Buscando exercícios do grupo: ${targetGroup}`);
+            
+            exercisesToShow = this.core.exerciseDatabase.filter(exercise => {
+                const exerciseGroup = this.normalizeGroupName(exercise.grupo);
+                const match = exerciseGroup === targetGroup;
+                
+                // Debug para alguns exercícios
+                if (exercisesToShow.length < 3) {
+                    console.log(`🔍 ${exercise.nome}: grupo="${exercise.grupo}" normalizado="${exerciseGroup}" match=${match}`);
+                }
+                
+                return match;
+            });
+        }
+
+        console.log(`📊 Exercícios filtrados: ${exercisesToShow.length}`);
+
+        if (exercisesToShow.length > 0) {
+            // Ordenar alfabeticamente
+            exercisesToShow.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+            
+            // Adicionar todos os exercícios encontrados
+            exercisesToShow.forEach(exercise => {
+                if (exercise.nome && exercise.nome.trim() !== '') {
+                    const option = document.createElement('option');
+                    option.value = exercise.nome.trim();
+                    option.textContent = exercise.nome.trim();
+                    exerciseSelect.appendChild(option);
+                }
+            });
+            
+            console.log(`✅ ${exercisesToShow.length} exercícios do banco adicionados ao select`);
+            
+            // Log dos primeiros exercícios para debug
+            const firstFew = exercisesToShow.slice(0, 5).map(e => e.nome).join(', ');
+            console.log(`📋 Primeiros exercícios: ${firstFew}`);
+        } else {
+            console.warn(`⚠️ Nenhum exercício encontrado no banco para grupo: ${filterGroup}`);
+            
+            // Mostrar quais grupos existem no banco
+            this.showAvailableGroups();
+            
+            // Adicionar mensagem informativa
+            const noExerciseOption = document.createElement('option');
+            noExerciseOption.value = '';
+            noExerciseOption.textContent = `Nenhum exercício encontrado para: ${filterGroup}`;
+            noExerciseOption.disabled = true;
+            exerciseSelect.appendChild(noExerciseOption);
+        }
+
+        // Restaurar valor se ainda existe
+        if (currentValue && currentValue !== '') {
+            const optionExists = Array.from(exerciseSelect.options).some(opt => opt.value === currentValue);
+            if (optionExists) {
+                exerciseSelect.value = currentValue;
+                console.log(`🔄 Valor restaurado: ${currentValue}`);
+            }
+        }
+
+    } catch (error) {
+        console.error('❌ Erro ao processar exercícios do banco:', error);
+        
+        // Em caso de erro, mostrar apenas a opção custom
+        exerciseSelect.innerHTML = '';
+        const errorOption = document.createElement('option');
+        errorOption.value = 'custom';
+        errorOption.textContent = '✏️ Erro - Use exercício personalizado';
+        exerciseSelect.appendChild(errorOption);
+    }
+}
+    
+    // MÉTODO AUXILIAR: Normalizar nomes de grupos para comparação
+    normalizeGroupName(groupName) {
+        if (!groupName) return '';
+        
+        return groupName
+            .toString()
+            .toUpperCase()
+            .trim()
+            .replace(/S$/, ''); // Remove plural (OMBROS → OMBRO)
+    }
+    
+    // MÉTODO AUXILIAR: Mostrar grupos disponíveis no banco (para debug)
+    showAvailableGroups() {
+        if (!this.core.exerciseDatabase) return;
+        
+        const uniqueGroups = [...new Set(this.core.exerciseDatabase.map(ex => ex.grupo))].sort();
+        console.log('📊 Grupos disponíveis no banco:', uniqueGroups);
+        
+        // Contar exercícios por grupo
+        const groupCounts = {};
+        this.core.exerciseDatabase.forEach(ex => {
+            const group = ex.grupo || 'SEM_GRUPO';
+            groupCounts[group] = (groupCounts[group] || 0) + 1;
+        });
+        
+        console.log('📊 Exercícios por grupo no banco:');
+        Object.entries(groupCounts).forEach(([group, count]) => {
+            console.log(`  ${group}: ${count} exercícios`);
+        });
+    }
+    
+   
+    
+
+
+    ensureCoreAvailable() {
+        // Se core não existe, tentar recuperar
+        if (!this.core) {
+            console.warn('🔄 Core perdido, tentando recuperar...');
+            
+            // Estratégia 1: Buscar em window.app
+            if (window.app && window.app.core) {
+                this.core = window.app.core;
+                console.log('✅ Core recuperado de window.app');
+                return;
+            }
+            
+            // Estratégia 2: Buscar em window global
+            if (window.core) {
+                this.core = window.core;
+                console.log('✅ Core recuperado de window.core');
+                return;
+            }
+            
+            // Estratégia 3: Criar novo se necessário
+            if (window.JSFitCore) {
+                this.core = new window.JSFitCore();
+                console.log('✅ Novo core criado');
+            }
+        }
+        
+        // Verificar se base está carregada
+        if (this.core && !this.core.exerciseDatabaseLoaded) {
+            console.warn('⚠️ Base não carregada no core recuperado');
+        }
+    }
+
+    
     
     setDefaultExerciseName(currentExercise) {
         const exerciseSelect = document.getElementById('exerciseName');
@@ -3492,25 +5359,6 @@ showPlanTypeConfigModal() {
         }
     }
 
-
-// =============================================
-// CORREÇÃO ESPECÍFICA DO BUG saveInlineExercise()
-// =============================================
-
-// MÉTODO saveInlineExercise() ATUAL POR ESTA VERSÃO CORRIGIDA:
-
-
-
-// MÉTODO ADICIONAL PARA DEBUG - Adicione este método também:
-debugCurrentExercise() {
-    if (this.currentWorkoutIndex !== null && this.currentExerciseIndex !== null) {
-        const exercise = this.currentPlan.treinos[this.currentWorkoutIndex].exercicios[this.currentExerciseIndex];
-        console.log('DEBUG: Estado atual do exercício:', JSON.parse(JSON.stringify(exercise)));
-        console.log('DEBUG: Estrutura completa do treino:', JSON.parse(JSON.stringify(this.currentPlan.treinos[this.currentWorkoutIndex])));
-    } else {
-        console.log('DEBUG: Nenhum exercício selecionado para debug');
-    }
-}
 
 
 saveInlineExercise() {
@@ -3582,19 +5430,6 @@ saveInlineExercise() {
     }
 }
 
-// FUNÇÃO AUXILIAR PARA DEBUG
-debugWorkoutState() {
-    console.log('🔍 DEBUG: Estado atual do sistema');
-    console.log('currentWorkoutIndex:', this.currentWorkoutIndex);
-    console.log('currentExerciseIndex:', this.currentExerciseIndex);
-    console.log('currentPlan exists:', !!this.currentPlan);
-    console.log('treinos exists:', !!(this.currentPlan && this.currentPlan.treinos));
-    console.log('treinos length:', this.currentPlan?.treinos?.length || 0);
-    
-    if (this.currentWorkoutIndex !== null && this.currentPlan?.treinos) {
-        console.log(`workout[${this.currentWorkoutIndex}] exists:`, !!this.currentPlan.treinos[this.currentWorkoutIndex]);
-    }
-}
 // MÉTODO AUXILIAR PARA COLETAR E VALIDAR DADOS
 collectAndValidateFormData() {
     const elements = {
@@ -3732,7 +5567,6 @@ forceCompleteUIUpdate(workoutIndex) {
     }, 10); // Delay reduzido
 }
 
-
 // MÉTODO PARA VERIFICAR SE A ATUALIZAÇÃO FOI BEM-SUCEDIDA
 verifyUIUpdate(workoutIndex) {
     const container = document.getElementById(`exerciseList${workoutIndex}`);
@@ -3832,8 +5666,6 @@ collectFormData() {
         )
     };
 }
-
-
 
 // VERSÃO CORRIGIDA E MELHORADA DO renderExercises()
 renderExercises(exercicios, workoutIndex) {
@@ -3945,82 +5777,6 @@ renderExercises(exercicios, workoutIndex) {
     }
 }
 
-// FUNÇÃO AUXILIAR PARA SANITIZAÇÃO DE TEXTO
-sanitizeText(text) {
-    if (text === null || text === undefined) {
-        return '';
-    }
-    
-    // Converter para string e limpar
-    const str = String(text).trim();
-    
-    // Escapar caracteres HTML para prevenir XSS
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;');
-}
-
-// FUNÇÃO AUXILIAR PARA DEBUG DE EXERCÍCIOS
-debugExerciseData(exercicios, workoutIndex) {
-    console.log(`🔍 DEBUG: Analisando dados dos exercícios`);
-    console.log(`Workout Index: ${workoutIndex}`);
-    console.log(`Exercícios recebidos:`, exercicios);
-    
-    if (!exercicios) {
-        console.log(`❌ Exercícios é null/undefined`);
-        return;
-    }
-    
-    if (!Array.isArray(exercicios)) {
-        console.log(`❌ Exercícios não é um array:`, typeof exercicios);
-        return;
-    }
-    
-    console.log(`📊 Total de exercícios: ${exercicios.length}`);
-    
-    exercicios.forEach((ex, index) => {
-        console.log(`📋 Exercício ${index}:`, {
-            nome: ex?.nome || 'INDEFINIDO',
-            series: ex?.series || 'INDEFINIDO',
-            repeticoes: ex?.repeticoes || 'INDEFINIDO',
-            carga: ex?.carga || 'INDEFINIDO',
-            valido: !!(ex && ex.nome)
-        });
-    });
-}
-
-// 5. MÉTODO DE DEBUG PARA VERIFICAR DADOS
-debugExerciseData(workoutIndex, exerciseIndex) {
-    console.log('🔍 DEBUG - Estado atual dos dados:');
-    console.log('  currentPlan.treinos:', this.currentPlan.treinos.length);
-    
-    if (this.currentPlan.treinos[workoutIndex]) {
-        const workout = this.currentPlan.treinos[workoutIndex];
-        console.log(`  Treino ${workoutIndex}:`, {
-            nome: workout.nome,
-            exercicios: workout.exercicios.length
-        });
-        
-        if (workout.exercicios[exerciseIndex]) {
-            const exercise = workout.exercicios[exerciseIndex];
-            console.log(`  Exercício ${exerciseIndex}:`, {
-                nome: exercise.nome,
-                series: exercise.series,
-                repeticoes: exercise.repeticoes,
-                carga: exercise.carga,
-                descricao: exercise.descricao,
-                tecnica: exercise.tecnica
-            });
-        } else {
-            console.error(`  ❌ Exercício ${exerciseIndex} não encontrado`);
-        }
-    } else {
-        console.error(`  ❌ Treino ${workoutIndex} não encontrado`);
-    }
-}
 
 // 6. MÉTODO PARA FORÇAR ATUALIZAÇÃO COMPLETA
 forceUIUpdate(workoutIndex) {
@@ -4061,8 +5817,6 @@ forceUIUpdate(workoutIndex) {
         return observacoes[tecnica] || this.tecnicasDatabase[tecnica];
     }
 
-
-
     removeExercise(workoutIndex, exerciseIndex) {
         // TODO: Implementar remoção de exercício
         if (confirm('Tem certeza que deseja remover este exercício?')) {
@@ -4073,45 +5827,6 @@ forceUIUpdate(workoutIndex) {
 
 
 
-    viewPlan(planId) {
-        const plan = this.savedPlans.find(p => p.id == planId);
-        if (!plan) {
-            this.showMessage('Plano não encontrado', 'error');
-            return;
-        }
-    
-        console.log(`Visualizando plano: ${plan.nome} (ID: ${planId})`);
-    
-        // Ocultar outras telas
-        document.getElementById('planCreator').style.display = 'none';
-        document.getElementById('aiPlanCreator').style.display = 'none';
-        document.getElementById('planList').style.display = 'none';
-    
-        // Mostrar tela de detalhes
-        const planDetailsDiv = document.getElementById('planDetails');
-        planDetailsDiv.style.display = 'block';
-    
-        // Preencher título
-        document.getElementById('planDetailsTitle').textContent = plan.nome;
-    
-        // Gerar conteúdo detalhado
-        let content = this.generatePlanGeneralInfo(plan);
-        
-        if (plan.treinos && plan.treinos.length > 0) {
-            content += this.generatePlanWorkoutTabs(plan);
-            content += this.generatePlanWorkoutContents(plan);
-        }
-    
-        if (plan.tecnicas_aplicadas && Object.keys(plan.tecnicas_aplicadas).length > 0) {
-            content += this.generatePlanTechniques(plan);
-        }
-    
-        if (plan.observacoes) {
-            content += this.generatePlanObservations(plan);
-        }
-    
-        document.getElementById('planDetailsContent').innerHTML = content;
-    }
     
     generatePlanGeneralInfo(plan) {
         return `
@@ -4283,9 +5998,7 @@ forceUIUpdate(workoutIndex) {
     }
 
 
-    editPlan(planId) {
-        this.showPlanCreator(planId);
-    }
+
 
     generateAIPlan() {
         // Coletar dados do formulário
@@ -4448,7 +6161,7 @@ forceUIUpdate(workoutIndex) {
                 idade: aiData.idade,
                 altura: aiData.altura,
                 peso: aiData.peso,
-                porte: this.core.calculateBodyType(aiData.altura, aiData.peso),
+                porte: this.calculateBodyType(aiData.altura, aiData.peso),
                 objetivo: aiData.objetivo
             },
             treinos: this.generateAIWorkoutsWithCustomConfig(aiData),
@@ -4748,8 +6461,7 @@ forceUIUpdate(workoutIndex) {
             return "90 segundos";
         }
     }
-    
-  
+      
     
     getTecnicaForExercise(exerciseIndex, nivel, grupo) {
         const tecnicasDisponiveis = this.tecnicasPorNivel[nivel] || this.tecnicasPorNivel.intermediario;
@@ -4924,8 +6636,8 @@ forceUIUpdate(workoutIndex) {
     }
 
     loadPlanForEditing(planId) {
-        // Buscar plano na lista
-        const plan = this.savedPlans.find(p => p.id == planId);
+        // Buscar plano na lista 
+       const plan = this.savedPlans.find(p => p.id == planId);
         if (!plan) {
             this.showMessage('Plano não encontrado', 'error');
             console.error(`Plano com ID ${planId} não encontrado`);
@@ -5036,75 +6748,6 @@ forceUIUpdate(workoutIndex) {
         html += '</div>';
         editor.innerHTML = html;
     }
-
-// 3. ATUALIZAR generateWorkoutEditor PARA SUPORTAR MAIS DIAS
-generateWorkoutEditor(days) {
-    const editor = document.getElementById('workoutEditor');
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    
-    // Nomes de treinos expandidos para todos os dias
-    const workoutNames = {
-        1: ['A - Corpo Inteiro'],
-        2: ['A - Membros Superiores', 'B - Membros Inferiores'],
-        3: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Pernas e Ombros'],
-        4: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Ombros', 'D - Pernas'],
-        5: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Ombros e Trapézio', 'D - Pernas (Quadríceps)', 'E - Posterior e Core'],
-        6: ['A - Peito', 'B - Costas', 'C - Ombros', 'D - Braços', 'E - Pernas (Quadríceps)', 'F - Posterior e Core']
-    };
-
-    // Validar se temos nomes para todos os dias
-    if (!workoutNames[days]) {
-        console.error(`Configuração de nomes não encontrada para ${days} dias`);
-        return;
-    }
-
-    let html = '<div class="form-section"><h2>🏋️ Treinos</h2>';
-    this.currentPlan.treinos = [];
-
-    for (let i = 0; i < days; i++) {
-        const workout = {
-            id: letters[i],
-            nome: workoutNames[days][i],
-            foco: workoutNames[days][i].split(' - ')[1] || 'Treino geral',
-            exercicios: [
-                {
-                    id: i * 10 + 1,
-                    nome: 'Aquecimento',
-                    descricao: 'Aquecimento geral de 5-10 minutos',
-                    series: 1,
-                    repeticoes: '8-10 min',
-                    carga: 'Leve',
-                    descanso: '0',
-                    observacoesEspeciais: '',
-                    tecnica: '',
-                    concluido: false
-                }
-            ],
-            concluido: false,
-            execucoes: 0
-        };
-
-        this.currentPlan.treinos.push(workout);
-
-        html += `
-            <div class="workout-editor">
-                <div class="workout-header">
-                    <h3 class="workout-title">${workout.nome}</h3>
-                    <button class="btn btn-primary btn-small" onclick="app.addExercise(${i})">
-                        ➕ Adicionar Exercício
-                    </button>
-                </div>
-                <div class="exercise-list" id="exerciseList${i}">
-                    ${this.renderExercises(workout.exercicios, i)}
-                </div>
-            </div>
-        `;
-    }
-
-    html += '</div>';
-    editor.innerHTML = html;
-}
-
 
 // Carregar configuração padrão inline
 loadInlinePresetConfig() {
@@ -5219,51 +6862,6 @@ loadInlinePresetConfig() {
         this.showMessage('📤 Configuração exportada com sucesso!', 'success');
     }
 
-    // Função para importar configuração de tipos de plano
-    importPlanTypeConfiguration(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const importedConfig = JSON.parse(e.target.result);
-
-                // Validar estrutura
-                if (!importedConfig.days || !importedConfig.configuration) {
-                    throw new Error('Arquivo de configuração inválido');
-                }
-
-                // Aplicar configuração importada
-                this.planTypeConfiguration.days = importedConfig.days;
-                this.planTypeConfiguration.configuration = importedConfig.configuration;
-
-                // Salvar
-                this.savePlanTypeConfiguration();
-
-                // Atualizar interface
-                this.updatePlanConfigIndicators();
-
-                // Selecionar o tipo de plano correto
-                const planTypeBtn = document.querySelector(`.plan-type-btn:nth-child(${importedConfig.days})`);
-                if (planTypeBtn) {
-                    document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
-                    planTypeBtn.classList.add('active');
-                    this.selectedDays = importedConfig.days;
-                }
-
-                this.showMessage('📥 Configuração importada com sucesso!', 'success');
-
-            } catch (error) {
-                console.error('Erro ao importar configuração:', error);
-                this.showMessage('❌ Erro ao importar configuração. Verifique o arquivo.', 'error');
-            }
-        };
-        reader.readAsText(file);
-
-        // Limpar input
-        event.target.value = '';
-    }
 
     // Função para duplicar configuração entre tipos de plano
     duplicatePlanConfiguration(fromDays, toDays) {
@@ -5580,26 +7178,7 @@ cleanupExtraWorkoutConfigs(targetDays) {
         }
     });
 }
-debugPlanConfiguration() {
-    console.log('=== DEBUG: Configuração de Planos ===');
-    console.log('Dias selecionados:', this.selectedDays);
-    console.log('Dias na configuração:', this.planTypeConfiguration.days);
-    console.log('Configuração atual:', JSON.stringify(this.planTypeConfiguration.configuration, null, 2));
-    
-    // Verificar estado dos elementos HTML
-    const configSection = document.getElementById('inlineQuickConfig');
-    console.log('Seção inline visível:', configSection?.style.display !== 'none');
-    
-    // Verificar checkboxes
-    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="inline-"]');
-    console.log(`Total de checkboxes encontrados: ${allCheckboxes.length}`);
-    
-    allCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            console.log(`Checkbox selecionado: ${checkbox.name} = ${checkbox.value}`);
-        }
-    });
-}
+
 
 
 generateWorkoutEditorWithConfig(days) {
@@ -6082,51 +7661,36 @@ updateTechniqueDescription() {
 // MÉTODOS STUB IMPLEMENTADOS PARA PERSONAL.JS
 // =============================================
 
-// 1. LOADPLANTYPECONFIGURATION - Carrega configuração de tipos de plano
 async loadPlanTypeConfiguration() {
     try {
-        console.log('Carregando configuração de tipos de plano...');
+        console.log('⚙️ Carregando configuração de tipos de plano...');
         
-        // Tentar carregar via Firebase se disponível
-        if (this.core && this.core.firebaseConnected) {
-            try {
-                const firebaseConfig = await this.loadPlanConfigFromFirebase();
-                if (firebaseConfig) {
-                    this.planTypeConfiguration.days = firebaseConfig.days || 3;
-                    this.planTypeConfiguration.configuration = firebaseConfig.configuration || {};
-                    console.log('Configuração carregada do Firebase');
+        // REMOVER tentativa do Firebase por enquanto
+        // Usar apenas localStorage
+        if (this.isUserAuthenticated) {
+            const configKey = this.getConfigStorageKey();
+            const stored = localStorage.getItem(configKey);
+            if (stored) {
+                const config = JSON.parse(stored);
+                if (config.userId === this.currentUserId) {
+                    this.planTypeConfiguration.days = config.days || 3;
+                    this.planTypeConfiguration.configuration = config.configuration || {};
+                    console.log('✅ Configuração carregada do localStorage');
                     return;
                 }
-            } catch (firebaseError) {
-                console.warn('Erro ao carregar do Firebase:', firebaseError);
             }
         }
-
-        // Fallback: tentar localStorage
-        const stored = localStorage.getItem('jsfitapp_plan_configuration');
-        if (stored) {
-            const config = JSON.parse(stored);
-            this.planTypeConfiguration.days = config.days || 3;
-            this.planTypeConfiguration.configuration = config.configuration || {};
-            console.log('Configuração carregada do localStorage');
-            
-            // Migrar para Firebase em background se disponível
-            if (this.core && this.core.firebaseConnected) {
-                this.migratePlanConfigToFirebase(config);
-            }
-        } else {
-            // Usar configuração padrão
-            console.log('Usando configuração padrão');
-            this.planTypeConfiguration.days = 3;
-            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[3] || {};
-        }
         
-    } catch (error) {
-        console.error('Erro ao carregar configuração de tipos de plano:', error);
-        
-        // Fallback final: configuração padrão
+        // Usar configuração padrão
+        console.log('ℹ️ Usando configuração padrão');
         this.planTypeConfiguration.days = 3;
         this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[3] || {};
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar configuração:', error);
+        // Garantir valores padrão mesmo com erro
+        this.planTypeConfiguration.days = 3;
+        this.planTypeConfiguration.configuration = {};
     }
 }
 
@@ -6176,186 +7740,1457 @@ async migratePlanConfigToFirebase(localConfig) {
     }
 }
 
- // SUBSTITUA O MÉTODO savePlan() EXISTENTE POR ESTA VERSÃO
-
 async savePlan() {
     try {
-        const currentPlanId = document.getElementById('currentPlanId').value;
+        console.log('💾 Iniciando processo de salvamento do plano...');
+        
+        // 1. VERIFICAÇÃO OBRIGATÓRIA DE AUTENTICAÇÃO
+        if (!this.isUserAuthenticated || !this.currentUserId) {
+            this.showMessage('Você precisa estar logado para salvar planos', 'error');
+            this.showAuthenticationScreen();
+            return;
+        }
+        
+        console.log(`👤 Salvando plano para usuário: ${this.currentUserId}`);
+        
+        // 2. OBTER DADOS DO FORMULÁRIO
+        const currentPlanId = document.getElementById('currentPlanId')?.value;
         const isEditingPlan = this.isEditing && currentPlanId;
-
+        
         const birthDate = document.getElementById('studentBirthDate')?.value;
-        const calculatedAge = birthDate ? this.core.calculateAge(birthDate) : 25;
-
+        const calculatedAge = birthDate ? this.calculateAge(birthDate) : 25;
+        
+        // 3. CONSTRUIR OBJETO DO PLANO COM DADOS OBRIGATÓRIOS
         const planData = {
+            // ID: manter existente se editando, senão será gerado
             id: isEditingPlan ? currentPlanId : null,
-            nome: document.getElementById('planName')?.value || 'Plano sem nome',
+            
+            // DADOS OBRIGATÓRIOS DE USUÁRIO
+            userId: this.currentUserId,  // ESSENCIAL
+            userEmail: this.userEmail || 'unknown',
+            userDisplayName: this.userDisplayName || 'Usuário',
+            
+            // DADOS DO PLANO
+            nome: document.getElementById('planName')?.value?.trim() || '',
+            
+            // DADOS DO ALUNO
             aluno: {
-                nome: document.getElementById('studentName')?.value || '',
+                nome: document.getElementById('studentName')?.value?.trim() || '',
                 dataNascimento: birthDate || '',
-                cpf: document.getElementById('studentCpf')?.value || '',
+                cpf: document.getElementById('studentCpf')?.value?.trim() || '',
                 idade: calculatedAge,
-                altura: document.getElementById('studentHeight')?.value || '1,75m',
-                peso: document.getElementById('studentWeight')?.value || '75kg'
+                altura: document.getElementById('studentHeight')?.value?.trim() || '1,75m',
+                peso: document.getElementById('studentWeight')?.value?.trim() || '75kg'
             },
-            dias: this.selectedDays,
+            
+            // CONFIGURAÇÕES DO PLANO
+            dias: this.selectedDays || 1,
             dataInicio: document.getElementById('planStartDate')?.value || new Date().toISOString().split('T')[0],
             dataFim: document.getElementById('planEndDate')?.value || '',
+            
+            // PERFIL DERIVADO
             perfil: {
                 idade: calculatedAge,
-                altura: document.getElementById('studentHeight')?.value || '1,75m',
-                peso: document.getElementById('studentWeight')?.value || '75kg',
-                porte: this.core.calculateBodyType(
+                altura: document.getElementById('studentHeight')?.value?.trim() || '1,75m',
+                peso: document.getElementById('studentWeight')?.value?.trim() || '75kg',
+                porte: this.calculateBodyType(
                     document.getElementById('studentHeight')?.value || '1,75m',
                     document.getElementById('studentWeight')?.value || '75kg'
                 ),
                 objetivo: document.getElementById('planObjective')?.value || 'Condicionamento geral'
             },
-            treinos: [...this.currentPlan.treinos],
+            
+            // TREINOS (cópia profunda para evitar referências)
+            treinos: JSON.parse(JSON.stringify(this.currentPlan?.treinos || [])),
+            
+            // OBSERVAÇÕES
             observacoes: {
-                geral: document.getElementById('planObservations')?.value || ''
+                geral: document.getElementById('planObservations')?.value?.trim() || ''
             },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            
+            // METADADOS DE CONTROLE
+            created_at: isEditingPlan ? 
+                (this.currentPlan?.created_at || new Date().toISOString()) : 
+                new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            version: '2.0'
         };
-
-        // Validação
-        if (!planData.nome || planData.nome === 'Plano sem nome') {
-            this.showMessage('Por favor, preencha o nome do plano', 'error');
+        
+        // 4. VALIDAÇÕES ESSENCIAIS
+        if (!planData.nome) {
+            this.showMessage('Nome do plano é obrigatório', 'error');
+            document.getElementById('planName')?.focus();
             return;
         }
-
+        
+        if (!planData.aluno.nome) {
+            this.showMessage('Nome do aluno é obrigatório', 'error');
+            document.getElementById('studentName')?.focus();
+            return;
+        }
+        
+        if (!planData.treinos || planData.treinos.length === 0) {
+            this.showMessage('O plano deve ter pelo menos um treino configurado', 'error');
+            return;
+        }
+        
+        console.log('✅ Dados validados:', {
+            nome: planData.nome,
+            aluno: planData.aluno.nome,
+            userId: planData.userId,
+            treinos: planData.treinos.length
+        });
+        
+        // 5. INICIAR PROCESSO DE SALVAMENTO
         this.showMessage('Salvando plano...', 'info');
-
-        // PRIORIDADE 1: TENTAR SALVAR NO FIREBASE PRIMEIRO
+        
         let firebaseSuccess = false;
         let firebaseId = null;
+        let localBackupSuccess = false;
         
-        if (this.core && this.core.firebaseConnected) {
+        // 6. TENTATIVA DE SALVAMENTO NO FIREBASE (PRIORITÁRIO)
+        if (this.core) {
             try {
-                console.log('Salvando no Firebase (prioridade 1)...');
+                console.log('🔥 Tentando salvar no Firebase...');
+                
+                // Verificar conexão Firebase
+                if (!this.core.firebaseConnected) {
+                    console.log('🔄 Firebase desconectado, tentando reconectar...');
+                    await this.core.initializeFirebase();
+                }
+                
+                // Verificar autenticação Firebase
+                const firebaseUserId = this.core.getUserId();
+                if (!firebaseUserId) {
+                    throw new Error('Usuário não autenticado no Firebase');
+                }
+                
+                if (firebaseUserId !== this.currentUserId) {
+                    console.warn('⚠️ Discrepância de userId:', {
+                        local: this.currentUserId,
+                        firebase: firebaseUserId
+                    });
+                    // Usar o ID do Firebase como autoridade
+                    planData.userId = firebaseUserId;
+                    this.currentUserId = firebaseUserId;
+                }
+                
+                // Salvar no Firebase
+                console.log('💾 Salvando no Firebase...');
                 firebaseId = await this.core.savePlanToFirebase(planData);
+                
+                // Atualizar dados do plano com resposta do Firebase
                 planData.id = firebaseId;
                 planData.saved_in_firebase = true;
+                planData.firebase_timestamp = new Date().toISOString();
+                planData.sync_status = 'synced';
+                
                 firebaseSuccess = true;
-                console.log('Salvo no Firebase com sucesso:', firebaseId);
+                console.log(`✅ Plano salvo no Firebase: ${firebaseId}`);
                 
             } catch (firebaseError) {
-                console.error('ERRO Firebase (continuando com localStorage):', firebaseError);
-                firebaseSuccess = false;
+                console.error('❌ Erro ao salvar no Firebase:', firebaseError);
                 
-                // Marcar que houve falha no Firebase para retry posterior
+                // Marcar para retry posterior
                 planData.firebase_save_failed = true;
                 planData.firebase_error = firebaseError.message;
+                planData.firebase_error_code = firebaseError.code || 'unknown';
                 planData.retry_firebase = true;
+                planData.sync_status = 'pending';
+                
+                firebaseSuccess = false;
             }
         } else {
-            console.warn('Firebase não conectado, usando localStorage apenas');
-            planData.firebase_save_failed = true;
-            planData.retry_firebase = true;
+            console.warn('⚠️ JSFitCore não disponível');
+            planData.core_missing = true;
+            planData.sync_status = 'core_unavailable';
         }
-
-        // PRIORIDADE 2: BACKUP NO LOCALSTORAGE (SEMPRE EXECUTAR)
+        
+        // 7. BACKUP LOCAL OBRIGATÓRIO (SEMPRE EXECUTAR)
         try {
-            // Se Firebase falhou, gerar ID local
-            if (!firebaseSuccess) {
-                if (!planData.id) {
-                    planData.id = this.core.generateId();
-                }
-                planData.saved_in_localstorage_only = true;
-            } else {
-                planData.saved_in_firebase = true;
-                planData.backup_in_localstorage = true;
+            console.log('💿 Criando backup local...');
+            
+            // Gerar ID local se necessário
+            if (!planData.id) {
+                planData.id = this.generateLocalId();
+                planData.local_id_generated = true;
             }
-
-            // Atualizar lista local
+            
+            // Marcar origem dos dados
+            if (firebaseSuccess) {
+                planData.backup_in_localstorage = true;
+                planData.primary_source = 'firebase';
+            } else {
+                planData.saved_in_localstorage_only = true;
+                planData.needs_firebase_sync = true;
+                planData.primary_source = 'localstorage';
+            }
+            
+            // Atualizar lista em memória
             if (isEditingPlan) {
                 const existingIndex = this.savedPlans.findIndex(p => 
                     p.id === planData.id || (currentPlanId && p.id === currentPlanId)
                 );
+                
                 if (existingIndex >= 0) {
+                    // Preservar dados de criação original
+                    const existingPlan = this.savedPlans[existingIndex];
+                    planData.original_created_at = existingPlan.created_at;
+                    planData.edit_count = (existingPlan.edit_count || 0) + 1;
+                    planData.edited_at = new Date().toISOString();
+                    
                     this.savedPlans[existingIndex] = planData;
+                    console.log('📝 Plano existente atualizado na lista');
                 } else {
+                    // Plano não encontrado na lista, adicionar
                     this.savedPlans.push(planData);
+                    console.log('➕ Plano adicionado à lista (não encontrado para edição)');
                 }
             } else {
+                // Novo plano
+                planData.edit_count = 0;
                 this.savedPlans.push(planData);
+                console.log('🆕 Novo plano adicionado à lista');
             }
-
-            // Salvar backup local
-            this.saveToLocalStorageAsBackup();
             
-            console.log('Backup local criado');
-
-        } catch (localStorageError) {
-            console.error('ERRO CRÍTICO: Falha no backup localStorage:', localStorageError);
+            // Salvar no localStorage específico do usuário
+            await this.saveToUserLocalStorage();
+            localBackupSuccess = true;
+            
+            console.log('✅ Backup local criado com sucesso');
+            
+        } catch (localError) {
+            console.error('❌ ERRO CRÍTICO no backup local:', localError);
             
             if (!firebaseSuccess) {
-                // Se ambos falharam, é um erro crítico
-                this.showMessage('ERRO CRÍTICO: Não foi possível salvar em nenhum local!', 'error');
+                this.showMessage('ERRO CRÍTICO: Não foi possível salvar o plano!', 'error');
                 return;
+            } else {
+                console.warn('⚠️ Backup local falhou, mas Firebase foi bem-sucedido');
+                localBackupSuccess = false;
             }
         }
-
-        // SUCESSO: Informar resultado
-        this.isEditing = false;
         
-        if (firebaseSuccess) {
-            this.showMessage('Plano salvo no Firebase com sucesso!', 'success');
-        } else {
-            this.showMessage('Plano salvo localmente (Firebase indisponível)', 'warning');
-            // Agendar retry do Firebase
-            this.scheduleFirebaseRetry(planData.id);
+        // 8. FINALIZAÇÃO E LIMPEZA
+        this.isEditing = false;
+        this.currentPlan = this.getEmptyPlan();
+        
+        // Ocultar botão de cancelar edição
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
         }
-
+        
+        // Limpar campo de ID
+        const currentPlanIdField = document.getElementById('currentPlanId');
+        if (currentPlanIdField) {
+            currentPlanIdField.value = '';
+        }
+        
+        // 9. MENSAGEM DE RESULTADO
+        if (firebaseSuccess && localBackupSuccess) {
+            this.showMessage('Plano salvo com sucesso no Firebase!', 'success');
+            console.log('🎉 Salvamento completo: Firebase + Backup local');
+        } else if (firebaseSuccess) {
+            this.showMessage('Plano salvo no Firebase (backup local falhou)', 'warning');
+            console.log('⚠️ Salvamento parcial: Firebase OK, backup local falhou');
+        } else if (localBackupSuccess) {
+            this.showMessage('Plano salvo localmente (Firebase indisponível)', 'warning');
+            console.log('💿 Salvamento local: Firebase falhou, backup local OK');
+            
+            // Agendar retry do Firebase
+            if (typeof this.scheduleFirebaseRetry === 'function') {
+                this.scheduleFirebaseRetry(planData.id);
+            }
+        } else {
+            this.showMessage('Erro crítico: não foi possível salvar o plano', 'error');
+            console.error('💥 Falha total no salvamento');
+            return;
+        }
+        
+        // 10. LOG FINAL E NAVEGAÇÃO
+        console.log('📊 Resultado do salvamento:', {
+            planId: planData.id,
+            planName: planData.nome,
+            userId: planData.userId,
+            firebaseSuccess: firebaseSuccess,
+            localBackupSuccess: localBackupSuccess,
+            isEditing: isEditingPlan,
+            timestamp: new Date().toISOString()
+        });
+        
+        // Voltar para lista de planos
         setTimeout(() => {
             this.showPlanList();
         }, 1500);
-
-    } catch (error) {
-        console.error('Erro geral ao salvar plano:', error);
-        this.showMessage('Erro ao salvar plano. Tente novamente.', 'error');
+        
+    } catch (criticalError) {
+        console.error('💥 ERRO CRÍTICO no savePlan:', criticalError);
+        this.showMessage(`Erro crítico ao salvar: ${criticalError.message}`, 'error');
+        
+        // Log detalhado para debug
+        console.error('🔍 Detalhes do erro crítico:', {
+            message: criticalError.message,
+            stack: criticalError.stack,
+            userId: this.currentUserId,
+            isAuthenticated: this.isUserAuthenticated,
+            timestamp: new Date().toISOString()
+        });
     }
 }
+
+
+// ====================================
+// MÉTODOS COM CONTROLE DE USUÁRIO
+// ====================================
+
+async showPlanList() {
+    try {
+        console.log('📋 Iniciando showPlanList...');
+        
+        // VERIFICAÇÃO OBRIGATÓRIA DE AUTENTICAÇÃO
+        if (!this.isUserAuthenticated || !this.currentUserId) {
+            console.warn('❌ Usuário não autenticado para visualizar planos');
+            this.showMessage('Você precisa estar logado para ver seus planos', 'warning');
+            this.showAuthenticationScreen();
+            return;
+        }
+        
+        console.log(`👤 Carregando planos para usuário: ${this.currentUserId}`);
+        
+        // Garantir que savedPlans existe
+        if (!this.savedPlans || !Array.isArray(this.savedPlans)) {
+            this.savedPlans = [];
+        }
+        
+        // Carregar planos específicos do usuário se lista estiver vazia
+        if (this.savedPlans.length === 0) {
+            await this.loadUserSpecificPlans();
+        } else {
+            // Filtrar planos para garantir que são do usuário atual
+            this.savedPlans = this.savedPlans.filter(plan => 
+                plan.userId === this.currentUserId
+            );
+        }
+        
+        console.log(`📊 Exibindo ${this.savedPlans.length} planos do usuário`);
+        
+        // Navegação
+        document.getElementById('planCreator').style.display = 'none';
+        document.getElementById('aiPlanCreator').style.display = 'none';
+        document.getElementById('planDetails').style.display = 'none';
+        document.getElementById('planList').style.display = 'block';
+        
+        // Renderizar lista
+        this.renderPlanList();
+        
+        console.log('✅ showPlanList concluído');
+        
+    } catch (error) {
+        console.error('❌ Erro em showPlanList:', error);
+        this.showMessage('Erro ao carregar lista de planos', 'error');
+        this.savedPlans = [];
+        this.renderPlanList();
+    }
+}
+
+async loadUserSpecificPlans() {
+    try {
+        console.log(`🔄 Carregando planos específicos para usuário: ${this.currentUserId}`);
+        
+        // PRIORIDADE 1: Firebase com filtro de usuário
+        if (this.core && this.core.firebaseConnected) {
+            try {
+                const firebasePlans = await this.core.loadPlansFromFirebase();
+                if (firebasePlans && Array.isArray(firebasePlans)) {
+                    // Filtro duplo de segurança
+                    this.savedPlans = firebasePlans.filter(plan => 
+                        plan.userId === this.currentUserId
+                    );
+                    console.log(`✅ ${this.savedPlans.length} planos carregados do Firebase`);
+                    
+                    // Criar backup local
+                    await this.saveToUserLocalStorage();
+                    return;
+                }
+            } catch (firebaseError) {
+                console.warn('⚠️ Erro Firebase, usando localStorage:', firebaseError);
+            }
+        }
+        
+        // PRIORIDADE 2: localStorage específico do usuário
+        await this.loadFromUserLocalStorage();
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar planos do usuário:', error);
+        this.savedPlans = [];
+    }
+}
+
+async loadFromUserLocalStorage() {
+    try {
+        const key = `jsfitapp_plans_${this.currentUserId}`;
+        const stored = localStorage.getItem(key);
+        
+        if (stored) {
+            const data = JSON.parse(stored);
+            
+            // Verificar se os dados são do usuário correto
+            if (data.userId === this.currentUserId && data.plans) {
+                this.savedPlans = data.plans.filter(plan => 
+                    plan.userId === this.currentUserId
+                );
+                console.log(`✅ ${this.savedPlans.length} planos carregados do localStorage`);
+            } else {
+                console.warn('⚠️ Dados localStorage não correspondem ao usuário');
+                this.savedPlans = [];
+            }
+        } else {
+            console.log('ℹ️ Nenhum backup local encontrado');
+            this.savedPlans = [];
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar localStorage:', error);
+        this.savedPlans = [];
+    }
+}
+
+viewPlan(planId) {
+    try {
+        // VERIFICAÇÃO DE AUTENTICAÇÃO
+        if (!this.canPerformAction()) return;
+        
+        console.log(`👁️ Visualizando plano: ${planId}`);
+        
+        // Buscar plano NA LISTA DO USUÁRIO ATUAL
+        const plan = this.savedPlans.find(p => 
+            p.id === planId && p.userId === this.currentUserId
+        );
+        
+        if (!plan) {
+            console.warn(`❌ Plano ${planId} não encontrado ou não pertence ao usuário`);
+            this.showMessage('Plano não encontrado ou você não tem permissão para visualizá-lo', 'error');
+            return;
+        }
+        
+        console.log(`✅ Exibindo plano: ${plan.nome} (Usuário: ${plan.userId})`);
+    
+        // Ocultar outras telas
+        document.getElementById('planCreator').style.display = 'none';
+        document.getElementById('aiPlanCreator').style.display = 'none';
+        document.getElementById('planList').style.display = 'none';
+    
+        // Mostrar tela de detalhes
+        const planDetailsDiv = document.getElementById('planDetails');
+        planDetailsDiv.style.display = 'block';
+    
+        // Preencher título
+        document.getElementById('planDetailsTitle').textContent = plan.nome;
+    
+        // Gerar conteúdo detalhado
+        let content = this.generatePlanGeneralInfo(plan);
+        
+        if (plan.treinos && plan.treinos.length > 0) {
+            content += this.generatePlanWorkoutTabs(plan);
+            content += this.generatePlanWorkoutContents(plan);
+        }
+        
+        if (plan.tecnicas_aplicadas && Object.keys(plan.tecnicas_aplicadas).length > 0) {
+            content += this.generatePlanTechniques(plan);
+        }
+        
+        if (plan.observacoes) {
+            content += this.generatePlanObservations(plan);
+        }
+        
+        document.getElementById('planDetailsContent').innerHTML = content;
+        
+    } catch (error) {
+        console.error('❌ Erro ao visualizar plano:', error);
+        this.showMessage('Erro ao abrir plano para visualização', 'error');
+    }
+}
+
+editPlan(planId) {
+    try {
+        // VERIFICAÇÃO DE AUTENTICAÇÃO
+        if (!this.canPerformAction()) return;
+        
+        console.log(`✏️ Iniciando edição do plano: ${planId}`);
+        console.log(`🔍 DEBUG - currentUserId: ${this.currentUserId}`);
+        console.log(`🔍 DEBUG - savedPlans total: ${this.savedPlans.length}`);
+        
+        // DIAGNÓSTICO: Mostrar todos os planos e seus userIds
+        this.savedPlans.forEach((p, index) => {
+            console.log(`🔍 Plano ${index}: ID=${p.id}, UserID=${p.userId}, Nome=${p.nome}`);
+        });
+        
+        // BUSCA MAIS FLEXÍVEL - PRIMEIRO SÓ POR ID
+        let plan = this.savedPlans.find(p => p.id === planId);
+        
+        if (!plan) {
+            console.warn(`❌ Plano ${planId} não encontrado na lista`);
+            this.showMessage('Plano não encontrado', 'error');
+            return;
+        }
+        
+        // VERIFICAÇÃO SECUNDÁRIA DE USUÁRIO (mais tolerante)
+        if (plan.userId && plan.userId !== this.currentUserId) {
+            console.warn(`⚠️ UserID mismatch: plano=${plan.userId}, atual=${this.currentUserId}`);
+            
+            // TENTAR CORRIGIR AUTOMATICAMENTE se os dados vieram do Firebase
+            if (plan.saved_in_firebase || plan.loaded_from_firebase) {
+                console.log(`🔧 Tentando corrigir userId do plano automaticamente`);
+                plan.userId = this.currentUserId;
+                // Salvar correção
+                this.saveToUserLocalStorage();
+            } else {
+                this.showMessage('Plano não pertence ao usuário atual', 'error');
+                return;
+            }
+        }
+        
+        console.log(`✅ Carregando plano para edição: ${plan.nome} (Usuário: ${plan.userId})`);
+        
+        // Chamar método de edição existente
+        this.showPlanCreator(planId);
+        
+    } catch (error) {
+        console.error('❌ Erro ao iniciar edição:', error);
+        this.showMessage('Erro ao carregar plano para edição', 'error');
+    }
+}
+
+
+async sharePlan(planId) {
+    try {
+        // VERIFICAÇÃO DE AUTENTICAÇÃO
+        if (!this.canPerformAction()) return;
+        
+        console.log(`🔗 Iniciando compartilhamento do plano: ${planId}`);
+        
+        // Buscar plano NA LISTA DO USUÁRIO ATUAL
+        const plan = this.savedPlans.find(p => 
+            p.id === planId && p.userId === this.currentUserId
+        );
+        
+        if (!plan) {
+            console.warn(`❌ Plano ${planId} não encontrado ou não pertence ao usuário`);
+            this.showMessage('Plano não encontrado ou você não tem permissão para compartilhá-lo', 'error');
+            return;
+        }
+
+        // Verificar se já está compartilhado
+        if (plan.shareId) {
+            this.showMessage(`Plano "${plan.nome}" já está compartilhado`, 'info');
+            this.showQuickShareInfo(plan.shareId, plan.nome);
+            return;
+        }
+
+        console.log(`🔗 Preparando compartilhamento: ${plan.nome} (Usuário: ${plan.userId})`);
+        this.showMessage('Preparando plano para compartilhamento...', 'info');
+
+        // Validações do plano
+        if (!plan.nome || !plan.aluno?.nome) {
+            this.showMessage('Plano deve ter nome e nome do aluno para ser compartilhado', 'warning');
+            return;
+        }
+
+        if (!plan.treinos || plan.treinos.length === 0) {
+            this.showMessage('Plano deve ter pelo menos um treino para ser compartilhado', 'warning');
+            return;
+        }
+
+        // Preparar dados para compartilhamento (remover dados sensíveis)
+        const sharedPlan = this.preparePlanForSharing(plan);
+
+        // Gerar ID de compartilhamento
+        const shareId = this.generateShareId();
+
+        // Verificar Firebase
+        if (!this.core || !this.core.firebaseConnected) {
+            this.showMessage('Compartilhamento requer conexão com Firebase', 'error');
+            return;
+        }
+
+        // Salvar no Firebase
+        await this.saveSharedPlanToFirebase(shareId, sharedPlan);
+
+        // Atualizar plano local com ID de compartilhamento
+        plan.shareId = shareId;
+        plan.sharedAt = new Date().toISOString();
+        plan.sharedBy = this.currentUserId;
+
+        // Salvar alteração
+        await this.saveToUserLocalStorage();
+        
+        // Atualizar no Firebase se possível
+        if (this.core.firebaseConnected) {
+            try {
+                await this.core.savePlanToFirebase(plan);
+                console.log('✅ Plano atualizado no Firebase com shareId');
+            } catch (updateError) {
+                console.warn('⚠️ Erro ao atualizar plano no Firebase:', updateError);
+            }
+        }
+
+        // Mostrar resultado
+        this.showQuickShareInfo(shareId, plan.nome);
+        this.renderPlanList(); // Recarregar lista para mostrar novo status
+
+        console.log(`✅ Plano compartilhado: ${plan.nome} (ID: ${shareId})`);
+
+    } catch (error) {
+        console.error('❌ Erro ao compartilhar plano:', error);
+        this.showMessage(`Erro ao compartilhar: ${error.message}`, 'error');
+    }
+}
+
+async savePlan() {
+    try {
+        console.log('Iniciando processo de salvamento do plano...');
+        
+        // 1. VERIFICAÇÃO OBRIGATÓRIA DE AUTENTICAÇÃO
+        if (!this.isUserAuthenticated || !this.currentUserId) {
+            this.showMessage('Você precisa estar logado para salvar planos', 'error');
+            this.showAuthenticationScreen();
+            return;
+        }
+        
+        console.log(`Salvando plano para usuário: ${this.currentUserId}`);
+        
+        // 2. OBTER DADOS DO FORMULÁRIO
+        const currentPlanId = document.getElementById('currentPlanId')?.value;
+        const isEditingPlan = this.isEditing && currentPlanId;
+        
+        const birthDate = document.getElementById('studentBirthDate')?.value;
+        const calculatedAge = birthDate ? this.calculateAge(birthDate) : 25;
+        
+        // 3. CONSTRUIR OBJETO DO PLANO COM DADOS OBRIGATÓRIOS
+        const planData = {
+            // ID: manter existente se editando, senão será gerado
+            id: isEditingPlan ? currentPlanId : null,
+            
+            // DADOS OBRIGATÓRIOS DE USUÁRIO
+            userId: this.currentUserId,  // ESSENCIAL
+            userEmail: this.userEmail || 'unknown',
+            userDisplayName: this.userDisplayName || 'Usuário',
+            
+            // DADOS DO PLANO
+            nome: document.getElementById('planName')?.value?.trim() || '',
+            
+            // DADOS DO ALUNO
+            aluno: {
+                nome: document.getElementById('studentName')?.value?.trim() || '',
+                dataNascimento: birthDate || '',
+                cpf: document.getElementById('studentCpf')?.value?.trim() || '',
+                idade: calculatedAge,
+                altura: document.getElementById('studentHeight')?.value?.trim() || '1,75m',
+                peso: document.getElementById('studentWeight')?.value?.trim() || '75kg'
+            },
+            
+            // CONFIGURAÇÕES DO PLANO
+            dias: this.selectedDays || 1,
+            dataInicio: document.getElementById('planStartDate')?.value || new Date().toISOString().split('T')[0],
+            dataFim: document.getElementById('planEndDate')?.value || '',
+            
+            // PERFIL DERIVADO
+            perfil: {
+                idade: calculatedAge,
+                altura: document.getElementById('studentHeight')?.value?.trim() || '1,75m',
+                peso: document.getElementById('studentWeight')?.value?.trim() || '75kg',
+                porte: this.calculateBodyType(
+                    document.getElementById('studentHeight')?.value || '1,75m',
+                    document.getElementById('studentWeight')?.value || '75kg'
+                ),
+                objetivo: document.getElementById('planObjective')?.value || 'Condicionamento geral'
+            },
+            
+            // TREINOS (cópia profunda para evitar referências)
+            treinos: JSON.parse(JSON.stringify(this.currentPlan?.treinos || [])),
+            
+            // OBSERVAÇÕES
+            observacoes: {
+                geral: document.getElementById('planObservations')?.value?.trim() || ''
+            },
+            
+            // METADADOS DE CONTROLE
+            created_at: isEditingPlan ? 
+                (this.currentPlan?.created_at || new Date().toISOString()) : 
+                new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            version: '2.0'
+        };
+        
+        // 4. VALIDAÇÕES ESSENCIAIS
+        if (!planData.nome) {
+            this.showMessage('Nome do plano é obrigatório', 'error');
+            document.getElementById('planName')?.focus();
+            return;
+        }
+        
+        if (!planData.aluno.nome) {
+            this.showMessage('Nome do aluno é obrigatório', 'error');
+            document.getElementById('studentName')?.focus();
+            return;
+        }
+        
+        if (!planData.treinos || planData.treinos.length === 0) {
+            this.showMessage('O plano deve ter pelo menos um treino configurado', 'error');
+            return;
+        }
+        
+        console.log('Dados validados:', {
+            nome: planData.nome,
+            aluno: planData.aluno.nome,
+            userId: planData.userId,
+            treinos: planData.treinos.length
+        });
+        
+        // 5. BUSCA INTELIGENTE DO CORE (5 ESTRATÉGIAS)
+        let core = null;
+        
+        console.log('Iniciando busca inteligente do JSFitCore...');
+        
+        // ESTRATÉGIA 1: this.core - Referência direta
+        if (this.core && this.isValidCoreInstance(this.core)) {
+            core = this.core;
+            console.log('Core encontrado em this.core');
+        }
+        // ESTRATÉGIA 2: window.core - Instância global
+        else if (window.core && this.isValidCoreInstance(window.core)) {
+            core = window.core;
+            this.core = core; // Atualizar referência local
+            console.log('Core encontrado em window.core');
+        }
+        // ESTRATÉGIA 3: window.app.core - Dentro do objeto app
+        else if (window.app && window.app.core && this.isValidCoreInstance(window.app.core)) {
+            core = window.app.core;
+            this.core = core; // Atualizar referência local
+            console.log('Core encontrado em window.app.core');
+        }
+        // ESTRATÉGIA 4: Procurar instâncias globais conhecidas
+        else if (this.findGlobalCoreInstance()) {
+            core = this.findGlobalCoreInstance();
+            this.core = core; // Atualizar referência local
+            console.log('Core encontrado em instância global:', core.constructor?.name || 'unknown');
+        }
+        // ESTRATÉGIA 5: Criar nova instância como último recurso
+        else if (window.JSFitCore && typeof window.JSFitCore === 'function') {
+            console.log('Criando nova instância do JSFitCore...');
+            try {
+                core = new window.JSFitCore();
+                await this.initializeCoreInstance(core);
+                this.core = core;
+                window.core = core; // Salvar globalmente para próximas vezes
+                console.log('Nova instância criada e inicializada');
+            } catch (initError) {
+                console.error('Erro ao criar nova instância:', initError);
+                core = null;
+            }
+        }
+        
+        if (!core) {
+            console.warn('JSFitCore não encontrado em nenhuma estratégia');
+        }
+        
+        // 6. INICIAR PROCESSO DE SALVAMENTO
+        this.showMessage('Salvando plano...', 'info');
+        
+        let firebaseSuccess = false;
+        let firebaseId = null;
+        let localBackupSuccess = false;
+        
+        // 7. TENTATIVA DE SALVAMENTO NO FIREBASE (PRIORITÁRIO)
+        if (core) {
+            try {
+                console.log('Tentando salvar no Firebase...');
+                
+                // Verificar e preparar conexão Firebase
+                const firebaseReady = await this.ensureFirebaseReady(core);
+                
+                if (firebaseReady) {
+                    // Validar autenticação Firebase
+                    const firebaseUserId = core.getUserId();
+                    if (!firebaseUserId) {
+                        throw new Error('Usuário não autenticado no Firebase');
+                    }
+                    
+                    // Sincronizar userIds se diferentes
+                    if (firebaseUserId !== this.currentUserId) {
+                        console.warn('Discrepância de userId detectada:', {
+                            local: this.currentUserId,
+                            firebase: firebaseUserId
+                        });
+                        // Firebase é autoridade - atualizar dados locais
+                        planData.userId = firebaseUserId;
+                        this.currentUserId = firebaseUserId;
+                    }
+                    
+                    // Salvar no Firebase
+                    console.log('Executando salvamento no Firebase...');
+                    firebaseId = await core.savePlanToFirebase(planData);
+                    
+                    // Atualizar dados do plano com resposta do Firebase
+                    planData.id = firebaseId;
+                    planData.saved_in_firebase = true;
+                    planData.firebase_timestamp = new Date().toISOString();
+                    planData.sync_status = 'synced';
+                    
+                    firebaseSuccess = true;
+                    console.log(`Plano salvo no Firebase: ${firebaseId}`);
+                } else {
+                    throw new Error('Firebase não está pronto para uso');
+                }
+                
+            } catch (firebaseError) {
+                console.error('Erro ao salvar no Firebase:', firebaseError);
+                
+                // Marcar para retry posterior
+                planData.firebase_save_failed = true;
+                planData.firebase_error = firebaseError.message;
+                planData.firebase_error_code = firebaseError.code || 'unknown';
+                planData.firebase_error_timestamp = new Date().toISOString();
+                planData.retry_firebase = true;
+                planData.sync_status = 'pending';
+                
+                firebaseSuccess = false;
+            }
+        } else {
+            console.warn('JSFitCore não disponível para salvamento Firebase');
+            planData.core_missing = true;
+            planData.core_missing_timestamp = new Date().toISOString();
+            planData.sync_status = 'core_unavailable';
+        }
+        
+        // 8. BACKUP LOCAL OBRIGATÓRIO (SEMPRE EXECUTAR)
+        try {
+            console.log('Criando backup local obrigatório...');
+            
+            // Gerar ID local se necessário
+            if (!planData.id) {
+                planData.id = this.generateLocalId();
+                planData.local_id_generated = true;
+                planData.local_id_timestamp = new Date().toISOString();
+            }
+            
+            // Marcar origem e status dos dados
+            if (firebaseSuccess) {
+                planData.backup_in_localstorage = true;
+                planData.primary_source = 'firebase';
+                planData.firebase_id = firebaseId;
+            } else {
+                planData.saved_in_localstorage_only = true;
+                planData.needs_firebase_sync = true;
+                planData.primary_source = 'localstorage';
+                planData.local_save_timestamp = new Date().toISOString();
+            }
+            
+            // Atualizar lista em memória com verificações de segurança
+            if (isEditingPlan) {
+                const existingIndex = this.savedPlans.findIndex(p => 
+                    (p.id === planData.id || (currentPlanId && p.id === currentPlanId)) &&
+                    p.userId === this.currentUserId // VERIFICAÇÃO DE SEGURANÇA
+                );
+                
+                if (existingIndex >= 0) {
+                    // Preservar metadados importantes do plano original
+                    const existingPlan = this.savedPlans[existingIndex];
+                    planData.original_created_at = existingPlan.created_at;
+                    planData.edit_count = (existingPlan.edit_count || 0) + 1;
+                    planData.edited_at = new Date().toISOString();
+                    planData.edit_history = existingPlan.edit_history || [];
+                    planData.edit_history.push({
+                        edited_at: new Date().toISOString(),
+                        firebase_success: firebaseSuccess,
+                        version: '2.0'
+                    });
+                    
+                    this.savedPlans[existingIndex] = planData;
+                    console.log('Plano existente atualizado na lista (userId verificado)');
+                } else {
+                    // Plano não encontrado para edição, adicionar como novo
+                    this.savedPlans.push(planData);
+                    console.log('Plano não encontrado para edição, adicionado como novo');
+                }
+            } else {
+                // Novo plano
+                planData.edit_count = 0;
+                planData.creation_timestamp = new Date().toISOString();
+                this.savedPlans.push(planData);
+                console.log('Novo plano adicionado à lista');
+            }
+            
+            // Salvar no localStorage específico do usuário
+            await this.saveToUserLocalStorage();
+            localBackupSuccess = true;
+            
+            console.log('Backup local criado com sucesso');
+            
+        } catch (localError) {
+            console.error('ERRO CRÍTICO no backup local:', localError);
+            
+            // Se Firebase também falhou, é erro crítico
+            if (!firebaseSuccess) {
+                this.showMessage('ERRO CRÍTICO: Não foi possível salvar o plano!', 'error');
+                return;
+            } else {
+                console.warn('Backup local falhou, mas Firebase foi bem-sucedido');
+                localBackupSuccess = false;
+            }
+        }
+        
+        // 9. FINALIZAÇÃO E LIMPEZA DE ESTADO
+        this.isEditing = false;
+        this.currentPlan = this.getEmptyPlan();
+        
+        // Limpar interface de edição
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
+        }
+        
+        const currentPlanIdField = document.getElementById('currentPlanId');
+        if (currentPlanIdField) {
+            currentPlanIdField.value = '';
+        }
+        
+        // 10. AGENDAR OPERAÇÕES DE RETRY SE NECESSÁRIO
+        if (!firebaseSuccess && typeof this.scheduleFirebaseRetry === 'function') {
+            console.log('Agendando retry do Firebase para plano:', planData.id);
+            this.scheduleFirebaseRetry(planData.id);
+        }
+        
+        // 11. MENSAGENS DE RESULTADO DETALHADAS
+        if (firebaseSuccess && localBackupSuccess) {
+            this.showMessage('Plano salvo com sucesso no Firebase!', 'success');
+            console.log('Salvamento completo: Firebase + Backup local');
+        } else if (firebaseSuccess) {
+            this.showMessage('Plano salvo no Firebase (backup local falhou)', 'warning');
+            console.log('Salvamento parcial: Firebase OK, backup local falhou');
+        } else if (localBackupSuccess) {
+            this.showMessage('Plano salvo localmente (Firebase indisponível)', 'warning');
+            console.log('Salvamento local: Firebase falhou, backup local OK');
+        } else {
+            this.showMessage('Erro crítico: não foi possível salvar o plano', 'error');
+            console.error('Falha total no salvamento');
+            return;
+        }
+        
+        // 12. LOG FINAL DETALHADO
+        console.log('Resultado completo do salvamento:', {
+            planId: planData.id,
+            planName: planData.nome,
+            userId: planData.userId,
+            firebaseSuccess: firebaseSuccess,
+            firebaseId: firebaseId,
+            localBackupSuccess: localBackupSuccess,
+            isEditing: isEditingPlan,
+            coreStrategy: core ? this.getCoreStrategy(core) : 'none',
+            timestamp: new Date().toISOString()
+        });
+        
+        // 13. NAVEGAÇÃO FINAL
+        setTimeout(() => {
+            this.showPlanList();
+        }, 1500);
+        
+    } catch (criticalError) {
+        console.error('ERRO CRÍTICO no savePlan:', criticalError);
+        this.showMessage(`Erro crítico ao salvar: ${criticalError.message}`, 'error');
+        
+        // Log detalhado para debugging
+        console.error('Detalhes do erro crítico:', {
+            message: criticalError.message,
+            stack: criticalError.stack,
+            userId: this.currentUserId,
+            isAuthenticated: this.isUserAuthenticated,
+            coreAvailable: !!this.core,
+            timestamp: new Date().toISOString()
+        });
+    }
+}
+
+// MÉTODO AUXILIAR: BUSCA INTELIGENTE DO CORE
+// ========================================
+async findAndValidateCore() {
+    // 1. Verificar this.core
+    if (this.core && this.isValidCoreInstance(this.core)) {
+        if (this.core.firebaseConnected) {
+            return this.core;
+        }
+        // Tentar reconectar
+        try {
+            await this.core.initializeFirebase();
+            if (this.core.firebaseConnected) {
+                return this.core;
+            }
+        } catch (reconnectError) {
+            console.warn('Erro ao reconectar this.core:', reconnectError);
+        }
+    }
+
+    // 2. Buscar outras instâncias
+    const globalCore = this.findGlobalCoreInstance();
+    if (globalCore) {
+        try {
+            if (!globalCore.firebaseConnected) {
+                await globalCore.initializeFirebase();
+            }
+            if (globalCore.firebaseConnected) {
+                this.core = globalCore; // Atualizar referência
+                return globalCore;
+            }
+        } catch (initError) {
+            console.warn('Erro ao inicializar core global:', initError);
+        }
+    }
+
+    // 3. Criar nova instância
+    if (window.JSFitCore) {
+        try {
+            const newCore = new window.JSFitCore();
+            await newCore.initializeFirebase();
+            if (newCore.firebaseConnected) {
+                this.core = newCore;
+                return newCore;
+            }
+        } catch (createError) {
+            console.error('Erro ao criar nova instância:', createError);
+        }
+    }
+
+    console.warn('❌ Nenhuma instância válida do Core encontrada');
+    return null;
+}
+
+
+async deactivateSharedPlanFixed(shareId, coreInstance) {
+    try {
+        console.log(`🗑️ Desativando compartilhamento: ${shareId}`);
+        
+        if (!coreInstance || !coreInstance.firebaseConnected) {
+            throw new Error('Core/Firebase não disponível');
+        }
+
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+
+        const shareRef = doc(window.db, 'shared_plans', shareId);
+        
+        await updateDoc(shareRef, {
+            isActive: false,
+            deactivatedAt: new Date(),
+            deactivatedBy: this.currentUserId
+        });
+
+        console.log(`✅ Compartilhamento ${shareId} desativado no Firebase`);
+
+    } catch (error) {
+        console.error('❌ Erro ao desativar no Firebase:', error);
+        throw error;
+    }
+}
+
+
+async stopSharing(planId) {
+    try {
+        // VERIFICAÇÃO DE AUTENTICAÇÃO
+        if (!this.canPerformAction()) return;
+        
+        console.log(`🔒 Parando compartilhamento do plano: ${planId}`);
+        
+        // Buscar plano NA LISTA DO USUÁRIO ATUAL
+        const plan = this.savedPlans.find(p => 
+            p.id === planId && p.userId === this.currentUserId
+        );
+        
+        if (!plan || !plan.shareId) {
+            this.showMessage('Plano não encontrado ou não está compartilhado', 'error');
+            return;
+        }
+
+        const confirmStop = confirm(
+            `Deseja parar de compartilhar "${plan.nome}"?\n\n` +
+            `O aluno não conseguirá mais importá-lo com o ID: ${plan.shareId}`
+        );
+        
+        if (!confirmStop) return;
+
+        this.showMessage('Removendo compartilhamento...', 'info');
+
+        // ========================================
+        // BUSCA INTELIGENTE DO CORE (CORRIGIDA)
+        // ========================================
+        let coreInstance = await this.findAndValidateCore();
+        
+        // Desativar no Firebase SE core disponível
+        if (coreInstance && coreInstance.firebaseConnected) {
+            try {
+                await this.deactivateSharedPlanFixed(plan.shareId, coreInstance);
+                console.log('✅ Compartilhamento desativado no Firebase');
+            } catch (fbError) {
+                console.warn('⚠️ Erro ao desativar no Firebase:', fbError);
+            }
+        } else {
+            console.warn('⚠️ Core/Firebase indisponível - removendo apenas localmente');
+        }
+
+        // Remover dados de compartilhamento do plano
+        const oldShareId = plan.shareId;
+        delete plan.shareId;
+        delete plan.sharedAt;
+        delete plan.sharedBy;
+        plan.sharingStoppedAt = new Date().toISOString();
+
+        // Salvar alterações localmente
+        await this.saveToUserLocalStorage();
+        
+        // Tentar atualizar no Firebase
+        if (coreInstance && coreInstance.firebaseConnected) {
+            try {
+                await coreInstance.savePlanToFirebase(plan);
+                console.log('✅ Plano atualizado no Firebase');
+            } catch (updateError) {
+                console.warn('⚠️ Erro ao atualizar plano no Firebase:', updateError);
+            }
+        }
+
+        // Atualizar interface
+        this.renderPlanList();
+        this.showMessage(`Compartilhamento removido: "${plan.nome}"`, 'success');
+        
+    } catch (error) {
+        console.error('❌ Erro ao parar compartilhamento:', error);
+        this.showMessage('Erro ao remover compartilhamento', 'error');
+    }
+}
+
+// =====================================
+// MÉTODOS AUXILIARES PARA BUSCA DO CORE
+// =====================================
+
+isValidCoreInstance(coreInstance) {
+    return coreInstance && 
+           typeof coreInstance === 'object' && 
+           typeof coreInstance.savePlanToFirebase === 'function' &&
+           typeof coreInstance.getUserId === 'function';
+}
+
+findGlobalCoreInstance() {
+    const possibleCores = [
+        window.jsfitCore,
+        window.jsfit,
+        window.appCore,
+        window.firebaseCore,
+        this.jsfitCore,
+        this.jsfit
+    ];
+    
+    for (let possibleCore of possibleCores) {
+        if (this.isValidCoreInstance(possibleCore)) {
+            console.log('Core encontrado em:', possibleCore.constructor?.name || 'unknown global');
+            return possibleCore;
+        }
+    }
+    
+    // Buscar por propriedades que possam conter instâncias do core
+    const globalProperties = Object.getOwnPropertyNames(window);
+    for (let prop of globalProperties) {
+        if (prop.toLowerCase().includes('core') || prop.toLowerCase().includes('jsfit')) {
+            const candidate = window[prop];
+            if (this.isValidCoreInstance(candidate)) {
+                console.log('Core encontrado na propriedade global:', prop);
+                return candidate;
+            }
+        }
+    }
+    
+    return null;
+}
+
+async initializeCoreInstance(coreInstance) {
+    try {
+        console.log('Inicializando nova instância do Core...');
+        
+        if (typeof coreInstance.initializeFirebase === 'function') {
+            await coreInstance.initializeFirebase();
+            console.log('Firebase inicializado na nova instância');
+        }
+        
+        if (typeof coreInstance.loadExerciseDatabase === 'function') {
+            await coreInstance.loadExerciseDatabase();
+            console.log('Base de exercícios carregada na nova instância');
+        }
+        
+        return true;
+        
+    } catch (initError) {
+        console.error('Erro na inicialização da instância do Core:', initError);
+        throw initError;
+    }
+}
+
+async ensureFirebaseReady(coreInstance) {
+    try {
+        // Verificar se já está conectado
+        if (coreInstance.firebaseConnected) {
+            console.log('Firebase já conectado');
+            return true;
+        }
+        
+        // Tentar inicializar/reconectar
+        console.log('Tentando conectar Firebase...');
+        if (typeof coreInstance.initializeFirebase === 'function') {
+            await coreInstance.initializeFirebase();
+            
+            if (coreInstance.firebaseConnected) {
+                console.log('Firebase conectado com sucesso');
+                return true;
+            }
+        }
+        
+        console.warn('Firebase não pôde ser conectado');
+        return false;
+        
+    } catch (connectionError) {
+        console.error('Erro ao conectar Firebase:', connectionError);
+        return false;
+    }
+}
+
+getCoreStrategy(coreInstance) {
+    if (this.core === coreInstance) return 'this.core';
+    if (window.core === coreInstance) return 'window.core';
+    if (window.app && window.app.core === coreInstance) return 'window.app.core';
+    if (window.jsfitCore === coreInstance) return 'window.jsfitCore';
+    return 'created_new';
+}
+
+// MÉTODO AUXILIAR: Salvar especificamente no localStorage do usuário
+async saveToUserLocalStorage() {
+    try {
+        if (!this.currentUserId) {
+            throw new Error('UserId não disponível para localStorage');
+        }
+        
+        const storageKey = `jsfitapp_plans_${this.currentUserId}`;
+        const dataToSave = {
+            userId: this.currentUserId,
+            userEmail: this.userEmail,
+            plans: this.savedPlans,
+            savedAt: new Date().toISOString(),
+            version: '2.0'
+        };
+        
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        console.log(`${this.savedPlans.length} planos salvos no localStorage do usuário`);
+        
+    } catch (error) {
+        console.error('Erro ao salvar no localStorage específico:', error);
+        throw error;
+    }
+}
+
+
+getUserId() {
+    // Prioridade 1: Firebase Auth atual
+    if (window.firebaseAuth?.currentUser?.uid) {
+        return window.firebaseAuth.currentUser.uid;
+    }
+    
+    // Prioridade 2: AuthManager
+    if (window.authManager?.getCurrentUser()?.uid) {
+        return window.authManager.getCurrentUser().uid;
+    }
+    
+    // Prioridade 3: localStorage como fallback
+    try {
+        const stored = localStorage.getItem('jsfitapp_user');
+        if (stored) {
+            const userData = JSON.parse(stored);
+            if (userData.uid && userData.sessionActive) {
+                return userData.uid;
+            }
+        }
+    } catch (error) {
+        console.warn('Erro ao ler userId do localStorage:', error);
+    }
+    
+    console.warn('❌ getUserId(): Nenhum userId válido encontrado');
+    return null;
+}
+
+
+
+async copyShareId(shareId) {
+    try {
+        console.log(`📋 Copiando share ID: ${shareId}`);
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(shareId);
+            this.showMessage(`ID ${shareId} copiado!`, 'success');
+        } else {
+            // Fallback para navegadores mais antigos
+            const tempInput = document.createElement('input');
+            tempInput.value = shareId;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                this.showMessage(`ID ${shareId} copiado!`, 'success');
+            } catch (err) {
+                console.warn('⚠️ Fallback copy falhou:', err);
+                this.showMessage(`Copie manualmente: ${shareId}`, 'info');
+            }
+            
+            document.body.removeChild(tempInput);
+        }
+        
+        console.log('✅ Share ID copiado com sucesso');
+        
+    } catch (error) {
+        console.error('❌ Erro ao copiar share ID:', error);
+        this.showMessage(`Erro ao copiar. ID: ${shareId}`, 'warning');
+    }
+}
+
+// MÉTODO AUXILIAR: Verificar se usuário pode realizar ação
+canPerformAction() {
+    if (!this.isUserAuthenticated || !this.currentUserId) {
+        this.showMessage('Você precisa estar logado para realizar esta ação', 'warning');
+        this.showAuthenticationScreen();
+        return false;
+    }
+    return true;
+}
+
+// MÉTODO AUXILIAR: Preparar plano para compartilhamento (remover dados sensíveis)
+preparePlanForSharing(plan) {
+    return {
+        nome: plan.nome,
+        aluno: {
+            nome: plan.aluno?.nome || '',
+            dataNascimento: plan.aluno?.dataNascimento || '',
+            idade: plan.aluno?.idade || null,
+            altura: plan.aluno?.altura || '',
+            peso: plan.aluno?.peso || ''
+            // CPF removido por segurança
+        },
+        dias: plan.dias,
+        dataInicio: plan.dataInicio,
+        dataFim: plan.dataFim,
+        perfil: {
+            objetivo: plan.perfil?.objetivo || '',
+            altura: plan.aluno?.altura || plan.perfil?.altura || '',
+            peso: plan.aluno?.peso || plan.perfil?.peso || '',
+            idade: plan.aluno?.idade || plan.perfil?.idade || null,
+            porte: plan.perfil?.porte || ''
+        },
+        treinos: plan.treinos.map(treino => ({
+            id: treino.id,
+            nome: treino.nome,
+            foco: treino.foco,
+            exercicios: treino.exercicios.map(ex => ({
+                id: ex.id,
+                nome: ex.nome,
+                descricao: ex.descricao,
+                series: ex.series,
+                repeticoes: ex.repeticoes,
+                carga: ex.carga,
+                descanso: ex.descanso,
+                observacoesEspeciais: ex.observacoesEspeciais,
+                tecnica: ex.tecnica
+            }))
+        })),
+        observacoes: plan.observacoes || {},
+        tecnicas_aplicadas: plan.tecnicas_aplicadas || {},
+        sharedAt: new Date().toISOString(),
+        originalUserId: plan.userId // Para auditoria, sem dados pessoais
+    };
+}
+
+
+
+
+calculateBodyType(altura, peso) {
+    try {
+        const height = parseFloat(altura.replace('m', '').replace(',', '.'));
+        const weight = parseFloat(peso.replace('kg', ''));
+        const imc = weight / (height * height);
+
+        if (imc < 18.5) return 'pequeno';
+        if (imc < 25) return 'médio';
+        return 'grande';
+    } catch (error) {
+        return 'médio';
+    }
+}
+
+calculateAge(birthDate) {
+    if (!birthDate) return null;
+    try {
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        
+        return age;
+    } catch (error) {
+        return null;
+    }
+}
+
 
 
 // 2. SAVEPLANTYPECONFIGURATION - Salva configuração de tipos de plano
 async savePlanTypeConfiguration() {
     try {
-        console.log('Salvando configuração de tipos de plano...');
+        if (!this.isUserAuthenticated) {
+            console.warn('Usuário não autenticado, não salvando configuração');
+            return;
+        }
+
+        console.log('💾 Salvando configuração de tipos de plano...');
         
         const configToSave = {
             days: this.planTypeConfiguration.days,
             configuration: this.planTypeConfiguration.configuration,
-            savedAt: new Date(),
+            userId: this.currentUserId,
+            savedAt: new Date().toISOString(),
             version: '1.0'
         };
 
         // Tentar salvar no Firebase primeiro
         if (this.core && this.core.firebaseConnected) {
             try {
-                await this.savePlanConfigToFirebase(configToSave);
-                console.log('Configuração salva no Firebase');
+                await this.core.savePlanConfigToFirebase(configToSave);
+                console.log('✅ Configuração salva no Firebase');
             } catch (firebaseError) {
-                console.warn('Erro ao salvar no Firebase:', firebaseError);
+                console.warn('⚠️ Erro ao salvar no Firebase:', firebaseError);
             }
         }
 
         // Backup local sempre
         try {
-            localStorage.setItem('jsfitapp_plan_configuration', JSON.stringify({
-                days: configToSave.days,
-                configuration: configToSave.configuration,
-                savedAt: configToSave.savedAt.toISOString()
-            }));
-            console.log('Configuração salva localmente');
+            const configKey = this.getConfigStorageKey();
+            localStorage.setItem(configKey, JSON.stringify(configToSave));
+            console.log('✅ Configuração salva no localStorage do usuário');
         } catch (localError) {
-            console.error('Erro ao salvar localmente:', localError);
+            console.error('❌ Erro ao salvar localmente:', localError);
         }
         
     } catch (error) {
-        console.error('Erro geral ao salvar configuração:', error);
+        console.error('❌ Erro geral ao salvar configuração:', error);
     }
 }
+
+
 
 // Método auxiliar para salvar no Firebase
 async savePlanConfigToFirebase(configData) {
@@ -6373,56 +9208,6 @@ async savePlanConfigToFirebase(configData) {
     }
 }
 
-// 3. POPULATECONTEXTUALGROUPFILTER - Popular filtro contextual de grupos
-populateContextualGroupFilter(configuredGroups, workout) {
-    const groupFilter = document.getElementById('exerciseGroupFilter');
-    if (!groupFilter) {
-        console.warn('Elemento exerciseGroupFilter não encontrado');
-        return;
-    }
-
-    console.log(`Populando filtro contextual com ${configuredGroups.length} grupos para treino ${workout.id}`);
-
-    // Limpar opções existentes
-    groupFilter.innerHTML = '';
-
-    // Opção para todos os grupos do treino atual
-    const allWorkoutGroupsOption = document.createElement('option');
-    allWorkoutGroupsOption.value = 'contextual';
-    allWorkoutGroupsOption.textContent = `Todos os grupos do treino ${workout.id}`;
-    groupFilter.appendChild(allWorkoutGroupsOption);
-
-    // Adicionar grupos configurados individualmente
-    configuredGroups.forEach(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        if (group) {
-            const option = document.createElement('option');
-            option.value = group.id.toLowerCase();
-            option.textContent = `${group.icon} ${group.name}`;
-            groupFilter.appendChild(option);
-        }
-    });
-
-    // Separador visual
-    if (configuredGroups.length > 0) {
-        const separatorOption = document.createElement('option');
-        separatorOption.disabled = true;
-        separatorOption.textContent = '─────────────────';
-        groupFilter.appendChild(separatorOption);
-    }
-
-    // Opção para ver todos os grupos disponíveis
-    const allGroupsOption = document.createElement('option');
-    allGroupsOption.value = 'todos';
-    allGroupsOption.textContent = 'Ver todos os grupos disponíveis';
-    groupFilter.appendChild(allGroupsOption);
-
-    // Selecionar contextual por padrão
-    groupFilter.value = 'contextual';
-    
-    // Mostrar informação contextual
-    this.showContextualFilterInfo(workout, configuredGroups);
-}
 
 // Método auxiliar para mostrar informações do filtro contextual
 showContextualFilterInfo(workout, configuredGroups) {
@@ -6457,7 +9242,6 @@ showContextualFilterInfo(workout, configuredGroups) {
         </div>
     `;
 }
-
 
 
 // 4. GETCONFIGUREDGROUPSFORWORKOUT - Obter grupos configurados para treino específico
@@ -6507,8 +9291,6 @@ getConfiguredGroupsForWorkout(workoutIndex, workout) {
     console.log('Nenhum grupo configurado encontrado para este treino');
     return configuredGroups;
 }
-
-
 
 
 // Método auxiliar para inferir grupos dos exercícios BOM 
@@ -6602,27 +9384,8 @@ mapCustomGroupToSystemGroup(customGroupId) {
 
     return mapping[customGroupId] || customGroupId;
 }   
-
-
 }
-
-// =============================================
-// INICIALIZAÇÃO DA APLICAÇÃO
-// =============================================
-
-// Criar instância global
 const app = new PersonalApp();
-
-// Initialize app when page loads
-
-document.addEventListener('DOMContentLoaded', async function () {
-    await app.init();
-});
+window.app = app;
 
 
-// Fallback initialization
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', app.init.bind(app));
-} else {
-    app.init();
-}
