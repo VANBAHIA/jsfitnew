@@ -355,10 +355,7 @@ showMainApplication() {
             }
         }
         
-        // Mostrar lista de planos
-        setTimeout(() => {
-            this.showPlanList();
-        }, 100);
+     
         
     } catch (error) {
         console.error('❌ Erro ao mostrar aplicação principal:', error);
