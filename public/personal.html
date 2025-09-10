@@ -44,9 +44,6 @@
             <button class="btn btn-primary btn-full" onclick="authManager.login()">
                 Entrar
             </button>
-            <button class="btn btn-outline btn-full" onclick="authManager.showRegister()">
-                Criar Conta
-            </button>
             <button class="btn btn-link btn-full" onclick="authManager.showPasswordReset()">
                 Esqueci minha senha
             </button>
@@ -562,28 +559,16 @@
 <!-- Ordem OBRIGATÓRIA no personal.html -->
 <script src="js/shared/jsfitcore.js" defer></script>
 <script src="js/auth.js" defer></script>
-<script src="js/personal.js" defer></script>
+
+<script src="js/shared/coremanager.js"></script>
+<script src="js/personal.js"></script>
 
 <script>
-    // INICIALIZAÇÃO ÚNICA E SEGURA
+    // INICIALIZAÇÃO ÚNICA COM COREMANAGER
 (function() {
     let appInitialized = false;
     
-    function initializeApp() {
-        if (!window.Core) {
-    console.warn('⚠️ Core não encontrado, criando fallback...');
-    window.Core = {
-        formatDate: (dateStr) => {
-            try {
-                return new Date(dateStr).toLocaleDateString('pt-BR');
-            } catch {
-                return 'Data inválida';
-            }
-        },
-        showNotification: (msg, type) => console.log(`${type}: ${msg}`)
-    };
-}
-
+    async function initializeApp() {
         if (appInitialized) {
             console.log('⚠️ App já foi inicializado, ignorando nova tentativa');
             return;
@@ -592,22 +577,125 @@
         console.log('🚀 Iniciando aplicação única...');
         appInitialized = true;
         
-        // Criar instância global única
-        window.app = new PersonalApp();
-        
-        // Inicializar
-        window.app.init().catch(error => {
-            console.error('❌ Erro na inicialização da aplicação:', error);
-            appInitialized = false; // Permitir nova tentativa em caso de erro
+        try {
+            
+            // 2. OBTER CORE VIA COREMANAGER
+            let core = null;
+            try {
+                console.log('🔧 Obtendo core via CoreManager...');
+                core = await window.coreManager.getCore();
+                console.log('✅ Core obtido com sucesso:', !!core);
+            } catch (coreError) {
+                console.warn('⚠️ Erro ao obter core:', coreError.message);
+                // Criar core de emergência se necessário
+                core = window.coreManager.createSafeCore();
+            }
+            
+            // 3. DISPONIBILIZAR CORE GLOBALMENTE PARA COMPATIBILIDADE
+            if (core) {
+                window.Core = core;
+                window.globalCore = core;
+                console.log('✅ Core disponibilizado globalmente');
+            }
+            
+            // 4. CRIAR PERSONALAPP COM CORE DISPONÍVEL
+            if (!window.app) {
+                window.app = new PersonalApp();
+                console.log('✅ PersonalApp criado');
+            }
+            
+            // 5. GARANTIR QUE O APP TEM ACESSO AO CORE
+            if (window.app && core) {
+                // Se o app não tem core, fornecer via CoreManager
+                if (!window.app.core) {
+                    console.log('🔧 Fornecendo core para PersonalApp...');
+                    window.app.core = core;
+                }
+            }
+            
+            // 6. INICIALIZAR PERSONALAPP
+            
+            console.log('✅ Aplicação inicializada com CoreManager');
+            
+        } catch (error) {
+            console.error('❌ Erro na inicialização:', error);
+            appInitialized = false;
+            
+            // FALLBACK: Core de emergência
+            try {
+                console.log('🆘 Tentando fallback com core de emergência...');
+                
+                if (!window.Core) {
+                    window.Core = {
+                        formatDate: (dateStr) => {
+                            try {
+                                return new Date(dateStr).toLocaleDateString('pt-BR');
+                            } catch {
+                                return 'Data inválida';
+                            }
+                        },
+                        showNotification: (msg, type) => console.log(`${type}: ${msg}`),
+                        generateId: () => Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                        firebaseConnected: false,
+                        isEmergencyCore: true
+                    };
+                }
+                
+                if (!window.app && typeof PersonalApp === 'function') {
+                    window.app = new PersonalApp();
+                    if (window.app && !window.app.core) {
+                        window.app.core = window.Core;
+                    }
+                }
+                
+                console.log('✅ Fallback aplicado');
+                
+            } catch (fallbackError) {
+                console.error('💥 Erro no fallback:', fallbackError);
+            }
+        }
+    }
+    
+    // AGUARDAR DEPENDÊNCIAS
+    function waitForDependencies() {
+        return new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = 50;
+            
+            const checkDependencies = () => {
+                attempts++;
+                
+                const hasPersonalApp = typeof PersonalApp === 'function';
+                const hasCoreManager = typeof CoreManager === 'function' || !!window.coreManager;
+                const domReady = document.readyState === 'complete' || document.readyState === 'interactive';
+                
+                if (hasPersonalApp && hasCoreManager && domReady) {
+                    console.log('✅ Dependências prontas (PersonalApp + CoreManager + DOM)');
+                    resolve();
+                } else if (attempts >= maxAttempts) {
+                    console.warn('⏰ Timeout nas dependências, forçando inicialização...');
+                    console.log('Estado:', { PersonalApp: hasPersonalApp, CoreManager: hasCoreManager, DOM: domReady });
+                    resolve();
+                } else {
+                    if (attempts % 10 === 0) {
+                        console.log(`⏳ Aguardando dependências... (${attempts/10}s)`);
+                    }
+                    setTimeout(checkDependencies, 100);
+                }
+            };
+            
+            checkDependencies();
         });
     }
     
-    // Aguardar DOM estar pronto
+    // INICIALIZAR QUANDO PRONTO
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await waitForDependencies();
+            await initializeApp();
+        });
     } else {
-        // DOM já está pronto
-        initializeApp();
+        waitForDependencies().then(initializeApp);
     }
 })();
 </script>

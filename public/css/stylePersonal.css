@@ -2182,6 +2182,374 @@ body.editor-fullscreen .exercise-inline-editor.fullscreen-mode.btn {
     animation: spin 1s linear infinite;
     z-index: 101;
 }
+/* CSS PARA CONFIGURAÇÃO DE MÚSCULOS IA - Adicione no stylePersonal.css */
+
+/* Container principal da configuração IA */
+.muscle-config-section {
+    margin: 20px 0;
+    padding: 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    transition: all 0.3s ease;
+}
+
+.muscle-config-section.active {
+    border-color: #007bff;
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.1);
+}
+
+/* Toggle da configuração */
+.muscle-config-toggle {
+    margin: 15px 0;
+}
+
+.muscle-config-toggle label {
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.muscle-config-toggle label:hover {
+    color: #007bff;
+}
+
+/* Header da configuração */
+.config-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.config-header h3 {
+    color: #007bff;
+    margin-bottom: 8px;
+}
+
+.config-header p {
+    color: #6c757d;
+    font-size: 0.95em;
+}
+
+/* Grid dos treinos */
+.ai-muscle-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+/* Card de cada treino */
+.ai-workout-config {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    background: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-workout-config:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Estados de validação */
+.ai-workout-config.config-valid {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #f8fff9 0%, #ffffff 100%);
+}
+
+.ai-workout-config.config-valid::before {
+    content: "✓";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #28a745;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.ai-workout-config.config-invalid {
+    border-color: #dc3545;
+    background: linear-gradient(135deg, #fff8f8 0%, #ffffff 100%);
+}
+
+.ai-workout-config.config-invalid::before {
+    content: "⚠";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.ai-workout-config.config-warning {
+    border-color: #ffc107;
+    background: linear-gradient(135deg, #fffdf5 0%, #ffffff 100%);
+}
+
+.ai-workout-config.config-warning::before {
+    content: "⚡";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #ffc107;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* Header do treino */
+.workout-header h5 {
+    margin: 0 0 15px 0;
+    color: #343a40;
+    font-size: 1.1em;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+/* Grupo do nome do treino */
+.workout-name-group {
+    margin-bottom: 20px;
+}
+
+.workout-name-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9em;
+}
+
+/* Grid dos grupos musculares */
+.muscle-groups-grid {
+    margin-bottom: 15px;
+}
+
+.muscle-groups-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9em;
+}
+
+.ai-muscle-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* Checkbox customizado */
+.muscle-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    position: relative;
+    min-height: 44px;
+}
+
+.muscle-check:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+    transform: translateY(-1px);
+}
+
+.muscle-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.muscle-check input:checked + .muscle-check-text {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.muscle-check:has(input:checked) {
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.muscle-check-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.muscle-icon {
+    font-size: 1.1em;
+    min-width: 20px;
+}
+
+.muscle-name {
+    font-size: 0.85em;
+    line-height: 1.2;
+}
+
+/* Preview dos grupos selecionados */
+.group-preview {
+    margin-top: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    font-size: 0.9em;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.group-preview-empty {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    width: 100%;
+}
+
+.group-preview-content {
+    width: 100%;
+}
+
+.selected-groups {
+    color: #007bff;
+    font-weight: 500;
+    margin-top: 5px;
+    display: block;
+    line-height: 1.4;
+}
+
+/* Ações da configuração */
+.ai-config-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.config-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .ai-muscle-config-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .ai-workout-config {
+        padding: 15px;
+    }
+    
+    .ai-muscle-checkboxes {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 6px;
+    }
+    
+    .muscle-check {
+        padding: 8px 10px;
+        min-height: 40px;
+    }
+    
+    .muscle-name {
+        font-size: 0.8em;
+    }
+    
+    .config-actions,
+    .ai-config-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .config-actions .btn,
+    .ai-config-actions .btn {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Animações */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.muscle-config-section.active .ai-workout-config {
+    animation: slideInUp 0.3s ease forwards;
+}
+
+.muscle-config-section.active .ai-workout-config:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.muscle-config-section.active .ai-workout-config:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.muscle-config-section.active .ai-workout-config:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+/* Estados de hover para botões de ação */
+.ai-config-actions .btn:hover,
+.config-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading state */
+.ai-workout-config.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.ai-workout-config.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 
         /* === EXEMPLO DE CONTEÚDO === */
         .demo-content {

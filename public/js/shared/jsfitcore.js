@@ -482,27 +482,9 @@ async createInitialExerciseCollection() {
     }
 }
 
-// Método para recarregar exercícios (útil para debugging)
-async reloadExerciseDatabase(force = false) {
-    if (force) {
-        this.exerciseDatabase = [];
-        this.exerciseDatabaseLoaded = false;
-    }
-    
-    console.log('🔄 Recarregando base de exercícios...');
-    return await this.loadExerciseDatabase();
-}
 
-// Método para verificar se a base está carregada e forçar carregamento se necessário
-async ensureExerciseDatabaseLoaded() {
-    if (!this.exerciseDatabaseLoaded || this.exerciseDatabase.length === 0) {
-        console.log('📋 Base de exercícios não carregada, carregando agora...');
-        return await this.loadExerciseDatabase();
-    } else {
-        console.log('✅ Base de exercícios já carregada');
-        return true;
-    }
-}
+
+
 
     
  
@@ -997,16 +979,16 @@ async initializeUserData() {
         console.log(`👤 Inicializando dados para usuário: ${userId}`);
         
         // 1. Carregar base de exercícios
-        await this.ensureExerciseDatabaseLoaded();
+       // await this.ensureExerciseDatabaseLoaded();
         
         // 2. Carregar planos do usuário
-        await this.loadUserPlans();
+       // await this.loadUserPlans();
         
         // 3. Migrar planos existentes se necessário
-        await this.migrateExistingPlansToUser();
+       // await this.migrateExistingPlansToUser();
         
         // 4. Carregar configurações do usuário
-        await this.loadUserConfiguration();
+     //   await this.loadUserConfiguration();
         
         console.log('✅ Dados do usuário inicializados com sucesso');
         return true;
@@ -1018,48 +1000,8 @@ async initializeUserData() {
     }
 }
 
-// Garantir que a base de exercícios está carregada
-async ensureExerciseDatabaseLoaded() {
-    if (!this.exerciseDatabaseLoaded) {
-        console.log('📋 Base de exercícios não carregada, carregando agora...');
-        await this.loadExerciseDatabase();
-    } else {
-        console.log('✅ Base de exercícios já carregada');
-    }
-}
 
-// Carregar planos específicos do usuário
-async loadUserPlans() {
-    try {
-        console.log('📊 Carregando planos do usuário...');
-        
-        if (!this.firebaseConnected) {
-            console.warn('⚠️ Firebase não conectado, tentando carregar do localStorage');
-            return this.loadPlansFromLocalStorage();
-        }
-        
-        const plans = await this.loadPlansFromFirebase();
-        
-        // Atualizar dados na aplicação principal se existir
-        if (window.app) {
-            window.app.savedPlans = plans || [];
-            console.log(`✅ ${plans.length} planos carregados para a aplicação`);
-            
-            // Atualizar interface se método existir
-            if (window.app.updatePlansList) {
-                window.app.updatePlansList();
-            }
-        }
-        
-        return plans;
-        
-    } catch (error) {
-        console.error('❌ Erro ao carregar planos do usuário:', error);
-        
-        // Fallback para localStorage
-        return this.loadPlansFromLocalStorage();
-    }
-}
+
 
 // Carregar planos do localStorage como fallback
 loadPlansFromLocalStorage() {
