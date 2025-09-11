@@ -418,32 +418,85 @@ class JSFitCore {
         return Date.now() + Math.random();
     }
 
-    formatDate(dateString) {
-        if (!dateString) return 'Não definido';
-        try {
-            return new Date(dateString).toLocaleDateString('pt-BR');
-        } catch (error) {
+ // SUBSTITUIR o método formatDate() existente por este:
+
+formatDate(dateString) {
+    if (!dateString) return 'Não definido';
+    
+    try {
+        // Se já está no formato YYYY-MM-DD, processar diretamente
+        if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = dateString.split('-');
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+        
+        // Se tem hora junto (ISO), remover hora primeiro
+        if (typeof dateString === 'string' && dateString.includes('T')) {
+            const dateOnly = dateString.split('T')[0];
+            const [year, month, day] = dateOnly.split('-');
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+        
+        // Para outros formatos, tentar conversão simples
+        const date = new Date(dateString + 'T00:00:00'); // Força timezone local
+        if (isNaN(date.getTime())) {
             return 'Data inválida';
         }
+        
+        return date.toLocaleDateString('pt-BR');
+        
+    } catch (error) {
+        console.warn('Erro ao formatar data:', dateString, error);
+        return 'Data inválida';
     }
+}
 
-    calculateAge(birthDate) {
-        if (!birthDate) return null;
-        try {
-            const today = new Date();
-            const birth = new Date(birthDate);
-            let age = today.getFullYear() - birth.getFullYear();
-            const monthDiff = today.getMonth() - birth.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-                age--;
-            }
-            
-            return age;
-        } catch (error) {
-            return null;
+  // SUBSTITUIR o método calculateAge() existente por este:
+
+calculateAge(birthDate) {
+    if (!birthDate) return null;
+    
+    try {
+        let year, month, day;
+        
+        // Se está no formato YYYY-MM-DD, processar diretamente
+        if (typeof birthDate === 'string' && birthDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            [year, month, day] = birthDate.split('-').map(num => parseInt(num));
         }
+        // Se tem hora junto (ISO), remover hora primeiro  
+        else if (typeof birthDate === 'string' && birthDate.includes('T')) {
+            const dateOnly = birthDate.split('T')[0];
+            [year, month, day] = dateOnly.split('-').map(num => parseInt(num));
+        }
+        // Para outros casos
+        else {
+            const birth = new Date(birthDate + 'T00:00:00');
+            if (isNaN(birth.getTime())) return null;
+            year = birth.getFullYear();
+            month = birth.getMonth() + 1;
+            day = birth.getDate();
+        }
+        
+        // Calcular idade sem conversões de timezone
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        const currentDay = today.getDate();
+        
+        let age = currentYear - year;
+        
+        // Ajustar se ainda não fez aniversário este ano
+        if (currentMonth < month || (currentMonth === month && currentDay < day)) {
+            age--;
+        }
+        
+        return age;
+        
+    } catch (error) {
+        console.warn('Erro ao calcular idade:', birthDate, error);
+        return null;
     }
+}
 
     calculateBodyType(altura, peso) {
         try {
@@ -743,50 +796,26 @@ class JSFitCore {
     }
 
  
+   // SUBSTITUIR o método fixTimezoneDate() por este MUITO mais simples:
 
-    fixTimezoneDate(dateInput) {
-        if (!dateInput) return '';
-        
-        // Se já está no formato string correto, mantém
-        if (typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dateInput;
-        }
-        
-        try {
-            let date;
-            
-            // Se é string, converte para Date
-            if (typeof dateInput === 'string') {
-                // Se tem formato ISO completo, trata diferente
-                if (dateInput.includes('T')) {
-                    date = new Date(dateInput);
-                } else {
-                    // Para datas simples (YYYY-MM-DD), cria data local
-                    const parts = dateInput.split('-');
-                    date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                }
-            } else {
-                date = new Date(dateInput);
-            }
-            
-            // Verifica se a data é válida
-            if (isNaN(date.getTime())) {
-                console.warn('Data inválida:', dateInput);
-                return '';
-            }
-            
-            // Retorna no formato YYYY-MM-DD local
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}`;
-            
-        } catch (error) {
-            console.warn('Erro ao processar data:', dateInput, error);
-            return '';
-        }
+fixTimezoneDate(dateInput) {
+    if (!dateInput) return '';
+    
+    // Se já está no formato YYYY-MM-DD correto, retorna sem mexer
+    if (typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateInput;
     }
+    
+    // Se é ISO com hora, pega só a data
+    if (typeof dateInput === 'string' && dateInput.includes('T')) {
+        return dateInput.split('T')[0];
+    }
+    
+    // Para qualquer outro caso, retorna vazio (não processar)
+    console.warn('Data em formato não suportado:', dateInput);
+    return '';
+}
+    
 
     setupPWAFeatures() {
         // iOS viewport handling

@@ -4570,43 +4570,309 @@ async syncPlanConfiguration() {
         this.showPlanTypeConfigModal();
     }
 
-    // Mostrar modal de configuração (substitui o selectPlanType original)
-    selectPlanType(days, letters, element) {
-        // Validar se o número de dias é suportado
-        if (days < 1 || days > 6) {
-            console.error(`Número de dias inválido: ${days}`);
-            this.showMessage('Tipo de plano não suportado', 'error');
-            return;
-        }
-    
-        // Verificar se o elemento está desabilitado
-        if (element.classList.contains('disabled')) {
-            console.warn(`Tipo de plano ${days} dias está desabilitado`);
-            this.showMessage('Este tipo de plano não está disponível', 'warning');
-            return;
-        }
-    
-        // Aplicar configuração padrão se não existe configuração personalizada
-        if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
-            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
-            this.planTypeConfiguration.days = days;
-        }
-    
-        console.log(`Selecionado plano de ${days} dias`);
-        this.selectedDays = days;
-        
-        // Remover classe active de todos os botões
-        document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
-        
-        // Adicionar classe active ao botão selecionado
-        element.classList.add('active');
-        
-        // Gerar editor de treinos
-        this.generateWorkoutEditor(days);
-        
-        // Atualizar indicadores visuais
-        this.updatePlanConfigIndicators();
+    // IMPLEMENTAÇÃO DE PRESERVAÇÃO NO selectPlanType()
+// ================================================
+
+// 1. MODIFICAR O MÉTODO selectPlanType() EXISTENTE
+selectPlanType(days, letters, element) {
+    // Validações existentes
+    if (days < 1 || days > 6) {
+        console.error(`Número de dias inválido: ${days}`);
+        this.showMessage('Tipo de plano não suportado', 'error');
+        return;
     }
+
+    if (element.classList.contains('disabled')) {
+        console.warn(`Tipo de plano ${days} dias está desabilitado`);
+        this.showMessage('Este tipo de plano não está disponível', 'warning');
+        return;
+    }
+
+    console.log(`🎯 Selecionado plano de ${days} dias`);
+
+    // **NOVO**: PRESERVAR EXERCÍCIOS ANTES DE MUDANÇA
+    const previousDays = this.selectedDays || this.planTypeConfiguration.days || 0;
+    let preservedWorkouts = [];
+    
+    if (previousDays > 0 && this.currentPlan && this.currentPlan.treinos && this.currentPlan.treinos.length > 0) {
+        console.log(`🔄 Mudando de ${previousDays} para ${days} dias - preservando exercícios`);
+        preservedWorkouts = this.preserveExistingExercises(days);
+        
+        // Log das mudanças
+        this.logPlanTypeChange(previousDays, days, preservedWorkouts);
+    }
+
+    // Aplicar configuração padrão se não existe configuração personalizada
+    if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
+        this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
+        this.planTypeConfiguration.days = days;
+    }
+
+    // Atualizar estado
+    this.selectedDays = days;
+    
+    // Remover classe active de todos os botões
+    document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Adicionar classe active ao botão selecionado
+    element.classList.add('active');
+    
+    // **MODIFICADO**: USAR GERAÇÃO COM PRESERVAÇÃO
+    if (preservedWorkouts.length > 0) {
+        this.generateWorkoutEditorWithConfigPreserving(days, preservedWorkouts);
+        
+        // Mostrar feedback sobre preservação
+        const preservedCount = preservedWorkouts.filter(w => w && w.preserved).length;
+        const removedCount = Math.max(0, previousDays - days);
+        const addedCount = Math.max(0, days - previousDays);
+        
+        let message = `Tipo de plano alterado para ${days} dias`;
+        if (preservedCount > 0) message += ` (${preservedCount} treino(s) preservado(s))`;
+        if (removedCount > 0) message += ` (${removedCount} removido(s))`;
+        if (addedCount > 0) message += ` (${addedCount} adicionado(s))`;
+        
+        this.showMessage(message, 'success');
+    } else {
+        // Primeira seleção ou sem treinos existentes - usar método original
+        this.generateWorkoutEditor(days);
+    }
+    
+    // Atualizar indicadores visuais
+    this.updatePlanConfigIndicators();
+}
+
+// 2. MÉTODO AUXILIAR PARA LOGGING DE MUDANÇAS
+logPlanTypeChange(previousDays, newDays, preservedWorkouts) {
+    console.group(`📊 Mudança de Tipo de Plano: ${previousDays} → ${newDays} dias`);
+    
+    console.log('Estado anterior:', {
+        dias: previousDays,
+        treinos: this.currentPlan?.treinos?.length || 0
+    });
+    
+    console.log('Ações realizadas:');
+    
+    for (let i = 0; i < Math.max(previousDays, newDays); i++) {
+        const preserved = preservedWorkouts[i];
+        
+        if (i < newDays) {
+            if (preserved && preserved.preserved) {
+                const exerciseCount = preserved.exercicios?.length || 0;
+                console.log(`  Treino ${i}: ✅ PRESERVADO (${exerciseCount} exercícios)`);
+            } else if (preserved && preserved.isNew) {
+                console.log(`  Treino ${i}: 🆕 NOVO CRIADO`);
+            }
+        } else {
+            console.log(`  Treino ${i}: ❌ REMOVIDO`);
+        }
+    }
+    
+    console.groupEnd();
+}
+
+// 3. MÉTODO PARA DETECTAR SE HÁ MUDANÇA SIGNIFICATIVA
+shouldPreserveExercises(previousDays, newDays) {
+    // Preservar se:
+    // 1. Há treinos existentes
+    // 2. Mudança não é muito drástica (máximo ±3 dias)
+    // 3. Não é a primeira seleção
+    
+    const hasExistingWorkouts = this.currentPlan && 
+                               this.currentPlan.treinos && 
+                               this.currentPlan.treinos.length > 0;
+    
+    const hasExercises = hasExistingWorkouts && 
+                        this.currentPlan.treinos.some(t => 
+                            t.exercicios && t.exercicios.length > 1 // Mais que só aquecimento
+                        );
+    
+    const reasonableChange = Math.abs(newDays - previousDays) <= 3;
+    const notFirstSelection = previousDays > 0;
+    
+    const shouldPreserve = hasExercises && reasonableChange && notFirstSelection;
+    
+    console.log('🤔 Análise de preservação:', {
+        hasExistingWorkouts,
+        hasExercises,
+        reasonableChange,
+        notFirstSelection,
+        shouldPreserve
+    });
+    
+    return shouldPreserve;
+}
+
+// 4. MÉTODO MELHORADO DE PRESERVAÇÃO COM VALIDAÇÕES
+preserveExistingExercisesEnhanced(newDays) {
+    console.log('🔄 Preservando exercícios com validações...');
+    
+    const currentWorkouts = this.currentPlan?.treinos || [];
+    const preservedWorkouts = [];
+    let preservedCount = 0;
+    let createdCount = 0;
+    
+    // Preservar treinos existentes dentro do novo limite
+    for (let i = 0; i < newDays; i++) {
+        if (currentWorkouts[i] && this.isValidWorkout(currentWorkouts[i])) {
+            // Preservar treino existente
+            preservedWorkouts[i] = {
+                ...this.deepClone(currentWorkouts[i]), // Clone profundo
+                preserved: true,
+                preservedAt: new Date().toISOString()
+            };
+            preservedCount++;
+            console.log(`✅ Treino ${i} preservado: ${currentWorkouts[i].nome}`);
+        } else {
+            // Criar novo treino
+            preservedWorkouts[i] = this.createEmptyWorkout(i);
+            createdCount++;
+            console.log(`🆕 Novo treino ${i} criado`);
+        }
+    }
+    
+    // Log estatísticas
+    console.log(`📊 Preservação concluída: ${preservedCount} preservados, ${createdCount} criados`);
+    
+    return preservedWorkouts;
+}
+
+// 5. VALIDAR SE TREINO É VÁLIDO PARA PRESERVAÇÃO
+isValidWorkout(workout) {
+    return workout && 
+           workout.nome && 
+           workout.exercicios && 
+           Array.isArray(workout.exercicios) &&
+           workout.exercicios.length > 0;
+}
+
+// 6. CRIAR TREINO VAZIO PADRONIZADO
+createEmptyWorkout(index) {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const letter = letters[index];
+    
+    return {
+        id: letter,
+        nome: `Treino ${letter}`,
+        foco: 'Treino geral',
+        exercicios: [{
+            id: index * 10 + 1,
+            nome: 'Aquecimento',
+            descricao: 'Aquecimento específico',
+            series: 1,
+            repeticoes: '8-10 min',
+            carga: 'Leve',
+            descanso: '0',
+            observacoesEspeciais: '',
+            tecnica: '',
+            concluido: false
+        }],
+        concluido: false,
+        execucoes: 0,
+        isNew: true,
+        createdAt: new Date().toISOString()
+    };
+}
+
+// 7. MÉTODO PARA CONFIRMAR MUDANÇAS DRÁSTICAS
+async confirmDrasticChange(previousDays, newDays, currentWorkouts) {
+    const exerciseCount = currentWorkouts.reduce((total, workout) => {
+        return total + (workout.exercicios?.length || 0);
+    }, 0);
+    
+    const willLose = Math.max(0, previousDays - newDays);
+    const exercisesToLose = willLose > 0 ? 
+        currentWorkouts.slice(newDays).reduce((total, workout) => {
+            return total + (workout.exercicios?.length || 0);
+        }, 0) : 0;
+    
+    if (willLose > 0 && exercisesToLose > 1) { // Mais que só aquecimento
+        const message = `Atenção! Mudança de ${previousDays} para ${newDays} dias irá remover:\n\n` +
+                       `• ${willLose} treino(s)\n` +
+                       `• ${exercisesToLose} exercício(s)\n\n` +
+                       `Deseja continuar?`;
+        
+        return confirm(message);
+    }
+    
+    return true; // Mudança não drástica ou sem perda
+}
+
+// 8. VERSÃO COMPLETA DO selectPlanType COM CONFIRMAÇÃO
+async selectPlanTypeWithConfirmation(days, letters, element) {
+    // Validações básicas
+    if (days < 1 || days > 6) {
+        console.error(`Número de dias inválido: ${days}`);
+        this.showMessage('Tipo de plano não suportado', 'error');
+        return;
+    }
+
+    if (element.classList.contains('disabled')) {
+        console.warn(`Tipo de plano ${days} dias está desabilitado`);
+        this.showMessage('Este tipo de plano não está disponível', 'warning');
+        return;
+    }
+
+    const previousDays = this.selectedDays || this.planTypeConfiguration.days || 0;
+    const currentWorkouts = this.currentPlan?.treinos || [];
+    
+    // **NOVO**: CONFIRMAÇÃO PARA MUDANÇAS DRÁSTICAS
+    if (previousDays > 0 && currentWorkouts.length > 0) {
+        const confirmed = await this.confirmDrasticChange(previousDays, days, currentWorkouts);
+        if (!confirmed) {
+            console.log('❌ Mudança cancelada pelo usuário');
+            return;
+        }
+    }
+    
+    // Continuar com preservação
+    console.log(`🎯 Confirmado: plano de ${days} dias`);
+    
+    let preservedWorkouts = [];
+    if (this.shouldPreserveExercises(previousDays, days)) {
+        preservedWorkouts = this.preserveExistingExercisesEnhanced(days);
+    }
+    
+    // Aplicar configuração e atualizar interface
+    this.applyPlanTypeConfiguration(days);
+    this.updatePlanTypeUI(days, element);
+    
+    // Gerar editor
+    if (preservedWorkouts.length > 0) {
+        this.generateWorkoutEditorWithConfigPreserving(days, preservedWorkouts);
+        this.showPreservationFeedback(previousDays, days, preservedWorkouts);
+    } else {
+        this.generateWorkoutEditor(days);
+    }
+    
+    this.updatePlanConfigIndicators();
+}
+
+// 9. MÉTODOS AUXILIARES PARA ORGANIZAÇÃO
+applyPlanTypeConfiguration(days) {
+    if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
+        this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
+        this.planTypeConfiguration.days = days;
+    }
+    this.selectedDays = days;
+}
+
+updatePlanTypeUI(days, element) {
+    document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+    element.classList.add('active');
+}
+
+showPreservationFeedback(previousDays, newDays, preservedWorkouts) {
+    const preservedCount = preservedWorkouts.filter(w => w && w.preserved).length;
+    const removedCount = Math.max(0, previousDays - newDays);
+    const addedCount = Math.max(0, newDays - previousDays);
+    
+    let message = `Tipo alterado para ${newDays} dias`;
+    if (preservedCount > 0) message += ` (${preservedCount} preservados)`;
+    if (removedCount > 0) message += ` (${removedCount} removidos)`;
+    if (addedCount > 0) message += ` (${addedCount} novos)`;
+    
+    this.showMessage(message, 'success');
+}
 
     showInlineQuickConfig() {
         const configSection = document.getElementById('inlineQuickConfig');
@@ -7750,17 +8016,148 @@ loadInlinePresetConfig() {
         return suggestions[days] || [];
     }
 
-    saveInlineQuickConfig() {
-        console.log('Salvando configuração inline...');
+   // 1. ADICIONAR MÉTODO PARA PRESERVAR EXERCÍCIOS EXISTENTES
+preserveExistingExercises(selectedDaysFromUI) {
+    console.log('🔄 Preservando exercícios existentes...');
+    
+    // Backup dos treinos atuais
+    const currentWorkouts = this.currentPlan?.treinos || [];
+    const preservedWorkouts = [];
+    
+    // Preservar apenas os treinos dentro do novo número de dias
+    for (let i = 0; i < selectedDaysFromUI; i++) {
+        if (currentWorkouts[i]) {
+            // Manter treino existente
+            preservedWorkouts[i] = {
+                ...currentWorkouts[i],
+                preserved: true
+            };
+            console.log(`✅ Treino ${i} preservado: ${currentWorkouts[i].nome}`);
+        } else {
+            // Criar treino vazio para novo dia
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            preservedWorkouts[i] = {
+                id: letters[i],
+                nome: `Treino ${letters[i]}`,
+                foco: 'Treino geral',
+                exercicios: [{
+                    id: i * 10 + 1,
+                    nome: 'Aquecimento',
+                    descricao: 'Aquecimento específico',
+                    series: 1,
+                    repeticoes: '8-10 min',
+                    carga: 'Leve',
+                    descanso: '0',
+                    observacoesEspeciais: '',
+                    tecnica: '',
+                    concluido: false
+                }],
+                concluido: false,
+                execucoes: 0,
+                isNew: true
+            };
+            console.log(`🆕 Novo treino ${i} criado`);
+        }
+    }
+    
+    return preservedWorkouts;
+}
+
+// 2. MODIFICAR generateWorkoutEditorWithConfigPreserving (NOVO MÉTODO)
+generateWorkoutEditorWithConfigPreserving(days, preservedWorkouts) {
+    console.log(`🔧 Gerando editor preservando exercícios para ${days} dias`);
+    
+    const editor = document.getElementById('workoutEditor');
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    
+    let html = '<div class="form-section"><h2>🏋️ Treinos Configurados</h2>';
+    
+    // Atualizar currentPlan.treinos com workouts preservados
+    this.currentPlan.treinos = [];
+    
+    for (let i = 0; i < days; i++) {
+        const letter = letters[i];
+        const config = this.planTypeConfiguration.configuration[letter];
+        const preservedWorkout = preservedWorkouts[i];
         
-        // 1. CAPTURAR DIAS SELECIONADOS DA INTERFACE
+        if (!config) {
+            console.warn(`Configuração não encontrada para treino ${letter}`);
+            continue;
+        }
+        
+        // Usar workout preservado ou criar novo
+        const workout = preservedWorkout ? {
+            ...preservedWorkout,
+            // Atualizar nome se configuração mudou
+            nome: config.name || preservedWorkout.nome,
+            foco: this.generateWorkoutFocusFromGroups(config.groups),
+            gruposMusculares: config.groups
+        } : {
+            id: letter,
+            nome: config.name,
+            foco: this.generateWorkoutFocusFromGroups(config.groups),
+            exercicios: [{
+                id: i * 10 + 1,
+                nome: 'Aquecimento',
+                descricao: 'Aquecimento específico para os grupos trabalhados',
+                series: 1,
+                repeticoes: '8-10 min',
+                carga: 'Leve',
+                descanso: '0',
+                observacoesEspeciais: '',
+                tecnica: '',
+                concluido: false
+            }],
+            gruposMusculares: config.groups,
+            concluido: false,
+            execucoes: 0
+        };
+        
+        this.currentPlan.treinos.push(workout);
+        
+        // Indicador visual se treino foi preservado
+        const preservedIndicator = preservedWorkout && !preservedWorkout.isNew ? 
+            '<span class="preserved-indicator">💾 Exercícios preservados</span>' : '';
+        
+        html += `
+        <div class="workout-editor">
+            <div class="workout-header">
+                <h3 class="workout-title">${workout.nome}</h3>
+                ${preservedIndicator}
+                <div class="workout-muscle-groups">
+                    ${config.groups.map(groupId => {
+                        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+                        return `<span class="muscle-group-badge">${group.icon} ${group.name}</span>`;
+                    }).join('')}
+                </div>
+                <button class="btn btn-primary btn-small" onclick="app.addExercise(${i})">
+                    ➕ Adicionar Exercício
+                </button>
+            </div>
+            <div class="exercise-list" id="exerciseList${i}">
+                ${this.renderExercises(workout.exercicios, i)}
+            </div>
+        </div>`;
+    }
+    
+    html += '</div>';
+    editor.innerHTML = html;
+    
+    console.log(`✅ Editor gerado preservando exercícios para ${days} dias`);
+}
+
+// 3. MODIFICAR saveInlineQuickConfig() - VERSÃO COMPLETA MODIFICADA
+saveInlineQuickConfig() {
+    console.log('💾 Salvando configuração inline com preservação...');
+    
+    try {
+        // 1. CAPTURAR DIAS SELECIONADOS (código existente)
         const activePlanBtn = document.querySelector('.plan-type-btn.active');
         if (!activePlanBtn) {
             this.showMessage('Erro: Nenhum tipo de plano selecionado', 'error');
             return false;
         }
         
-        // Extrair número de dias do botão ativo
         const btnText = activePlanBtn.textContent.trim();
         const selectedDaysFromUI = parseInt(btnText.match(/(\d+)/)?.[1]) || 0;
         
@@ -7769,48 +8166,75 @@ loadInlinePresetConfig() {
             return false;
         }
         
-        console.log(`Dias selecionados na interface: ${selectedDaysFromUI}`);
+        console.log(`📅 Dias selecionados: ${selectedDaysFromUI}`);
         
-        // 2. SINCRONIZAR ESTADO INTERNO
+        // 2. **NOVO**: PRESERVAR EXERCÍCIOS ANTES DE ALTERAR CONFIGURAÇÃO
+        const preservedWorkouts = this.preserveExistingExercises(selectedDaysFromUI);
+        
+        // 3. SINCRONIZAR ESTADO INTERNO (código existente)
         this.selectedDays = selectedDaysFromUI;
         this.planTypeConfiguration.days = selectedDaysFromUI;
         
-        // 3. ATUALIZAR CONFIGURAÇÃO COM DADOS ATUAIS
+        // 4. ATUALIZAR CONFIGURAÇÃO (código existente)
         this.updateInlineConfigGroups();
         
-        // 4. VALIDAR CONFIGURAÇÃO APENAS PARA OS DIAS SELECIONADOS
+        // 5. VALIDAR CONFIGURAÇÃO (código existente)
         const validation = this.validateInlineConfigurationForDays(selectedDaysFromUI);
         if (!validation.isValid) {
             this.showMessage(`Erro: ${validation.errors.join(', ')}`, 'error');
             return false;
         }
         
-        // 5. LIMPAR CONFIGURAÇÕES EXTRAS (importante!)
+        // 6. LIMPAR CONFIGURAÇÕES EXTRAS (código existente)
         this.cleanupExtraWorkoutConfigs(selectedDaysFromUI);
+        
+        // 7. SALVAR CONFIGURAÇÃO (código existente)
+        this.savePlanTypeConfiguration();
+        
+        // 8. **MODIFICADO**: USAR NOVO MÉTODO QUE PRESERVA EXERCÍCIOS
+        this.generateWorkoutEditorWithConfigPreserving(selectedDaysFromUI, preservedWorkouts);
+        
+        // 9. FINALIZAR (código existente)
+        this.closeInlineQuickConfig();
+        this.updatePlanConfigIndicators();
+        
+        // 10. **NOVO**: MOSTRAR ESTATÍSTICAS DE PRESERVAÇÃO
+        const preservedCount = preservedWorkouts.filter(w => w && w.preserved).length;
+        const newCount = selectedDaysFromUI - preservedCount;
+        
+        let message = `Configuração aplicada para ${selectedDaysFromUI} dias!`;
+        if (preservedCount > 0) {
+            message += ` (${preservedCount} treino(s) preservado(s), ${newCount} novo(s))`;
+        }
+        
+        this.showMessage(message, 'success');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Erro ao salvar configuração:', error);
+        this.showMessage('Erro ao salvar configuração', 'error');
+        return false;
+    }
+}
+
+logPreservationStats(preservedWorkouts, selectedDays) {
+    console.group('📊 Estatísticas de Preservação');
     
-        // 6. SALVAR CONFIGURAÇÃO
-        try {
-            this.savePlanTypeConfiguration();
-            console.log('Configuração salva para', selectedDaysFromUI, 'dias:', this.planTypeConfiguration);
+    for (let i = 0; i < selectedDays; i++) {
+        const workout = preservedWorkouts[i];
+        if (workout) {
+            const status = workout.preserved ? '💾 Preservado' : 
+                          workout.isNew ? '🆕 Novo' : '🔄 Atualizado';
+            const exerciseCount = workout.exercicios?.length || 0;
             
-            // 7. FECHAR INTERFACE INLINE
-            this.closeInlineQuickConfig();
-            
-            // 8. GERAR EDITOR COM CONFIGURAÇÃO CORRETA
-            this.generateWorkoutEditorWithConfig(selectedDaysFromUI);
-            
-            // 9. ATUALIZAR INDICADORES VISUAIS
-            this.updatePlanConfigIndicators();
-            
-            this.showMessage(`Configuração aplicada para ${selectedDaysFromUI} dias!`, 'success');
-            return true;
-            
-        } catch (error) {
-            console.error('Erro ao salvar configuração:', error);
-            this.showMessage('Erro ao salvar configuração', 'error');
-            return false;
+            console.log(`Treino ${i}: ${status} - ${exerciseCount} exercícios`);
         }
     }
+    
+    console.groupEnd();
+}
+
+
 
     // Validação específica para número de dias
 validateInlineConfigurationForDays(targetDays) {

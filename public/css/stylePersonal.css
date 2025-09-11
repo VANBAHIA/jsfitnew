@@ -3061,4 +3061,18 @@ body.editor-fullscreen .exercise-inline-editor.fullscreen-mode.btn {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.preserved-indicator {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.workout-editor .workout-header {
+    align-items: center;
+    gap: 10px;
+}
     

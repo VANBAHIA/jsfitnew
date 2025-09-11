@@ -303,49 +303,6 @@ class JSFitStudentApp {
 
  
 
-    fixTimezoneDate(dateInput) {
-        if (!dateInput) return '';
-        
-        // Se já está no formato string correto, mantém
-        if (typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dateInput;
-        }
-        
-        try {
-            let date;
-            
-            // Se é string, converte para Date
-            if (typeof dateInput === 'string') {
-                // Se tem formato ISO completo, trata diferente
-                if (dateInput.includes('T')) {
-                    date = new Date(dateInput);
-                } else {
-                    // Para datas simples (YYYY-MM-DD), cria data local
-                    const parts = dateInput.split('-');
-                    date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                }
-            } else {
-                date = new Date(dateInput);
-            }
-            
-            // Verifica se a data é válida
-            if (isNaN(date.getTime())) {
-                console.warn('Data inválida:', dateInput);
-                return '';
-            }
-            
-            // Retorna no formato YYYY-MM-DD local
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}`;
-            
-        } catch (error) {
-            console.warn('Erro ao processar data:', dateInput, error);
-            return '';
-        }
-    }
 
     setupPWAFeatures() {
         // iOS viewport handling
