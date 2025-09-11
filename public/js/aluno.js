@@ -1072,7 +1072,14 @@ renderHome() {
         `;
 
         // Workout cards
-        html += plan.treinos.map(treino => this.renderWorkoutCard(treino, plan.id)).join('');
+       // Separar treinos por status
+        const treinosAtivos = plan.treinos.filter(treino => !treino.concluido);
+        const treinosConcluidos = plan.treinos.filter(treino => treino.concluido);
+
+        // Renderizar treinos ativos primeiro, depois concluídos
+        const todosOsTreinos = [...treinosAtivos, ...treinosConcluidos];
+        html += todosOsTreinos.map(treino => this.renderWorkoutCard(treino, plan.id)).join('');
+
 
         // Plan observations
         if (plan.observacoes && Object.keys(plan.observacoes).length > 0) {

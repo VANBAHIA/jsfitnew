@@ -1630,6 +1630,22 @@ body {
 .completion-card {
     contain: layout style paint;
 }
+.workout-card.completed {
+    opacity: 0.8;
+    border-left: 4px solid #28a745;
+}
+
+.completion-card {
+    width: 100%;
+}
+
+.completion-card .card-content {
+    width: 100%;
+}
+
+.completion-card .btn {
+    width: 100%;
+}
 
 /* Touch optimizations */
 @media (pointer: coarse) {
