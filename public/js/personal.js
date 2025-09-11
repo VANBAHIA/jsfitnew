@@ -5795,61 +5795,227 @@ forceUIUpdate(workoutIndex) {
         `;
     }
     
-    generatePlanWorkoutContents(plan) {
-        return plan.treinos.map((treino, index) => `
-            <div class="plan-workout-content ${index === 0 ? 'active' : ''}" id="planWorkoutContent${index}">
-                <div class="workout-editor">
-                    <div class="workout-header" style="margin-bottom: var(--space-lg);">
-                        <h3 class="workout-title">${treino.nome}</h3>
-                        <p style="color: var(--text-secondary); margin: var(--space-sm) 0;">
-                            <strong>Foco:</strong> ${treino.foco}
-                        </p>
-                    </div>
-                    
-                    ${treino.exercicios ? treino.exercicios.map(ex => `
-                        <div class="exercise-card">
-                            <div class="exercise-header">
-                                <strong style="font-size: var(--font-size-lg); color: var(--text-primary);">
-                                    ${ex.nome}
-                                </strong>
-                                ${ex.tecnica ? `
-                                    <div class="exercise-special-display">
-                                        Técnica: ${ex.tecnica.replace('-', ' ').toUpperCase()}
-                                    </div>
-                                ` : ''}
-                                ${ex.observacoesEspeciais ? `
-                                    <div class="exercise-special-display">
-                                        ${ex.observacoesEspeciais}
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <p style="margin: var(--space-md) 0; color: var(--text-secondary); line-height: 1.6;">
-                                ${ex.descricao}
-                            </p>
-                            <div class="exercise-specs">
-                                <div class="spec-item">
-                                    <span class="spec-label">Séries</span>
-                                    <span class="spec-value">${ex.series}</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-label">Reps</span>
-                                    <span class="spec-value">${ex.repeticoes}</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-label">Carga</span>
-                                    <span class="spec-value">${ex.carga}</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-label">Descanso</span>
-                                    <span class="spec-value">${ex.descanso || '90s'}</span>
-                                </div>
-                            </div>
+// 1. SUBSTITUIR O MÉTODO generatePlanWorkoutContents NO personal.js
+generatePlanWorkoutContents(plan) {
+    return plan.treinos.map((treino, index) => `
+        <div class="plan-workout-content ${index === 0 ? 'active' : ''}" id="planWorkoutContent${index}">
+            <div class="workout-editor">
+                <div class="workout-header" style="margin-bottom: var(--space-lg);">
+                    <h3 class="workout-title">${treino.nome}</h3>
+                    <p style="color: var(--text-secondary); margin: var(--space-sm) 0;">
+                        <strong>Foco:</strong> ${treino.foco}
+                    </p>
+                </div>
+                
+                ${treino.exercicios ? treino.exercicios.map((ex, exIndex) => 
+                    this.generateExerciseViewCard(ex, exIndex, treino.id)
+                ).join('') : '<p style="text-align: center; color: var(--text-secondary); padding: var(--space-xl);">Nenhum exercício configurado</p>'}
+            </div>
+        </div>
+    `).join('');
+}
+
+// 2. CRIAR NOVO MÉTODO generateExerciseViewCard
+generateExerciseViewCard(exercise, exerciseIndex, workoutId) {
+    console.log(`Gerando card para exercício: ${exercise.nome}`);
+    
+    // Verificar se não é aquecimento/alongamento para buscar GIF
+    const isMainExercise = !exercise.nome.toLowerCase().includes('aquecimento') && 
+                          !exercise.nome.toLowerCase().includes('alongamento') &&
+                          !exercise.nome.toLowerCase().includes('esteira');
+    
+    return `
+        <div class="exercise-view-card" id="exercise-${workoutId}-${exerciseIndex}">
+            <div class="exercise-view-header">
+                <div class="exercise-title-section">
+                    <h4 class="exercise-title">${exercise.nome}</h4>
+                    ${exercise.tecnica ? `
+                        <div class="exercise-technique-badge">
+                            <span class="technique-icon">⚡</span>
+                            <span class="technique-name">${this.formatTechniqueName(exercise.tecnica)}</span>
                         </div>
-                    `).join('') : '<p style="text-align: center; color: var(--text-secondary); padding: var(--space-xl);">Nenhum exercício configurado</p>'}
+                    ` : ''}
+                </div>
+                
+                ${isMainExercise ? `
+                    <button class="exercise-gif-toggle" 
+                            onclick="app.toggleExerciseGif('${workoutId}', ${exerciseIndex}, '${exercise.nome}')"
+                            title="Ver demonstração">
+                        🎬 Ver GIF
+                    </button>
+                ` : ''}
+            </div>
+
+            <!-- Área do GIF (inicialmente oculta) -->
+            <div class="exercise-gif-container" 
+                 id="gifContainer-${workoutId}-${exerciseIndex}" 
+                 style="display: none;">
+                <div class="gif-loading" id="gifLoading-${workoutId}-${exerciseIndex}">
+                    <div class="loading-spinner"></div>
+                    <span>Carregando demonstração...</span>
+                </div>
+                <img class="exercise-gif" 
+                     id="exerciseGif-${workoutId}-${exerciseIndex}"
+                     style="display: none;"
+                     alt="Demonstração: ${exercise.nome}">
+                <div class="gif-error" 
+                     id="gifError-${workoutId}-${exerciseIndex}" 
+                     style="display: none;">
+                    <span>⚠️ GIF não disponível para este exercício</span>
+                </div>
+                <button class="gif-close-btn" 
+                        onclick="app.closeExerciseGif('${workoutId}', ${exerciseIndex})">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Descrição do exercício -->
+            ${exercise.descricao && exercise.descricao !== 'Sem descrição' ? `
+                <div class="exercise-description">
+                    <p>${exercise.descricao}</p>
+                </div>
+            ` : ''}
+
+            <!-- Especificações do exercício -->
+            <div class="exercise-specs-grid">
+                <div class="spec-card">
+                    <div class="spec-icon">🔢</div>
+                    <div class="spec-content">
+                        <div class="spec-label">Séries</div>
+                        <div class="spec-value">${exercise.series}</div>
+                    </div>
+                </div>
+                
+                <div class="spec-card">
+                    <div class="spec-icon">🔄</div>
+                    <div class="spec-content">
+                        <div class="spec-label">Repetições</div>
+                        <div class="spec-value">${exercise.repeticoes}</div>
+                    </div>
+                </div>
+                
+                <div class="spec-card">
+                    <div class="spec-icon">⚖️</div>
+                    <div class="spec-content">
+                        <div class="spec-label">Carga</div>
+                        <div class="spec-value">${exercise.carga}</div>
+                    </div>
+                </div>
+                
+                <div class="spec-card">
+                    <div class="spec-icon">⏱️</div>
+                    <div class="spec-content">
+                        <div class="spec-label">Descanso</div>
+                        <div class="spec-value">${exercise.descanso || '90s'}</div>
+                    </div>
                 </div>
             </div>
-        `).join('');
+
+            <!-- Observações especiais -->
+            ${exercise.observacoesEspeciais ? `
+                <div class="exercise-notes">
+                    <div class="notes-header">
+                        <span class="notes-icon">💡</span>
+                        <span class="notes-title">Observações Importantes</span>
+                    </div>
+                    <div class="notes-content">${exercise.observacoesEspeciais}</div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// 3. CRIAR MÉTODO PARA ALTERNAR VISUALIZAÇÃO DO GIF
+async toggleExerciseGif(workoutId, exerciseIndex, exerciseName) {
+    const containerId = `gifContainer-${workoutId}-${exerciseIndex}`;
+    const container = document.getElementById(containerId);
+    const gifElement = document.getElementById(`exerciseGif-${workoutId}-${exerciseIndex}`);
+    const loadingElement = document.getElementById(`gifLoading-${workoutId}-${exerciseIndex}`);
+    const errorElement = document.getElementById(`gifError-${workoutId}-${exerciseIndex}`);
+    
+    if (!container) {
+        console.error('Container do GIF não encontrado');
+        return;
     }
+
+    // Se já está visível, fechar
+    if (container.style.display !== 'none') {
+        this.closeExerciseGif(workoutId, exerciseIndex);
+        return;
+    }
+
+    console.log(`Carregando GIF para: ${exerciseName}`);
+    
+    // Mostrar container e loading
+    container.style.display = 'block';
+    loadingElement.style.display = 'flex';
+    gifElement.style.display = 'none';
+    errorElement.style.display = 'none';
+
+    try {
+        // Buscar GIF usando método existente
+        const gifPath = this.getExerciseGif(exerciseName);
+        
+        if (gifPath && gifPath.trim() !== '') {
+            console.log(`GIF encontrado: ${gifPath}`);
+            
+            // Configurar eventos do GIF
+            gifElement.onload = () => {
+                console.log(`GIF carregado com sucesso: ${exerciseName}`);
+                loadingElement.style.display = 'none';
+                gifElement.style.display = 'block';
+                errorElement.style.display = 'none';
+            };
+            
+
+            
+            // Definir source do GIF
+            gifElement.src = gifPath;
+            
+        } else {
+            console.warn(`GIF não encontrado para: ${exerciseName}`);
+            loadingElement.style.display = 'none';
+            errorElement.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Erro ao buscar GIF:', error);
+        loadingElement.style.display = 'none';
+        errorElement.style.display = 'block';
+    }
+}
+
+// 4. CRIAR MÉTODO PARA FECHAR GIF
+closeExerciseGif(workoutId, exerciseIndex) {
+    const containerId = `gifContainer-${workoutId}-${exerciseIndex}`;
+    const container = document.getElementById(containerId);
+    const gifElement = document.getElementById(`exerciseGif-${workoutId}-${exerciseIndex}`);
+    
+    if (container) {
+        container.style.display = 'none';
+    }
+    
+    // Limpar source do GIF para parar reprodução
+    if (gifElement) {
+        gifElement.src = '';
+    }
+    
+    console.log(`GIF fechado para exercício ${workoutId}-${exerciseIndex}`);
+}
+
+// 5. MÉTODO AUXILIAR PARA FORMATAR NOME DA TÉCNICA
+formatTechniqueName(techniqueName) {
+    if (!techniqueName) return '';
+    
+    const formatted = techniqueName
+        .replace(/-/g, ' ')
+        .replace(/_/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    
+    return formatted;
+}
     
     generatePlanTechniques(plan) {
         return `
@@ -9546,865 +9712,6 @@ inferGroupsFromWorkoutName(nome, foco) {
 // Seleção inteligente de exercícios com alternância muscular
 // =============================================
 
-class ImprovedAIPlanGenerator {
-    constructor(app) {
-        this.app = app;
-        this.exerciseDatabase = app.core?.exerciseDatabase || [];
-        this.usedExerciseNames = new Set();
-        this.groupMuscleRotation = {};
-    }
-
-    // Método principal melhorado para gerar plano IA
-    async generateAIPlan() {
-        try {
-            // 1. COLETAR DADOS DO FORMULÁRIO
-            const aiData = this.collectAIFormData();
-            
-            // 2. VALIDAÇÕES BÁSICAS
-            if (!this.validateAIData(aiData)) {
-                return;
-            }
-
-            console.log('Gerando plano com IA melhorado para:', aiData);
-
-            // 3. APLICAR CONFIGURAÇÃO AI SE HABILITADA
-            this.applyAIConfiguration(aiData);
-
-            // 4. MOSTRAR INDICADOR DE PROGRESSO
-            this.app.showGeneratingIndicator();
-
-            // 5. RESETAR CONTROLES DE EXERCÍCIOS
-            this.resetExerciseControls();
-
-            // 6. SIMULAR PROCESSAMENTO DA IA COM TIMEOUT
-            setTimeout(async () => {
-                try {
-                    // CRIAR PLANO COM IA MELHORADA
-                    const aiGeneratedPlan = await this.createAIPlanWithSmartSelection(aiData);
-
-                    // GARANTIR QUE O PLANO TENHA userId CORRETO
-                    aiGeneratedPlan.userId = this.app.currentUserId;
-                    aiGeneratedPlan.userEmail = this.app.userEmail;
-
-                    // ADICIONAR À LISTA E SALVAR
-                    await this.savePlanToStorage(aiGeneratedPlan);
-
-                    this.app.hideGeneratingIndicator();
-                    this.app.showMessage('Plano gerado com sucesso pela IA melhorada!', 'success');
-
-                    setTimeout(() => {
-                        this.app.showPlanList();
-                    }, 1500);
-
-                } catch (error) {
-                    console.error('Erro ao gerar plano:', error);
-                    this.app.hideGeneratingIndicator();
-                    this.app.showMessage('Erro ao gerar plano. Tente novamente.', 'error');
-                }
-            }, 2000 + Math.random() * 2000);
-
-        } catch (error) {
-            console.error('Erro crítico no generateAIPlan:', error);
-            this.app.showMessage('Erro crítico ao gerar plano', 'error');
-        }
-    }
-
-    // Coleta dados do formulário
-    collectAIFormData() {
-        return {
-            nome: document.getElementById('aiStudentName')?.value,
-            dataNascimento: document.getElementById('aiStudentBirthDate')?.value,
-            cpf: document.getElementById('aiStudentCpf')?.value,
-            altura: document.getElementById('aiStudentHeight')?.value || '1,75m',
-            peso: document.getElementById('aiStudentWeight')?.value || '75kg',
-            objetivo: document.getElementById('aiPlanObjective')?.value,
-            nivel: document.getElementById('aiExperienceLevel')?.value,
-            dias: parseInt(document.getElementById('aiAvailableDays')?.value),
-            tempo: parseInt(document.getElementById('aiSessionTime')?.value),
-            equipamentos: document.getElementById('aiEquipment')?.value,
-            foco: document.getElementById('aiMusclePreference')?.value,
-            limitacoes: document.getElementById('aiLimitations')?.value,
-            observacoes: document.getElementById('aiSpecialNotes')?.value,
-            idade: null // Será calculado
-        };
-    }
-
-    // Validações básicas
-    validateAIData(aiData) {
-        if (!aiData.nome) {
-            this.app.showMessage('Por favor, preencha o nome do aluno', 'error');
-            return false;
-        }
-
-        if (!aiData.dias || aiData.dias < 1 || aiData.dias > 6) {
-            this.app.showMessage('Selecione um número válido de dias (1-6)', 'error');
-            return false;
-        }
-
-        // Calcular idade
-        aiData.idade = aiData.dataNascimento ? this.app.calculateAge(aiData.dataNascimento) : 25;
-        return true;
-    }
-
-    // Aplicar configuração AI
-    applyAIConfiguration(aiData) {
-        if (this.app.aiMuscleConfig.enabled) {
-            if (!this.app.validateAICompleteConfig()) {
-                return;
-            }
-            this.app.planTypeConfiguration.days = aiData.dias;
-            this.app.planTypeConfiguration.configuration = { ...this.app.aiMuscleConfig.workouts };
-        } else {
-            const hasCustomConfig = this.app.planTypeConfiguration.days === aiData.dias &&
-                Object.keys(this.app.planTypeConfiguration.configuration).length > 0;
-
-            if (!hasCustomConfig) {
-                this.app.planTypeConfiguration.days = aiData.dias;
-                this.app.planTypeConfiguration.configuration = 
-                    this.app.planTypeConfiguration.presetConfigurations[aiData.dias] || {};
-            }
-        }
-        this.app.savePlanTypeConfiguration();
-    }
-
-    // Resetar controles de exercícios para nova geração
-    resetExerciseControls() {
-        this.usedExerciseNames.clear();
-        this.groupMuscleRotation = {};
-    }
-
-    // Criar plano IA com seleção inteligente
-    async createAIPlanWithSmartSelection(aiData) {
-        let planId = this.app.core?.generateId() || this.generateLocalId();
-
-        const plan = {
-            id: planId,
-            nome: this.generatePlanName(aiData),
-            aluno: this.buildStudentData(aiData),
-            userId: this.app.currentUserId,
-            userEmail: this.app.userEmail || 'unknown',
-            userDisplayName: this.app.userDisplayName || 'Usuário',
-            dias: aiData.dias,
-            dataInicio: new Date().toISOString().split('T')[0],
-            dataFim: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            perfil: this.buildProfileData(aiData),
-            treinos: await this.generateSmartWorkouts(aiData),
-            observacoes: this.app.generateAdvancedObservations(aiData),
-            tecnicas_aplicadas: this.app.getUsedTechniques(aiData.nivel),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_with_ai: true,
-            ai_selection_strategy: 'smart_muscle_rotation'
-        };
-
-        return plan;
-    }
-
-    // =============================================
-    // SELEÇÃO INTELIGENTE DE EXERCÍCIOS
-    // =============================================
-
-    async generateSmartWorkouts(aiData) {
-        const workouts = [];
-        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const config = this.app.planTypeConfiguration.configuration;
-
-        console.log(`Gerando treinos IA com seleção inteligente para ${aiData.dias} dias`);
-
-        for (let i = 0; i < aiData.dias; i++) {
-            const letter = letters[i];
-            const workoutConfig = config[letter];
-
-            if (!workoutConfig) {
-                console.warn(`Configuração não encontrada para treino ${letter}`);
-                continue;
-            }
-
-            console.log(`Criando treino ${letter}: ${workoutConfig.name}`);
-
-            const exercises = await this.generateSmartExercisesForWorkout(
-                workoutConfig.groups,
-                aiData,
-                i + 1,
-                letter
-            );
-
-            workouts.push({
-                id: letter,
-                nome: workoutConfig.name,
-                foco: this.app.generateWorkoutFocusFromGroups(workoutConfig.groups),
-                exercicios: exercises,
-                gruposMusculares: workoutConfig.groups,
-                configuracao_original: workoutConfig,
-                concluido: false,
-                execucoes: 0,
-                selection_strategy: 'smart_rotation'
-            });
-        }
-
-        console.log(`${workouts.length} treinos gerados com seleção inteligente`);
-        return workouts;
-    }
-
-    async generateSmartExercisesForWorkout(muscleGroups, aiData, workoutNumber, workoutLetter) {
-        const exercises = [];
-        let exerciseId = workoutNumber * 10;
-
-        console.log(`Gerando exercícios inteligentes para grupos: ${muscleGroups.join(', ')}`);
-
-        // 1. AQUECIMENTO ESPECÍFICO
-        exercises.push(this.createWarmupExercise(exerciseId++, muscleGroups, aiData));
-
-        // 2. EXERCÍCIOS PRINCIPAIS COM SELEÇÃO INTELIGENTE
-        for (const grupoId of muscleGroups) {
-            const smartExercises = await this.selectSmartExercisesForGroup(
-                grupoId, 
-                aiData, 
-                workoutLetter
-            );
-
-            smartExercises.forEach(exerciseData => {
-                exercises.push({
-                    id: exerciseId++,
-                    ...exerciseData,
-                    concluido: false,
-                    grupo_muscular: grupoId,
-                    selection_method: 'smart_rotation'
-                });
-            });
-        }
-
-        // 3. ALONGAMENTO ESPECÍFICO
-        if (exercises.length > 1) {
-            exercises.push(this.createCooldownExercise(exerciseId++, muscleGroups));
-        }
-
-        console.log(`${exercises.length} exercícios criados com seleção inteligente`);
-        return exercises;
-    }
-
-    // =============================================
-    // SELEÇÃO INTELIGENTE POR GRUPO MUSCULAR
-    // =============================================
-
-    async selectSmartExercisesForGroup(grupoId, aiData, workoutLetter) {
-        const mappedGroup = this.app.mapCustomGroupToSystemGroup(grupoId);
-        const numExercises = this.getExerciseCountForObjective(aiData.objetivo);
-        
-        console.log(`Seleção inteligente para ${grupoId} (${mappedGroup}) - ${numExercises} exercícios`);
-
-        // Buscar exercícios disponíveis para o grupo
-        const availableExercises = await this.getAvailableExercisesForGroup(mappedGroup);
-        
-        if (availableExercises.length === 0) {
-            console.warn(`Nenhum exercício encontrado para ${grupoId}`);
-            return [this.createFallbackExercise(grupoId, aiData)];
-        }
-
-        // Aplicar filtros inteligentes
-        const filteredExercises = this.applyIntelligentFilters(availableExercises, aiData);
-        
-        // Selecionar exercícios com rotação muscular
-        const selectedExercises = this.selectExercisesWithMuscleRotation(
-            filteredExercises, 
-            grupoId, 
-            numExercises,
-            workoutLetter
-        );
-
-        // Converter para formato final
-        return selectedExercises.map((exercise, index) => 
-            this.convertToExerciseFormat(exercise, aiData, index, grupoId)
-        );
-    }
-
-    // Buscar exercícios disponíveis para grupo
-    async getAvailableExercisesForGroup(mappedGroup) {
-        if (!this.app.core?.exerciseDatabase) {
-            console.warn('Base de exercícios não disponível');
-            return [];
-        }
-
-        const searchVariations = this.getGroupSearchVariations(mappedGroup);
-        
-        for (const variation of searchVariations) {
-            const found = this.app.core.exerciseDatabase.filter(exercise => {
-                const exerciseGroup = (exercise.grupo || '').toLowerCase().trim();
-                const targetGroup = variation.toLowerCase().trim();
-                
-                return exerciseGroup === targetGroup ||
-                       exerciseGroup.includes(targetGroup) ||
-                       targetGroup.includes(exerciseGroup);
-            });
-
-            if (found.length > 0) {
-                console.log(`Encontrados ${found.length} exercícios para variação "${variation}"`);
-                return found;
-            }
-        }
-
-        return [];
-    }
-
-    // Aplicar filtros inteligentes
-    applyIntelligentFilters(exercises, aiData) {
-        let filtered = [...exercises];
-
-        // 1. Filtro por limitações
-        if (aiData.limitacoes) {
-            filtered = this.filterByLimitations(filtered, aiData.limitacoes);
-        }
-
-        // 2. Filtro por equipamentos
-        if (aiData.equipamentos && aiData.equipamentos !== 'completa') {
-            filtered = this.filterByEquipment(filtered, aiData.equipamentos);
-        }
-
-        // 3. Filtro por nível
-        filtered = this.filterByLevel(filtered, aiData.nivel);
-
-        // 4. Remover exercícios já usados (evitar repetição)
-        filtered = filtered.filter(ex => !this.usedExerciseNames.has(ex.nome));
-
-        // 5. Evitar exercícios com nomes similares
-        filtered = this.removeSimilarNameExercises(filtered);
-
-        return filtered;
-    }
-
-    // Selecionar exercícios com rotação muscular
-    selectExercisesWithMuscleRotation(exercises, grupoId, numNeeded, workoutLetter) {
-        if (exercises.length === 0) return [];
-
-        // Inicializar rotação para o grupo se não existir
-        if (!this.groupMuscleRotation[grupoId]) {
-            this.groupMuscleRotation[grupoId] = {
-                muscleIndex: 0,
-                usedMuscles: [],
-                workoutHistory: {}
-            };
-        }
-
-        const rotation = this.groupMuscleRotation[grupoId];
-        const selected = [];
-
-        // Categorizar exercícios por músculo específico
-        const exercisesByMuscle = this.categorizeExercisesByMuscle(exercises, grupoId);
-        const availableMuscles = Object.keys(exercisesByMuscle);
-
-        console.log(`Músculos disponíveis para ${grupoId}:`, availableMuscles);
-
-        // Selecionar exercícios alternando músculos
-        for (let i = 0; i < numNeeded && availableMuscles.length > 0; i++) {
-            const muscleIndex = rotation.muscleIndex % availableMuscles.length;
-            const currentMuscle = availableMuscles[muscleIndex];
-            const muscleExercises = exercisesByMuscle[currentMuscle];
-
-            if (muscleExercises && muscleExercises.length > 0) {
-                // Selecionar melhor exercício para este músculo
-                const selectedExercise = this.selectBestExerciseForMuscle(
-                    muscleExercises, 
-                    currentMuscle, 
-                    workoutLetter,
-                    i
-                );
-
-                if (selectedExercise) {
-                    selected.push(selectedExercise);
-                    this.usedExerciseNames.add(selectedExercise.nome);
-                    
-                    // Remover exercício selecionado para evitar repetição
-                    exercisesByMuscle[currentMuscle] = muscleExercises.filter(
-                        ex => ex.nome !== selectedExercise.nome
-                    );
-                    
-                    console.log(`Selecionado: ${selectedExercise.nome} para ${currentMuscle}`);
-                }
-            }
-
-            // Avançar para próximo músculo
-            rotation.muscleIndex++;
-        }
-
-        // Completar com exercícios restantes se necessário
-        if (selected.length < numNeeded) {
-            const remaining = exercises.filter(ex => 
-                !selected.some(sel => sel.nome === ex.nome) &&
-                !this.usedExerciseNames.has(ex.nome)
-            );
-
-            const needed = numNeeded - selected.length;
-            const additional = remaining.slice(0, needed);
-            
-            additional.forEach(ex => {
-                this.usedExerciseNames.add(ex.nome);
-                selected.push(ex);
-            });
-        }
-
-        return selected;
-    }
-
-    // Categorizar exercícios por músculo específico
-    categorizeExercisesByMuscle(exercises, grupoId) {
-        const categories = {};
-
-        // Definir músculos específicos por grupo
-        const muscleMapping = {
-            'peito': ['peitoral_maior', 'peitoral_menor', 'peito_superior', 'peito_inferior'],
-            'costas': ['latissimo', 'romboides', 'trapezio', 'dorsal'],
-            'ombro': ['deltoide_anterior', 'deltoide_medial', 'deltoide_posterior'],
-            'biceps': ['biceps_braquial', 'braquial', 'braquiorradial'],
-            'triceps': ['triceps_longo', 'triceps_lateral', 'triceps_medial'],
-            'perna': ['quadriceps', 'femoral', 'adutor', 'abdutor'],
-            'gluteo': ['gluteo_maximo', 'gluteo_medio', 'gluteo_minimo'],
-            'abdome': ['reto_abdominal', 'obliquo', 'transverso'],
-            'antebraco': ['flexor', 'extensor', 'punho']
-        };
-
-        const muscles = muscleMapping[grupoId] || [grupoId];
-
-        // Inicializar categorias
-        muscles.forEach(muscle => {
-            categories[muscle] = [];
-        });
-
-        // Categorizar exercícios baseado no nome e descrição
-        exercises.forEach(exercise => {
-            const muscle = this.identifyPrimaryMuscle(exercise, grupoId, muscles);
-            if (categories[muscle]) {
-                categories[muscle].push(exercise);
-            } else {
-                // Categoria padrão se não identificar músculo específico
-                if (!categories['geral']) categories['geral'] = [];
-                categories['geral'].push(exercise);
-            }
-        });
-
-        // Remover categorias vazias
-        Object.keys(categories).forEach(key => {
-            if (categories[key].length === 0) {
-                delete categories[key];
-            }
-        });
-
-        return categories;
-    }
-
-    // Identificar músculo primário do exercício
-    identifyPrimaryMuscle(exercise, grupoId, availableMuscles) {
-        const name = exercise.nome.toLowerCase();
-        const desc = (exercise.descricao || '').toLowerCase();
-        const text = `${name} ${desc}`;
-
-        // Palavras-chave para identificação muscular
-        const muscleKeywords = {
-            // Peito
-            'peitoral_superior': ['inclinado', 'superior', 'upper', 'decline'],
-            'peitoral_inferior': ['declinado', 'inferior', 'lower'],
-            'peitoral_maior': ['supino', 'reto', 'horizontal'],
-            'peitoral_menor': ['crucifixo', 'fly', 'abertura'],
-            
-            // Costas
-            'latissimo': ['puxada', 'lat', 'barra fixa', 'pulldown'],
-            'romboides': ['remada', 'rowing', 'puxada baixa'],
-            'trapezio': ['encolhimento', 'shrug', 'elevação'],
-            'dorsal': ['pullover', 'serrátil'],
-            
-            // Ombros
-            'deltoide_anterior': ['frontal', 'anterior', 'desenvolvimento'],
-            'deltoide_medial': ['lateral', 'medial', 'meio'],
-            'deltoide_posterior': ['posterior', 'traseiro', 'crucifixo invertido'],
-            
-            // Pernas
-            'quadriceps': ['agachamento', 'leg press', 'extensão'],
-            'femoral': ['stiff', 'mesa flexora', 'flexão'],
-            'adutor': ['adução', 'adutor'],
-            'abdutor': ['abdução', 'abdutor']
-        };
-
-        // Buscar correspondência
-        for (const [muscle, keywords] of Object.entries(muscleKeywords)) {
-            if (availableMuscles.includes(muscle)) {
-                if (keywords.some(keyword => text.includes(keyword))) {
-                    return muscle;
-                }
-            }
-        }
-
-        // Retornar primeiro músculo disponível como padrão
-        return availableMuscles[0] || grupoId;
-    }
-
-    // Selecionar melhor exercício para músculo específico
-    selectBestExerciseForMuscle(muscleExercises, muscle, workoutLetter, exerciseIndex) {
-        if (muscleExercises.length === 0) return null;
-
-        // Critérios de seleção
-        let scored = muscleExercises.map(exercise => ({
-            exercise,
-            score: this.calculateExerciseScore(exercise, muscle, workoutLetter, exerciseIndex)
-        }));
-
-        // Ordenar por score (maior primeiro)
-        scored.sort((a, b) => b.score - a.score);
-
-        // Adicionar randomização limitada para variedade
-        const topCandidates = scored.slice(0, Math.min(3, scored.length));
-        const randomIndex = Math.floor(Math.random() * topCandidates.length);
-        
-        return topCandidates[randomIndex].exercise;
-    }
-
-    // Calcular score do exercício
-    calculateExerciseScore(exercise, muscle, workoutLetter, exerciseIndex) {
-        let score = 50; // Score base
-
-        const name = exercise.nome.toLowerCase();
-        
-        // Pontuação por tipo de exercício
-        if (exerciseIndex === 0) {
-            // Primeiro exercício: priorizar compostos
-            if (this.isCompoundExercise(name)) score += 30;
-        } else {
-            // Exercícios seguintes: balancear compostos e isolados
-            if (this.isCompoundExercise(name)) score += 10;
-            else score += 15; // Isolados têm ligeira vantagem
-        }
-
-        // Penalizar exercícios muito similares aos já usados
-        const similarityPenalty = this.calculateSimilarityPenalty(exercise);
-        score -= similarityPenalty;
-
-        // Bonus por variedade de movimento
-        if (this.isUnilateralExercise(name)) score += 5;
-        if (this.isFunctionalExercise(name)) score += 5;
-
-        return score;
-    }
-
-    // =============================================
-    // MÉTODOS AUXILIARES DE FILTROS
-    // =============================================
-
-    filterByLimitations(exercises, limitations) {
-        if (!limitations) return exercises;
-        
-        const limitationsLower = limitations.toLowerCase();
-        
-        return exercises.filter(exercise => {
-            const name = exercise.nome.toLowerCase();
-            
-            // Filtros por limitação
-            if (limitationsLower.includes('joelho') && 
-                (name.includes('agachamento') || name.includes('afundo'))) {
-                return false;
-            }
-            
-            if (limitationsLower.includes('ombro') && 
-                (name.includes('desenvolvimento') || name.includes('elevação'))) {
-                return false;
-            }
-            
-            if (limitationsLower.includes('lombar') && 
-                (name.includes('terra') || name.includes('remada curvada'))) {
-                return false;
-            }
-            
-            return true;
-        });
-    }
-
-    filterByEquipment(exercises, equipment) {
-        // Filtro simplificado por equipamento
-        if (equipment === 'basica') {
-            return exercises.filter(ex => 
-                !ex.nome.toLowerCase().includes('máquina') &&
-                !ex.nome.toLowerCase().includes('cabo')
-            );
-        }
-        return exercises;
-    }
-
-    filterByLevel(exercises, level) {
-        if (level === 'iniciante') {
-            return exercises.filter(ex => 
-                !ex.nome.toLowerCase().includes('avançado') &&
-                !ex.nome.toLowerCase().includes('livre')
-            );
-        }
-        return exercises;
-    }
-
-    removeSimilarNameExercises(exercises) {
-        const filtered = [];
-        const usedPrefixes = new Set();
-
-        exercises.forEach(exercise => {
-            const prefix = this.getExercisePrefix(exercise.nome);
-            
-            if (!usedPrefixes.has(prefix)) {
-                filtered.push(exercise);
-                usedPrefixes.add(prefix);
-            }
-        });
-
-        return filtered;
-    }
-
-    getExercisePrefix(name) {
-        // Extrair prefixo principal do nome do exercício
-        const words = name.toLowerCase().split(' ');
-        
-        // Usar primeiras 2 palavras como prefixo, exceto artigos
-        const significantWords = words.filter(word => 
-            !['de', 'da', 'do', 'com', 'em', 'para', 'no', 'na'].includes(word)
-        );
-        
-        return significantWords.slice(0, 2).join(' ');
-    }
-
-    calculateSimilarityPenalty(exercise) {
-        let penalty = 0;
-        const name = exercise.nome.toLowerCase();
-        
-        // Verificar similaridade com exercícios já usados
-        for (const usedName of this.usedExerciseNames) {
-            const usedLower = usedName.toLowerCase();
-            const similarity = this.calculateNameSimilarity(name, usedLower);
-            
-            if (similarity > 0.6) {
-                penalty += 20;
-            } else if (similarity > 0.4) {
-                penalty += 10;
-            }
-        }
-        
-        return penalty;
-    }
-
-    calculateNameSimilarity(name1, name2) {
-        const words1 = name1.split(' ');
-        const words2 = name2.split(' ');
-        
-        let matches = 0;
-        words1.forEach(word1 => {
-            if (words2.some(word2 => word1 === word2 || word1.includes(word2) || word2.includes(word1))) {
-                matches++;
-            }
-        });
-        
-        return matches / Math.max(words1.length, words2.length);
-    }
-
-    // =============================================
-    // MÉTODOS AUXILIARES DIVERSOS
-    // =============================================
-
-    isCompoundExercise(name) {
-        const compoundKeywords = [
-            'supino', 'agachamento', 'terra', 'remada', 'desenvolvimento',
-            'barra fixa', 'paralela', 'clean', 'snatch', 'thruster'
-        ];
-        
-        return compoundKeywords.some(keyword => name.includes(keyword));
-    }
-
-    isUnilateralExercise(name) {
-        const unilateralKeywords = [
-            'unilateral', 'alternado', 'uma perna', 'um braço'
-        ];
-        
-        return unilateralKeywords.some(keyword => name.includes(keyword));
-    }
-
-    isFunctionalExercise(name) {
-        const functionalKeywords = [
-            'funcional', 'kettlebell', 'medicine ball', 'burpee',
-            'mountain climber', 'bear crawl'
-        ];
-        
-        return functionalKeywords.some(keyword => name.includes(keyword));
-    }
-
-    getGroupSearchVariations(grupo) {
-        const variations = {
-            'perna': ['perna', 'pernas', 'quadriceps', 'coxa', 'leg'],
-            'gluteo': ['gluteo', 'gluteos', 'glúteo', 'glúteos', 'posterior'],
-            'ombro': ['ombro', 'ombros', 'shoulder', 'deltoide'],
-            'corpo': ['corpo', 'funcional', 'full body', 'geral'],
-            'costas': ['costas', 'back', 'dorsal', 'latissimo'],
-            'peito': ['peito', 'peitoral', 'chest'],
-            'biceps': ['biceps', 'bíceps'],
-            'triceps': ['triceps', 'tríceps'],
-            'antebraco': ['antebraco', 'antebraço', 'forearm'],
-            'abdome': ['abdome', 'abdominal', 'abs', 'core']
-        };
-
-        return variations[grupo] || [grupo];
-    }
-
-    getExerciseCountForObjective(objetivo) {
-        const counts = {
-            'Hipertrofia e ganho de massa muscular': 3,
-            'Perda de peso e definição': 2,
-            'Condicionamento geral': 2,
-            'Força e potência': 3,
-            'Resistência muscular': 2
-        };
-
-        return counts[objetivo] || 2;
-    }
-
-    // =============================================
-    // MÉTODOS DE CRIAÇÃO DE EXERCÍCIOS
-    // =============================================
-
-    createWarmupExercise(id, muscleGroups, aiData) {
-        return {
-            id: id,
-            nome: this.app.getSmartWarmupForGroups(muscleGroups, aiData.equipamentos),
-            descricao: this.app.getWarmupDescriptionForGroups(muscleGroups),
-            series: 1,
-            repeticoes: "8-10 min",
-            carga: this.app.getWarmupIntensity(),
-            descanso: '0',
-            observacoesEspeciais: 'Aquecimento progressivo e específico',
-            tecnica: '',
-            categoria: 'aquecimento'
-        };
-    }
-
-    createCooldownExercise(id, muscleGroups) {
-        return {
-            id: id,
-            nome: this.app.getSmartCooldownForGroups(muscleGroups),
-            descricao: "Relaxamento e flexibilidade dos grupos musculares trabalhados",
-            series: 1,
-            repeticoes: "8-10 min",
-            carga: "Peso corporal",
-            descanso: '0',
-            observacoesEspeciais: 'Foco nos grupos trabalhados no treino',
-            tecnica: '',
-            categoria: 'alongamento'
-        };
-    }
-
-    createFallbackExercise(grupoId, aiData) {
-        const specs = this.app.getObjectiveSpecs(aiData.objetivo);
-        
-        return {
-            nome: this.app.getFallbackExercise(grupoId),
-            descricao: `Exercício básico para ${grupoId}`,
-            series: specs.series,
-            repeticoes: specs.repeticoes,
-            carga: specs.carga,
-            descanso: specs.descanso,
-            observacoesEspeciais: 'Exercício substituto - ajustar conforme necessário',
-            tecnica: '',
-            categoria: 'substituto',
-            fonte: 'fallback'
-        };
-    }
-
-    convertToExerciseFormat(exercise, aiData, index, grupoId) {
-        const specs = this.app.getObjectiveSpecs(aiData.objetivo);
-        const tecnicaSelecionada = this.app.getTecnicaForExercise(index, aiData.nivel, grupoId);
-
-        return {
-            nome: exercise.nome,
-            descricao: exercise.descricao || 'Descrição não disponível',
-            series: specs.series,
-            repeticoes: specs.repeticoes,
-            carga: this.app.adjustLoadForLevel(specs.carga, aiData.nivel),
-            descanso: specs.descanso,
-            observacoesEspeciais: this.app.getObservacaoEspecial(tecnicaSelecionada, exercise.nome),
-            tecnica: tecnicaSelecionada,
-            categoria: index === 0 ? 'principal' : 'auxiliar',
-            musculos_trabalhados: exercise.musculos || [],
-            fonte: 'intelligent_selection'
-        };
-    }
-
-    // =============================================
-    // MÉTODOS AUXILIARES DE CONSTRUÇÃO DE DADOS
-    // =============================================
-
-    generatePlanName(aiData) {
-        const letters = this.app.getWorkoutLetters(aiData.dias);
-        const levelMap = {
-            'iniciante': 'Iniciante',
-            'intermediario': 'Intermediário', 
-            'avancado': 'Avançado'
-        };
-        
-        const objectiveShort = aiData.objetivo.split(' ')[0]; // "Hipertrofia", "Perda", etc.
-        const level = levelMap[aiData.nivel] || 'Intermediário';
-        
-        return `${aiData.nome} - Treino ${letters} (${level}) ${objectiveShort}`;
-    }
-
-    buildStudentData(aiData) {
-        return {
-            nome: aiData.nome,
-            dataNascimento: aiData.dataNascimento,
-            cpf: aiData.cpf || '',
-            idade: aiData.idade,
-            altura: aiData.altura,
-            peso: aiData.peso
-        };
-    }
-
-    buildProfileData(aiData) {
-        return {
-            idade: aiData.idade,
-            altura: aiData.altura,
-            peso: aiData.peso,
-            porte: this.app.calculateBodyType(aiData.altura, aiData.peso),
-            objetivo: aiData.objetivo
-        };
-    }
-
-    generateLocalId() {
-        return 'local_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    // =============================================
-    // SALVAMENTO E FINALIZAÇÃO
-    // =============================================
-
-    async savePlanToStorage(plan) {
-        // Adicionar à lista imediatamente
-        this.app.savedPlans.push(plan);
-        console.log(`Plano adicionado à lista. Total: ${this.app.savedPlans.length}`);
-
-        // Tentar salvar no Firebase
-        if (this.app.core && this.app.core.firebaseConnected && 
-            typeof this.app.core.savePlanToFirebase === 'function') {
-            try {
-                const firebaseId = await this.app.core.savePlanToFirebase(plan);
-                plan.id = firebaseId;
-                plan.saved_in_firebase = true;
-                console.log('Plano IA salvo no Firebase:', firebaseId);
-            } catch (firebaseError) {
-                console.warn('Erro Firebase (não bloqueia):', firebaseError);
-                plan.saved_in_localstorage_only = true;
-                plan.retry_firebase = true;
-            }
-        } else {
-            console.warn('Firebase indisponível, salvando apenas localmente');
-            plan.saved_in_localstorage_only = true;
-        }
-
-        // Sempre criar backup local
-        await this.app.saveToUserLocalStorage();
-
-        // Resetar configuração temporária se foi usada
-        if (this.app.aiMuscleConfig.enabled) {
-            this.app.resetAIMuscleConfigAfterGeneration();
-        }
-    }
-}
 
 // =============================================
 // INTEGRAÇÃO COM A CLASSE PRINCIPAL
