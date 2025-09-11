@@ -223,7 +223,7 @@ class JSFitStudentApp {
             // Student data com correção de data
             aluno: {
                 nome: data.aluno?.nome || data.student?.name || '',
-                dataNascimento: this.fixTimezoneDate(data.aluno?.dataNascimento || data.student?.birth_date || ''),
+                dataNascimento: data.aluno?.dataNascimento || '',
                 idade: data.aluno?.idade || data.student?.age || null,
                 altura: data.aluno?.altura || data.student?.height || '',
                 peso: data.aluno?.peso || data.student?.weight || '',
@@ -232,8 +232,8 @@ class JSFitStudentApp {
             
             // Plan metadata com correção de datas
             dias: data.dias || data.frequency_per_week || 3,
-            dataInicio: this.fixTimezoneDate(data.dataInicio || data.start_date || new Date().toISOString().split('T')[0]),
-            dataFim: this.fixTimezoneDate(data.dataFim || data.end_date || ''),
+            dataInicio: data.dataInicio || '',
+            dataFim: data.dataFim || data.end_date || '',
             
             // Profile and objectives
             perfil: {
@@ -2236,7 +2236,7 @@ async processSharedPlanData(planData, shareId) {
         // Dados do aluno
         aluno: {
             nome: planData.aluno?.nome || '',
-            dataNascimento: this.core.fixTimezoneDate(planData.aluno?.dataNascimento || ''),
+            dataNascimento: planData.aluno?.dataNascimento || '',
             idade: planData.aluno?.idade || null,
             altura: planData.aluno?.altura || '',
             peso: planData.aluno?.peso || '',
@@ -2245,8 +2245,8 @@ async processSharedPlanData(planData, shareId) {
         
         // Metadados do plano
         dias: planData.dias || 3,
-        dataInicio: this.core.fixTimezoneDate(planData.dataInicio || new Date().toISOString().split('T')[0]),
-        dataFim: this.core.fixTimezoneDate(planData.dataFim || ''),
+        dataInicio: planData.dataInicio,
+        dataFim: planData.dataFim,
         
         // Perfil e objetivos
         perfil: {
