@@ -413,10 +413,13 @@ class JSFitCore {
     // ========================================
     // UTILITY METHODS
     // ========================================
-    
-    generateId() {
-        return Date.now() + Math.random();
-    }
+  
+    // Substituir em aluno.js linha ~298
+generateId() {
+    return `ex_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+
     formatDate(dateString) {
 
         console.log('=== formatDate DEBUG ===');

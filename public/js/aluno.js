@@ -223,7 +223,7 @@ class JSFitStudentApp {
             // Student data com correção de data
             aluno: {
                 nome: data.aluno?.nome || data.student?.name || '',
-                dataNascimento: data.aluno?.dataNascimento ||'',
+                dataNascimento: this.fixTimezoneDate(data.aluno?.dataNascimento || data.student?.birth_date || ''),
                 idade: data.aluno?.idade || data.student?.age || null,
                 altura: data.aluno?.altura || data.student?.height || '',
                 peso: data.aluno?.peso || data.student?.weight || '',
@@ -231,9 +231,9 @@ class JSFitStudentApp {
             },
             
             // Plan metadata com correção de datas
-            dias: planData.dias || planData.frequency_per_week || 3,
-            dataInicio: planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0],
-            dataFim: planData.dataFim || planData.end_date || '',
+            dias: data.dias || data.frequency_per_week || 3,
+            dataInicio: this.fixTimezoneDate(data.dataInicio || data.start_date || new Date().toISOString().split('T')[0]),
+            dataFim: this.fixTimezoneDate(data.dataFim || data.end_date || ''),
             
             // Profile and objectives
             perfil: {
@@ -440,29 +440,33 @@ async fetchFromFirebase(shareId) {
             this.showNotification('Inicie o treino primeiro', 'warning');
             return;
         }
-
+    
         const plan = this.findPlan(planId);
         const workout = plan?.treinos.find(t => t.id === workoutId);
-        const exercise = workout?.exercicios.find(e => e.id === exerciseId);
-
+        
+        // Buscar exercício convertendo ambos IDs para string
+        const targetId = String(exerciseId);
+        const exercise = workout?.exercicios.find(e => String(e.id) === targetId);
+    
         if (!exercise) {
+            console.error('Exercício não encontrado:', { planId, workoutId, exerciseId: targetId });
             this.showNotification('Exercício não encontrado', 'error');
             return;
         }
-
+    
         if (exercise.concluido) {
             this.showNotification('Exercício já foi concluído', 'info');
             return;
         }
-
+    
         exercise.concluido = true;
         session.completedExercises++;
-
+    
         this.saveToStorage();
         this.renderCurrentView();
         this.showNotification(`✅ ${exercise.nome} concluído!`, 'success');
-
-        // Check if all exercises are completed
+    
+        // Verificar se todos os exercícios estão concluídos
         const allCompleted = workout.exercicios.every(ex => ex.concluido);
         if (allCompleted) {
             setTimeout(() => {
@@ -470,7 +474,36 @@ async fetchFromFirebase(shareId) {
             }, 1000);
         }
     }
-
+    
+    saveWeight(planId, workoutId, exerciseId, newWeight) {
+        if (!newWeight?.trim()) {
+            this.showNotification('Digite uma carga válida', 'warning');
+            return;
+        }
+    
+        const plan = this.findPlan(planId);
+        const workout = plan?.treinos.find(t => t.id === workoutId);
+        
+        // Buscar exercício convertendo ambos IDs para string
+        const targetId = String(exerciseId);
+        const exercise = workout?.exercicios.find(e => String(e.id) === targetId);
+    
+        if (!exercise) {
+            console.error('Exercício não encontrado para saveWeight:', { planId, workoutId, exerciseId: targetId });
+            this.showNotification('Exercício não encontrado', 'error');
+            return;
+        }
+    
+        exercise.currentCarga = newWeight.trim();
+        this.state.editingWeights.delete(targetId);
+    
+        this.saveToStorage();
+        this.renderCurrentView();
+        this.showNotification('Carga atualizada!', 'success');
+    }
+    
+   
+    
     completeWorkout(planId, workoutId) {
         const sessionKey = `${planId}-${workoutId}`;
         const plan = this.findPlan(planId);
@@ -569,9 +602,10 @@ async fetchFromFirebase(shareId) {
     // DATA MANAGEMENT
     // =============================================================================
 
-    generateId() {
-        return Date.now() + Math.random();
-    }
+// Substituir em aluno.js linha ~298
+generateId() {
+    return `ex_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
 
     findPlan(planId) {
         return this.state.workoutPlans.find(p => p.id === planId);
@@ -614,50 +648,21 @@ async fetchFromFirebase(shareId) {
         }
     }
 
-    migrateLegacyData() {
-        // Migrate old localStorage key
-        const oldData = localStorage.getItem('studentWorkoutPlans');
-        if (oldData) {
-            try {
-                const plans = JSON.parse(oldData);
-                plans.forEach(plan => {
-                    // Convert old format to new format
-                    if (!plan.aluno && plan.perfil) {
-                        plan.aluno = {
-                            nome: '',
-                            dataNascimento: '',
-                            idade: plan.perfil.idade || null,
-                            altura: plan.perfil.altura || '',
-                            peso: plan.perfil.peso || '',
-                            cpf: ''
-                        };
-                    }
-                    
-                    // Add importedFrom if missing
-                    if (!plan.importedFrom) {
-                        plan.importedFrom = 'legacy';
-                    }
-                });
-                
-                this.state.workoutPlans = [...this.state.workoutPlans, ...plans];
-                localStorage.removeItem('studentWorkoutPlans');
-                this.saveToStorage();
-            } catch (error) {
-                console.warn('Legacy data migration failed:', error);
-            }
-        }
 
-        // Ensure all exercises have IDs and proper structure
-        this.state.workoutPlans.forEach(plan => {
-            plan.treinos?.forEach(treino => {
-                treino.exercicios?.forEach(ex => {
-                    if (!ex.id) ex.id = this.generateId();
-                    if (!ex.currentCarga) ex.currentCarga = ex.carga || '';
-                });
+    // Adicionar método de migração na função loadFromStorage()
+migrateLegacyData() {
+    this.state.workoutPlans.forEach(plan => {
+        plan.treinos?.forEach(treino => {
+            treino.exercicios?.forEach(ex => {
+                // Garantir ID string único
+                if (!ex.id || typeof ex.id === 'number') {
+                    ex.id = `ex_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                }
+                if (!ex.currentCarga) ex.currentCarga = ex.carga || '';
             });
         });
-    }
-
+    });
+}
 
 
 
@@ -885,7 +890,7 @@ renderHome() {
 
     renderPlanCard(plan) {
         const student = plan.aluno || {};
-        const age = this.core.calculateAge(student.dataNascimento) || student.idade;
+        const age = this.calculateAge(student.dataNascimento) || student.idade;
         const completedWorkouts = plan.treinos.filter(t => t.concluido).length;
         const totalWorkouts = plan.treinos.length;
         const totalExecutions = plan.treinos.reduce((sum, t) => sum + t.execucoes, 0);
@@ -918,7 +923,7 @@ renderHome() {
                     ${this.renderDetailItem('Altura', student.altura)}
                     ${this.renderDetailItem('Peso', student.peso)}
                     ${this.renderDetailItem('Objetivo', perfil?.objetivo, 'objective-text')}
-                    ${this.renderDetailItem('Nascimento', this.core.formatDate(student.dataNascimento))}
+                    ${this.renderDetailItem('Nascimento', this.formatDate(student.dataNascimento))}
                 </div>
             </div>
         `;
@@ -940,7 +945,7 @@ renderHome() {
                 <div class="plan-header">
                     <h3 class="plan-title">${plan.nome}</h3>
                     <div class="plan-period">
-                        ${this.core.formatDate(plan.dataInicio)} - ${this.core.formatDate(plan.dataFim)}
+                        ${this.formatDate(plan.dataInicio)} - ${this.formatDate(plan.dataFim)}
                     </div>
                     ${plan.originalShareId || plan.importedFrom ? `
                         <div class="plan-badges">
@@ -1016,26 +1021,8 @@ renderHome() {
         `;
     }
 
-    renderPlanActions(planId) {
-        return `
-            <div class="plan-actions">
-                <button onclick="app.showPlan(${planId})" class="btn btn-primary">
-                    Ver Plano Completo
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m9 18 6-6-6-6"/>
-                    </svg>
-                </button>
-                <button onclick="app.deletePlan(${planId})" class="btn btn-danger delete-btn" title="Excluir Plano">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m3 6 18 0"/>
-                        <path d="m19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                        <path d="m8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                    </svg>
-                </button>
-            </div>
-        `;
-    }
 
+    
     renderPlan() {
         if (!this.state.currentPlan) return;
 
@@ -1044,7 +1031,7 @@ renderHome() {
         
         if (planTitle) planTitle.textContent = this.state.currentPlan.nome;
         if (planSubtitle) {
-            planSubtitle.textContent = `${this.core.formatDate(this.state.currentPlan.dataInicio)} - ${this.core.formatDate(this.state.currentPlan.dataFim)}`;
+            planSubtitle.textContent = `${this.formatDate(this.state.currentPlan.dataInicio)} - ${this.formatDate(this.state.currentPlan.dataFim)}`;
         }
 
         const content = document.getElementById('planContent');
@@ -1060,7 +1047,7 @@ renderHome() {
 
         // Student info (if available)
         if (plan.aluno?.nome) {
-            const age = this.core.calculateAge(plan.aluno.dataNascimento) || plan.aluno.idade;
+            const age = this.calculateAge(plan.aluno.dataNascimento) || plan.aluno.idade;
             html += this.renderStudentInfo(plan.aluno, age, plan.perfil);
         }
 
@@ -1141,31 +1128,8 @@ renderHome() {
         `;
     }
 
-    renderWorkoutActionButton(treino, planId, isActive, completedExercises, totalExercises) {
-        if (!isActive) {
-            return `
-                <button onclick="app.startWorkout(${planId}, '${treino.id}')" class="btn ${treino.concluido ? 'btn-warning' : 'btn-success'}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="6,3 20,12 6,21"/>
-                    </svg>
-                    ${treino.concluido ? 'Repetir' : 'Iniciar'}
-                </button>
-            `;
-        } else {
-            const allCompleted = completedExercises >= totalExercises;
-            return `
-                <button onclick="app.completeWorkout(${planId}, '${treino.id}')" 
-                        class="${allCompleted ? 'btn btn-warning' : 'btn btn-disabled'}" 
-                        ${!allCompleted ? 'disabled' : ''}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m9 12 2 2 4-4"/>
-                    </svg>
-                    ${allCompleted ? 'Concluir' : `Faltam ${totalExercises - completedExercises}`}
-                </button>
-            `;
-        }
-    }
-
+  
+    
     renderPlanObservations(observacoes) {
         return `
             <div class="plan-observations">
@@ -1383,92 +1347,222 @@ renderHome() {
         return '';
     }
 
-    renderWeightEditForm(exercicio) {
+    // All onclick handler fixes needed in aluno.js
+
+// 1. Fix renderPlanActions method
+renderPlanActions(planId) {
+    return `
+        <div class="plan-actions">
+            <button onclick="app.showPlan('${planId}')" class="btn btn-primary">
+                Ver Plano Completo
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m9 18 6-6-6-6"/>
+                </svg>
+            </button>
+            <button onclick="app.deletePlan('${planId}')" class="btn btn-danger delete-btn" title="Excluir Plano">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m3 6 18 0"/>
+                    <path d="m19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="m8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                </svg>
+            </button>
+        </div>
+    `;
+}
+
+// 2. Fix renderWorkoutActionButton method
+renderWorkoutActionButton(treino, planId, isActive, completedExercises, totalExercises) {
+    if (!isActive) {
         return `
-            <div class="weight-edit">
-                <input type="text" id="weight-input-${exercicio.id}" 
-                       class="weight-input" 
-                       value="${exercicio.currentCarga}" 
-                       placeholder="Digite a nova carga"
-                       autocomplete="off">
-                <div class="weight-edit-actions">
-                    <button onclick="app.handleSaveWeight(${exercicio.id})" class="btn btn-success btn-small">
-                        Salvar
-                    </button>
-                    <button onclick="app.cancelEditingWeight(${exercicio.id})" class="btn btn-secondary btn-small">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
+            <button onclick="app.startWorkout('${planId}', '${treino.id}')" class="btn ${treino.concluido ? 'btn-warning' : 'btn-success'}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="6,3 20,12 6,21"/>
+                </svg>
+                ${treino.concluido ? 'Repetir' : 'Iniciar'}
+            </button>
+        `;
+    } else {
+        const allCompleted = completedExercises >= totalExercises;
+        return `
+            <button onclick="app.completeWorkout('${planId}', '${treino.id}')" 
+                    class="${allCompleted ? 'btn btn-warning' : 'btn btn-disabled'}" 
+                    ${!allCompleted ? 'disabled' : ''}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
+                ${allCompleted ? 'Concluir' : `Faltam ${totalExercises - completedExercises}`}
+            </button>
         `;
     }
+}
 
-    renderExerciseActions(exercicio, isWorkoutActive) {
-        return `
-            <div class="exercise-actions">
-                                       <!-- NOVO: BOTÃO VER EXERCÍCIO -->
-                               <button onclick="app.showExerciseGif('${exercicio.nome.replace(/'/g, "\\'")}')" 
-                                        class="btn btn-view-exercise">
-                                    <div class="btn-icon">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </div>
-                                    <div class="btn-text">
-                                        <div class="btn-label">Ver Exercício</div>
-                                        <div class="btn-subtitle">Demonstração</div>
-                                    </div>
-                                </button>
 
-                <button onclick="app.startEditingWeight(${exercicio.id})" class="btn btn-secondary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
+renderExerciseActions(exercicio, isWorkoutActive) {
+    return `
+        <div class="exercise-actions">
+            <!-- Botão Ver Exercício (largura total) -->
+            <button onclick="app.showExerciseGif('${exercicio.nome.replace(/'/g, "\\'")}')" 
+                     class="btn btn-view-exercise">
+                     Ver Demonstração
+                <!-- conteúdo do botão -->
+            </button>
+
+            <!-- Botões lado a lado -->
+            <div class="exercise-actions-row">
+                <button onclick="app.startEditingWeight('${exercicio.id}')" class="btn btn-secondary">
                     Editar Carga
                 </button>
                 
                 ${isWorkoutActive ? `
-                    <button onclick="app.completeExercise(${this.state.currentPlan.id}, '${this.state.currentWorkout.id}', ${exercicio.id})" 
-                            ${exercicio.concluido ? 'disabled' : ''} 
-                            class="${exercicio.concluido ? 'btn btn-disabled' : 'btn btn-success'}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m9 12 2 2 4-4"/>
-                        </svg>
-                        ${exercicio.concluido ? 'Concluído' : 'Concluir'}
+                    <button onclick="app.completeExercise('${this.state.currentPlan.id}', '${this.state.currentWorkout.id}', '${exercicio.id}')" 
+                     ${exercicio.concluido ? 'disabled' : ''} 
+                     class="${exercicio.concluido ? 'btn btn-disabled' : 'btn btn-success'}">
+                     ${exercicio.concluido ? 'Concluído' : 'Concluir'}
                     </button>
                 ` : ''}
             </div>
-        `;
-    }
+        </div>
+    `;
+}
 
-    renderWorkoutCompletionCard() {
-        const allCompleted = this.state.currentWorkout.exercicios.every(ex => ex.concluido);
-        const completedCount = this.state.currentWorkout.exercicios.filter(ex => ex.concluido).length;
-        const totalCount = this.state.currentWorkout.exercicios.length;
-        
-        return `
-            <div class="card completion-card">
-                <div class="card-content">
-                    <h3 class="completion-title">Treino em Andamento</h3>
-                    <p class="completion-subtitle">
-                        ${completedCount}/${totalCount} exercícios concluídos
-                    </p>
-                    ${this.renderProgressBar((completedCount / totalCount) * 100)}
-                    <button onclick="app.completeWorkout(${this.state.currentPlan.id}, '${this.state.currentWorkout.id}')" 
-                            ${!allCompleted ? 'disabled' : ''} 
-                            class="${!allCompleted ? 'btn btn-disabled' : 'btn btn-warning'}">
-                        ${allCompleted ? 'Finalizar Treino' : `Faltam ${totalCount - completedCount} exercícios`}
-                    </button>
-                </div>
+// 4. Fix renderWorkoutCompletionCard method
+renderWorkoutCompletionCard() {
+    const allCompleted = this.state.currentWorkout.exercicios.every(ex => ex.concluido);
+    const completedCount = this.state.currentWorkout.exercicios.filter(ex => ex.concluido).length;
+    const totalCount = this.state.currentWorkout.exercicios.length;
+    
+    return `
+        <div class="card completion-card">
+            <div class="card-content">
+                <h3 class="completion-title">Treino em Andamento</h3>
+                <p class="completion-subtitle">
+                    ${completedCount}/${totalCount} exercícios concluídos
+                </p>
+                ${this.renderProgressBar((completedCount / totalCount) * 100)}
+                <button onclick="app.completeWorkout('${this.state.currentPlan.id}', '${this.state.currentWorkout.id}')" 
+                        ${!allCompleted ? 'disabled' : ''} 
+                        class="${!allCompleted ? 'btn btn-disabled' : 'btn btn-warning'}">
+                    ${allCompleted ? 'Finalizar Treino' : `Faltam ${totalCount - completedCount} exercícios`}
+                </button>
             </div>
-        `;
-    }
-    // =============================================================================
-    // UTILITY METHODS
-    // =============================================================================
+        </div>
+    `;
+}
 
+// 5. Fix handleSaveWeight method - note the onclick handler
+handleSaveWeight(exerciseId) {
+    const input = document.getElementById(`weight-input-${exerciseId}`);
+    if (!input) return;
+
+    const newWeight = input.value.trim();
+    this.saveWeight(
+        this.state.currentPlan.id, 
+        this.state.currentWorkout.id, 
+        exerciseId, 
+        newWeight
+    );
+}
+
+// 6. Fix renderWeightEditForm method
+renderWeightEditForm(exercicio) {
+    return `
+        <div class="weight-edit">
+            <input type="text" id="weight-input-${exercicio.id}" 
+                   class="weight-input" 
+                   value="${exercicio.currentCarga}" 
+                   placeholder="Digite a nova carga"
+                   autocomplete="off">
+            <div class="weight-edit-actions">
+                <button onclick="app.handleSaveWeight('${exercicio.id}')" class="btn btn-success btn-small">
+                    Salvar
+                </button>
+                <button onclick="app.cancelEditingWeight('${exercicio.id}')" class="btn btn-secondary btn-small">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+
+formatDate(dateString) {
+    if (!dateString) return 'Não definido';
+    
+    try {
+        // Se já está no formato YYYY-MM-DD, processar diretamente
+        if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = dateString.split('-');
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+        
+        // Se tem hora junto (ISO), remover hora primeiro
+        if (typeof dateString === 'string' && dateString.includes('T')) {
+            const dateOnly = dateString.split('T')[0];
+            const [year, month, day] = dateOnly.split('-');
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+        
+        // Para outros formatos, tentar conversão simples
+        const date = new Date(dateString + 'T00:00:00'); // Força timezone local
+        if (isNaN(date.getTime())) {
+            return 'Data inválida';
+        }
+        
+        return date.toLocaleDateString('pt-BR');
+        
+    } catch (error) {
+        console.warn('Erro ao formatar data:', dateString, error);
+        return 'Data inválida';
+    }
+}
+
+
+// SUBSTITUIR o método calculateAge() existente por este:
+
+calculateAge(birthDate) {
+    if (!birthDate) return null;
+    
+    try {
+        let year, month, day;
+        
+        // Se está no formato YYYY-MM-DD, processar diretamente
+        if (typeof birthDate === 'string' && birthDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            [year, month, day] = birthDate.split('-').map(num => parseInt(num));
+        }
+        // Se tem hora junto (ISO), remover hora primeiro  
+        else if (typeof birthDate === 'string' && birthDate.includes('T')) {
+            const dateOnly = birthDate.split('T')[0];
+            [year, month, day] = dateOnly.split('-').map(num => parseInt(num));
+        }
+        // Para outros casos
+        else {
+            const birth = new Date(birthDate + 'T00:00:00');
+            if (isNaN(birth.getTime())) return null;
+            year = birth.getFullYear();
+            month = birth.getMonth() + 1;
+            day = birth.getDate();
+        }
+        
+        // Calcular idade sem conversões de timezone
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        const currentDay = today.getDate();
+        
+        let age = currentYear - year;
+        
+        // Ajustar se ainda não fez aniversário este ano
+        if (currentMonth < month || (currentMonth === month && currentDay < day)) {
+            age--;
+        }
+        
+        return age;
+        
+    } catch (error) {
+        console.warn('Erro ao calcular idade:', birthDate, error);
+        return null;
+    }
+}
 
 
     getWorkoutStatusClass(isCompleted, progress) {
@@ -1956,7 +2050,6 @@ async handleImportById() {
             shareId, 
             sharedPlanResponse.metadata
         );
-
         
         console.log('✅ PROCESSAMENTO: Plano processado:', {
             nome: processedPlan.nome,
@@ -2030,8 +2123,6 @@ async handleImportById() {
                     
                     const processedPlan = await this.processSharedPlanData(planData, shareId, metadata);
                     console.log('✅ CACHE: Plano processado:', processedPlan.nome);
-                    // Após a linha: const processedPlan = await this.processSharedPlanData(...)
-
                     
                     this.state.workoutPlans.push(processedPlan);
                     await this.saveToStorage();
@@ -2078,20 +2169,7 @@ async handleImportById() {
         console.log('✅ FIM - handleImportById concluído');
     }
 }
-    handleSaveWeight(exerciseId) {
-        const input = document.getElementById(`weight-input-${exerciseId}`);
-        if (!input) return;
 
-        const newWeight = input.value.trim();
-        this.saveWeight(
-            this.state.currentPlan.id, 
-            this.state.currentWorkout.id, 
-            exerciseId, 
-            newWeight
-        );
-    }
-
-  // Adicionar estas funções à classe JSFitStudentApp no aluno.js
 
 // 1. Buscar plano compartilhado do Firebase
 async fetchSharedPlanFromFirebase(shareId) {
@@ -2158,18 +2236,17 @@ async processSharedPlanData(planData, shareId) {
         // Dados do aluno
         aluno: {
             nome: planData.aluno?.nome || '',
-            dataNascimento: planData.aluno?.dataNascimento || '',
+            dataNascimento: this.core.fixTimezoneDate(planData.aluno?.dataNascimento || ''),
             idade: planData.aluno?.idade || null,
             altura: planData.aluno?.altura || '',
             peso: planData.aluno?.peso || '',
             cpf: planData.aluno?.cpf || ''
         },
-        dias: planData.dias || planData.frequency_per_week || 3,
-dataInicio: planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0],
-dataFim: planData.dataFim || planData.end_date || '',
         
         // Metadados do plano
-    
+        dias: planData.dias || 3,
+        dataInicio: this.core.fixTimezoneDate(planData.dataInicio || new Date().toISOString().split('T')[0]),
+        dataFim: this.core.fixTimezoneDate(planData.dataFim || ''),
         
         // Perfil e objetivos
         perfil: {

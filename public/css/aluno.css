@@ -1044,6 +1044,27 @@ body {
     flex-wrap: wrap;
 }
 
+.exercise-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.exercise-actions .btn-view-exercise {
+    width: 100%;
+}
+
+.exercise-actions-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.exercise-actions-row .btn {
+    flex: 1;
+}
+
 .delete-btn {
     min-width: 44px;
     padding: var(--space-3);
@@ -1568,7 +1589,17 @@ body {
         min-height: 40px;
         font-size: var(--font-xs);
     }
-}
+
+    .btn-disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background-color: #6c757d;
+    }
+    
+    .btn-disabled:hover {
+        background-color: #6c757d;
+    }
+
 
 @media (orientation: landscape) and (max-height: 500px) {
     .cycle-counter {
