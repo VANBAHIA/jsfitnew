@@ -215,7 +215,7 @@ class JSFitStudentApp {
         // Generate unique ID for imported plan
         const processedPlan = {
             id: this.generateId(),
-            nome: data.nome || data.name || 'Plano Importado',
+            nome: data.nome || data.name || 'Plano Importado!',
             importedAt: new Date().toISOString(),
             importedFrom: 'file',
             execucoesPlanCompleto: 0,
