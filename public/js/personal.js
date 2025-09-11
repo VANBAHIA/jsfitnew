@@ -5847,45 +5847,33 @@ collectFormData() {
     };
 }
 
-// VERSÃO CORRIGIDA E MELHORADA DO renderExercises()
+// MODIFICAR O MÉTODO renderExercises() NO personal.js
 renderExercises(exercicios, workoutIndex) {
-    console.log(`🎨 Iniciando renderExercises - workoutIndex: ${workoutIndex}`);
+    console.log(`Renderizando ${exercicios.length} exercícios para treino ${workoutIndex}`);
     
-    // VALIDAÇÃO DOS PARÂMETROS
+    // Validações existentes...
     if (workoutIndex === null || workoutIndex === undefined) {
-        console.error('❌ renderExercises: workoutIndex é obrigatório!', { workoutIndex });
+        console.error('renderExercises: workoutIndex é obrigatório!', { workoutIndex });
         return '<p class="error-message">Erro: índice do treino inválido</p>';
     }
     
-    if (!exercicios) {
-        console.warn('⚠️ renderExercises: exercicios é null/undefined');
-        return '<p class="no-exercises">Nenhum exercício adicionado</p>';
-    }
-    
-    if (!Array.isArray(exercicios)) {
-        console.error('❌ renderExercises: exercicios não é um array', { exercicios });
-        return '<p class="error-message">Erro: formato de exercícios inválido</p>';
-    }
-    
-    if (exercicios.length === 0) {
-        console.log('ℹ️ renderExercises: array de exercícios vazio');
+    if (!exercicios || !Array.isArray(exercicios) || exercicios.length === 0) {
         return '<p class="no-exercises">Nenhum exercício adicionado</p>';
     }
 
-    console.log(`🎨 Renderizando ${exercicios.length} exercícios para treino ${workoutIndex}`);
-    
     try {
         const htmlArray = exercicios.map((ex, exIndex) => {
-            // VALIDAÇÃO DE CADA EXERCÍCIO
             if (!ex) {
-                console.warn(`⚠️ Exercício ${exIndex} é null/undefined`);
                 return `<div class="exercise-item error">Exercício ${exIndex + 1}: Dados inválidos</div>`;
             }
             
-            // Log detalhado do exercício
-            console.log(`  📋 Renderizando exercício ${exIndex}: ${ex.nome || 'Nome não definido'}`);
+            // Verificar se é exercício principal (para botão GIF)
+            const isMainExercise = ex.nome && 
+                !ex.nome.toLowerCase().includes('aquecimento') && 
+                !ex.nome.toLowerCase().includes('alongamento') &&
+                !ex.nome.toLowerCase().includes('esteira');
             
-            // SANITIZAÇÃO DOS DADOS (previne XSS e erros)
+            // Sanitização dos dados
             const nome = this.sanitizeText(ex.nome) || 'Exercício sem nome';
             const descricao = this.sanitizeText(ex.descricao) || '';
             const tecnica = this.sanitizeText(ex.tecnica) || '';
@@ -5900,14 +5888,49 @@ renderExercises(exercicios, workoutIndex) {
                      data-workout="${workoutIndex}" 
                      data-exercise="${exIndex}"
                      id="exercise-${workoutIndex}-${exIndex}">
+                    
+                    
+                    
                     <div class="exercise-info">
                         <div class="exercise-header">
+                        
+                        
                             <div class="exercise-name" title="${nome}">${nome}</div>
+                                                             ${isMainExercise ? `
+                            <button class="btn btn-demo btn-small" 
+                                    onclick="app.toggleExerciseGif('${workoutIndex}', ${exIndex}, '${nome}')"
+                                    title="Ver demonstração do exercício">
+                                🎬 Ver Demonstração
+                            </button>
+                        ` : ''}    
+                        <!-- Área do GIF (inicialmente oculta) -->
+                    <div class="exercise-gif-container" 
+                         id="gifContainer-${workoutIndex}-${exIndex}" 
+                         style="display: none;">
+                        <div class="gif-loading" id="gifLoading-${workoutIndex}-${exIndex}">
+                            <div class="loading-spinner"></div>
+                            <span>Carregando demonstração...</span>
+                        </div>
+                        <img class="exercise-gif" 
+                             id="exerciseGif-${workoutIndex}-${exIndex}"
+                             style="display: none;"
+                             alt="Demonstração: ${nome}">
+                        <div class="gif-error" 
+                             id="gifError-${workoutIndex}-${exIndex}" 
+                             style="display: none;">
+                            <span>GIF não disponível para este exercício</span>
+                        </div>
+                        <button class="gif-close-btn" 
+                                onclick="app.closeExerciseGif('${workoutIndex}', ${exIndex})">
+                            ×
+                        </button>
+                    </div>
                             ${descricao ? `<div class="exercise-description">${descricao}</div>` : ''}
                             ${tecnica ? `<div class="exercise-special-notes technique-note">🎯 ${tecnica.replace(/[-_]/g, ' ').toUpperCase()}</div>` : ''}
                             ${observacoes ? `<div class="exercise-special-notes observation-note">💡 ${observacoes}</div>` : ''}
                         </div>
                         <div class="exercise-details">
+                        
                             <div class="detail-item">
                                 <span class="detail-label">Séries:</span> 
                                 <span class="detail-value">${series}</span>
@@ -5927,32 +5950,27 @@ renderExercises(exercicios, workoutIndex) {
                         </div>
                     </div>
                     <div class="exercise-actions">
+
                         <button class="btn btn-outline btn-small edit-btn" 
                                 onclick="app.editExercise(${workoutIndex}, ${exIndex})"
-                                title="Editar exercício"
-                                data-workout="${workoutIndex}" 
-                                data-exercise="${exIndex}">
+                                title="Editar exercício">
                             ✏️ Editar
                         </button>
                         <button class="btn btn-danger btn-small remove-btn" 
                                 onclick="app.removeExercise(${workoutIndex}, ${exIndex})"
-                                title="Remover exercício"
-                                data-workout="${workoutIndex}" 
-                                data-exercise="${exIndex}">
+                                title="Remover exercício">
                             🗑️ Remover
                         </button>
+           
                     </div>
                 </div>
             `;
         });
         
-        const finalHTML = htmlArray.join('');
-        console.log(`✅ renderExercises concluído - ${exercicios.length} exercícios renderizados`);
-        
-        return finalHTML;
+        return htmlArray.join('');
         
     } catch (error) {
-        console.error('❌ Erro durante renderExercises:', error);
+        console.error('Erro durante renderExercises:', error);
         return `<p class="error-message">Erro ao renderizar exercícios: ${error.message}</p>`;
     }
 }

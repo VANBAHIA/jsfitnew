@@ -417,86 +417,74 @@ class JSFitCore {
     generateId() {
         return Date.now() + Math.random();
     }
+    formatDate(dateString) {
 
- // SUBSTITUIR o método formatDate() existente por este:
-
-formatDate(dateString) {
-    if (!dateString) return 'Não definido';
-    
-    try {
-        // Se já está no formato YYYY-MM-DD, processar diretamente
-        if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            const [year, month, day] = dateString.split('-');
-            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
-        }
+        console.log('=== formatDate DEBUG ===');
+        console.log('Input:', dateString);
+        console.log('Tipo:', typeof dateString);
+        if (!dateString) return 'Não definido';
         
-        // Se tem hora junto (ISO), remover hora primeiro
-        if (typeof dateString === 'string' && dateString.includes('T')) {
-            const dateOnly = dateString.split('T')[0];
-            const [year, month, day] = dateOnly.split('-');
-            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
-        }
-        
-        // Para outros formatos, tentar conversão simples
-        const date = new Date(dateString + 'T00:00:00'); // Força timezone local
-        if (isNaN(date.getTime())) {
+        try {
+            // Se está no formato YYYY-MM-DD, processar diretamente
+            if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = dateString.split('-');
+                return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+            }
+            
+            // Se tem hora junto (ISO), remover hora primeiro
+            if (typeof dateString === 'string' && dateString.includes('T')) {
+                const dateOnly = dateString.split('T')[0];
+                const [year, month, day] = dateOnly.split('-');
+                return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+            }
+            
+            
+            return 'Data inválida';
+            
+        } catch (error) {
+            console.warn('Erro ao formatar data:', dateString, error);
             return 'Data inválida';
         }
-        
-        return date.toLocaleDateString('pt-BR');
-        
-    } catch (error) {
-        console.warn('Erro ao formatar data:', dateString, error);
-        return 'Data inválida';
+        const result = `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        console.log('Output:', result);
+        return result;
     }
-}
 
-  // SUBSTITUIR o método calculateAge() existente por este:
 
-calculateAge(birthDate) {
-    if (!birthDate) return null;
-    
-    try {
-        let year, month, day;
+    calculateAge(birthDate) {
+        if (!birthDate) return null;
         
-        // Se está no formato YYYY-MM-DD, processar diretamente
-        if (typeof birthDate === 'string' && birthDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            [year, month, day] = birthDate.split('-').map(num => parseInt(num));
+        try {
+            let year, month, day;
+            
+            // Extrair componentes sem criar Date
+            if (typeof birthDate === 'string' && birthDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+                const dateOnly = birthDate.split('T')[0];
+                [year, month, day] = dateOnly.split('-').map(num => parseInt(num, 10));
+            } else {
+                return null;
+            }
+            
+            // Usar data atual sem timezone
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth() + 1; // getMonth() retorna 0-11
+            const currentDay = today.getDate();
+            
+            let age = currentYear - year;
+            
+            // Ajustar se ainda não fez aniversário este ano
+            if (currentMonth < month || (currentMonth === month && currentDay < day)) {
+                age--;
+            }
+            
+            return age;
+            
+        } catch (error) {
+            return null;
         }
-        // Se tem hora junto (ISO), remover hora primeiro  
-        else if (typeof birthDate === 'string' && birthDate.includes('T')) {
-            const dateOnly = birthDate.split('T')[0];
-            [year, month, day] = dateOnly.split('-').map(num => parseInt(num));
-        }
-        // Para outros casos
-        else {
-            const birth = new Date(birthDate + 'T00:00:00');
-            if (isNaN(birth.getTime())) return null;
-            year = birth.getFullYear();
-            month = birth.getMonth() + 1;
-            day = birth.getDate();
-        }
-        
-        // Calcular idade sem conversões de timezone
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1;
-        const currentDay = today.getDate();
-        
-        let age = currentYear - year;
-        
-        // Ajustar se ainda não fez aniversário este ano
-        if (currentMonth < month || (currentMonth === month && currentDay < day)) {
-            age--;
-        }
-        
-        return age;
-        
-    } catch (error) {
-        console.warn('Erro ao calcular idade:', birthDate, error);
-        return null;
     }
-}
+
 
     calculateBodyType(altura, peso) {
         try {
@@ -717,18 +705,18 @@ calculateAge(birthDate) {
             // Student data com correção de data
             aluno: {
                 nome: data.aluno?.nome || data.student?.name || '',
-                dataNascimento: this.fixTimezoneDate(data.aluno?.dataNascimento || data.student?.birth_date || ''),
+                
+                dataNascimento: data.aluno?.dataNascimento || '',
                 idade: data.aluno?.idade || data.student?.age || null,
                 altura: data.aluno?.altura || data.student?.height || '',
                 peso: data.aluno?.peso || data.student?.weight || '',
                 cpf: data.aluno?.cpf || data.student?.cpf || ''
             },
-            
-            // Plan metadata com correção de datas
-            dias: data.dias || data.frequency_per_week || 3,
-            dataInicio: this.fixTimezoneDate(data.dataInicio || data.start_date || new Date().toISOString().split('T')[0]),
-            dataFim: this.fixTimezoneDate(data.dataFim || data.end_date || ''),
-            
+
+                 dias: planData.dias || planData.frequency_per_week || 3,
+                dataInicio: planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0],
+                dataFim: planData.dataFim || planData.end_date || '',
+
             // Profile and objectives
             perfil: {
                 objetivo: data.perfil?.objetivo || data.objective || 'Condicionamento geral',
@@ -795,27 +783,7 @@ calculateAge(birthDate) {
         }
     }
 
- 
-   // SUBSTITUIR o método fixTimezoneDate() por este MUITO mais simples:
 
-fixTimezoneDate(dateInput) {
-    if (!dateInput) return '';
-    
-    // Se já está no formato YYYY-MM-DD correto, retorna sem mexer
-    if (typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return dateInput;
-    }
-    
-    // Se é ISO com hora, pega só a data
-    if (typeof dateInput === 'string' && dateInput.includes('T')) {
-        return dateInput.split('T')[0];
-    }
-    
-    // Para qualquer outro caso, retorna vazio (não processar)
-    console.warn('Data em formato não suportado:', dateInput);
-    return '';
-}
-    
 
     setupPWAFeatures() {
         // iOS viewport handling

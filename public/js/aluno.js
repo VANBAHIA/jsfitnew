@@ -223,7 +223,7 @@ class JSFitStudentApp {
             // Student data com correção de data
             aluno: {
                 nome: data.aluno?.nome || data.student?.name || '',
-                dataNascimento: this.fixTimezoneDate(data.aluno?.dataNascimento || data.student?.birth_date || ''),
+                dataNascimento: data.aluno?.dataNascimento ||'',
                 idade: data.aluno?.idade || data.student?.age || null,
                 altura: data.aluno?.altura || data.student?.height || '',
                 peso: data.aluno?.peso || data.student?.weight || '',
@@ -231,9 +231,9 @@ class JSFitStudentApp {
             },
             
             // Plan metadata com correção de datas
-            dias: data.dias || data.frequency_per_week || 3,
-            dataInicio: this.fixTimezoneDate(data.dataInicio || data.start_date || new Date().toISOString().split('T')[0]),
-            dataFim: this.fixTimezoneDate(data.dataFim || data.end_date || ''),
+            dias: planData.dias || planData.frequency_per_week || 3,
+            dataInicio: planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0],
+            dataFim: planData.dataFim || planData.end_date || '',
             
             // Profile and objectives
             perfil: {
@@ -885,7 +885,7 @@ renderHome() {
 
     renderPlanCard(plan) {
         const student = plan.aluno || {};
-        const age = this.calculateAge(student.dataNascimento) || student.idade;
+        const age = this.core.calculateAge(student.dataNascimento) || student.idade;
         const completedWorkouts = plan.treinos.filter(t => t.concluido).length;
         const totalWorkouts = plan.treinos.length;
         const totalExecutions = plan.treinos.reduce((sum, t) => sum + t.execucoes, 0);
@@ -918,7 +918,7 @@ renderHome() {
                     ${this.renderDetailItem('Altura', student.altura)}
                     ${this.renderDetailItem('Peso', student.peso)}
                     ${this.renderDetailItem('Objetivo', perfil?.objetivo, 'objective-text')}
-                    ${this.renderDetailItem('Nascimento', this.formatDate(student.dataNascimento))}
+                    ${this.renderDetailItem('Nascimento', this.core.formatDate(student.dataNascimento))}
                 </div>
             </div>
         `;
@@ -940,7 +940,7 @@ renderHome() {
                 <div class="plan-header">
                     <h3 class="plan-title">${plan.nome}</h3>
                     <div class="plan-period">
-                        ${this.formatDate(plan.dataInicio)} - ${this.formatDate(plan.dataFim)}
+                        ${this.core.formatDate(plan.dataInicio)} - ${this.core.formatDate(plan.dataFim)}
                     </div>
                     ${plan.originalShareId || plan.importedFrom ? `
                         <div class="plan-badges">
@@ -1044,7 +1044,7 @@ renderHome() {
         
         if (planTitle) planTitle.textContent = this.state.currentPlan.nome;
         if (planSubtitle) {
-            planSubtitle.textContent = `${this.formatDate(this.state.currentPlan.dataInicio)} - ${this.formatDate(this.state.currentPlan.dataFim)}`;
+            planSubtitle.textContent = `${this.core.formatDate(this.state.currentPlan.dataInicio)} - ${this.core.formatDate(this.state.currentPlan.dataFim)}`;
         }
 
         const content = document.getElementById('planContent');
@@ -1060,7 +1060,7 @@ renderHome() {
 
         // Student info (if available)
         if (plan.aluno?.nome) {
-            const age = this.calculateAge(plan.aluno.dataNascimento) || plan.aluno.idade;
+            const age = this.core.calculateAge(plan.aluno.dataNascimento) || plan.aluno.idade;
             html += this.renderStudentInfo(plan.aluno, age, plan.perfil);
         }
 
@@ -1469,32 +1469,7 @@ renderHome() {
     // UTILITY METHODS
     // =============================================================================
 
-    formatDate(dateString) {
-        if (!dateString) return 'Não definido';
-        try {
-            return new Date(dateString).toLocaleDateString('pt-BR');
-        } catch (error) {
-            return 'Data inválida';
-        }
-    }
 
-    calculateAge(birthDate) {
-        if (!birthDate) return null;
-        try {
-            const today = new Date();
-            const birth = new Date(birthDate);
-            let age = today.getFullYear() - birth.getFullYear();
-            const monthDiff = today.getMonth() - birth.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-                age--;
-            }
-            
-            return age;
-        } catch (error) {
-            return null;
-        }
-    }
 
     getWorkoutStatusClass(isCompleted, progress) {
         if (isCompleted) return 'completed';
@@ -1981,6 +1956,7 @@ async handleImportById() {
             shareId, 
             sharedPlanResponse.metadata
         );
+
         
         console.log('✅ PROCESSAMENTO: Plano processado:', {
             nome: processedPlan.nome,
@@ -2054,6 +2030,8 @@ async handleImportById() {
                     
                     const processedPlan = await this.processSharedPlanData(planData, shareId, metadata);
                     console.log('✅ CACHE: Plano processado:', processedPlan.nome);
+                    // Após a linha: const processedPlan = await this.processSharedPlanData(...)
+
                     
                     this.state.workoutPlans.push(processedPlan);
                     await this.saveToStorage();
@@ -2180,17 +2158,18 @@ async processSharedPlanData(planData, shareId) {
         // Dados do aluno
         aluno: {
             nome: planData.aluno?.nome || '',
-            dataNascimento: this.core.fixTimezoneDate(planData.aluno?.dataNascimento || ''),
+            dataNascimento: planData.aluno?.dataNascimento || '',
             idade: planData.aluno?.idade || null,
             altura: planData.aluno?.altura || '',
             peso: planData.aluno?.peso || '',
             cpf: planData.aluno?.cpf || ''
         },
+        dias: planData.dias || planData.frequency_per_week || 3,
+dataInicio: planData.dataInicio || planData.start_date || new Date().toISOString().split('T')[0],
+dataFim: planData.dataFim || planData.end_date || '',
         
         // Metadados do plano
-        dias: planData.dias || 3,
-        dataInicio: this.core.fixTimezoneDate(planData.dataInicio || new Date().toISOString().split('T')[0]),
-        dataFim: this.core.fixTimezoneDate(planData.dataFim || ''),
+    
         
         // Perfil e objetivos
         perfil: {
