@@ -188,7 +188,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Dias Disponíveis por Semana</label>
-                        <select id="aiAvailableDays" class="form-select">
+                        <select id="aiAvailableDays" class="form-select" onchange="app.toggleAIMuscleConfig()">
                             <option value="2">2 dias</option>
                             <option value="3" selected>3 dias</option>
                             <option value="4">4 dias</option>
@@ -484,29 +484,6 @@
         
     </div>
 
-    <!-- Loading Global da Aplicação -->
-<div id="globalLoadingOverlay" class="loading-overlay">
-    <div class="loading-container">
-        <div class="loading-spinner">
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-        </div>
-        <div class="loading-content">
-            <h3 id="loadingTitle">Carregando...</h3>
-            <p id="loadingMessage">Inicializando aplicação...</p>
-            <div class="loading-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="loadingProgress"></div>
-                </div>
-                <span class="progress-text" id="loadingPercentage">0%</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- ADICIONAR ESTE HTML NA SEÇÃO DE CONTROLES DA SUA INTERFACE -->
-
 
 
 <!-- Controles de Debug e Sincronização -->
@@ -555,15 +532,26 @@
     </button>
 </div>
 
+<div id="globalLoadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div id="loadingTitle">Carregando...</div>
+        <div id="loadingMessage">Processando...</div>
+        <div class="loading-progress">
+            <div id="loadingProgress" class="progress-bar"></div>
+            <span id="loadingPercentage">0%</span>
+        </div>
+    </div>
+</div>
+
 
 
 <!-- Hidden file input -->
 <input type="file" id="importFile" style="display: none;" accept=".json" onchange="app.importPlan(event)">
 
-<!-- Ordem OBRIGATÓRIA no personal.html -->
-<script src="js/shared/jsfitcore.js" defer></script>
-<script src="js/auth.js" defer></script>
-
+<script src="js/shared/jsfitcore.js"></script>
+<script src="js/loadingManager.js"></script>
+<script src="js/shared/SessionRestoreManager.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/shared/coremanager.js"></script>
 <script src="js/ImprovedAIPlanGenerator.js"></script>  
 <script src="js/personal.js"></script>
@@ -659,6 +647,15 @@
                 console.error('💥 Erro no fallback:', fallbackError);
             }
         }
+        // 6. INICIALIZAR PERSONALAPP
+if (window.app && typeof window.app.init === 'function') {
+    console.log('🚀 Chamando app.init()...');
+    await window.app.init();
+} else {
+    console.error('❌ app.init() não encontrado');
+}
+
+console.log('✅ PersonalApp inicializado com sucesso');
     }
     
     // AGUARDAR DEPENDÊNCIAS
@@ -704,6 +701,7 @@
     }
 })();
 </script>
+
 
 </body>
 

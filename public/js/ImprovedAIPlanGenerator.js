@@ -94,7 +94,8 @@ class ImprovedAIPlanGenerator {
             this.applyAIConfiguration(aiData);
 
             // 4. MOSTRAR INDICADOR DE PROGRESSO
-            this.app.showGeneratingIndicator();
+            this.app.loadingManager.show('🤖 IA Gerando Plano', 'Analisando objetivos e criando treinos personalizados...');
+
 
             // 5. RESETAR CONTROLES DE EXERCÍCIOS
             this.resetExerciseControls();
@@ -112,7 +113,7 @@ class ImprovedAIPlanGenerator {
                     // ADICIONAR À LISTA E SALVAR
                     await this.savePlanToStorage(aiGeneratedPlan);
 
-                    this.app.hideGeneratingIndicator();
+                    this.app.loadingManager.hide();;
                     this.app.showMessage('✅ Plano gerado com proporcionalidade inteligente!', 'success');
 
                     // Mostrar relatório de proporcionalidade
@@ -124,7 +125,7 @@ class ImprovedAIPlanGenerator {
 
                 } catch (error) {
                     console.error('❌ Erro ao gerar plano:', error);
-                    this.app.hideGeneratingIndicator();
+                    this.app.loadingManager.hide();;
                     this.app.showMessage('Erro ao gerar plano. Tente novamente.', 'error');
                 }
             }, 2000 + Math.random() * 2000);
@@ -228,8 +229,6 @@ class ImprovedAIPlanGenerator {
 
         console.log(`🎯 Aplicando proporcionalidade para grupos: ${muscleGroups.join(', ')}`);
 
-        // 1. AQUECIMENTO ESPECÍFICO
-        exercises.push(this.createWarmupExercise(exerciseId++, muscleGroups, aiData));
 
         // 2. EXERCÍCIOS PRINCIPAIS COM PROPORCIONALIDADE INTELIGENTE
         for (const grupoId of muscleGroups) {
@@ -270,10 +269,7 @@ class ImprovedAIPlanGenerator {
             });
         }
 
-        // 3. ALONGAMENTO ESPECÍFICO
-        if (exercises.length > 1) {
-            exercises.push(this.createCooldownExercise(exerciseId++, muscleGroups));
-        }
+  
 
         console.log(`✅ ${exercises.length} exercícios criados com proporcionalidade aplicada`);
         return exercises;
@@ -1059,21 +1055,7 @@ class ImprovedAIPlanGenerator {
         return variations[grupo] || [grupo];
     }
 
-    // Métodos de criação de exercícios específicos (mantidos)
-    createWarmupExercise(id, muscleGroups, aiData) {
-        return {
-            id: id,
-            nome: this.app.getSmartWarmupForGroups(muscleGroups, aiData.equipamentos),
-            descricao: this.app.getWarmupDescriptionForGroups(muscleGroups),
-            series: 1,
-            repeticoes: "8-10 min",
-            carga: this.app.getWarmupIntensity(),
-            descanso: '0',
-            observacoesEspeciais: 'Aquecimento progressivo e específico',
-            tecnica: '',
-            categoria: 'aquecimento'
-        };
-    }
+
 
     createCooldownExercise(id, muscleGroups) {
         return {

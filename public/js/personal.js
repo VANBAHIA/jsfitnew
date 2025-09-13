@@ -3,117 +3,7 @@
 // Sistema Completo de Criação de Planos de Treino
 // Usando JSFitCore compartilhado
 // =============================================
-// ADICIONAR NO INÍCIO DO ARQUIVO personal.js:
 
-// Gerenciador Global de Loading
-class LoadingManager {
-    constructor() {
-        this.isActive = false;
-        this.currentOperation = null;
-        this.progress = 0;
-        this.overlay = null;
-        this.elements = {};
-        
-        this.initializeElements();
-          // Adicionar esta configuração:
- 
-
-        
-    }
-    
-    initializeElements() {
-        this.overlay = document.getElementById('globalLoadingOverlay');
-        this.elements = {
-            title: document.getElementById('loadingTitle'),
-            message: document.getElementById('loadingMessage'),
-            progress: document.getElementById('loadingProgress'),
-            percentage: document.getElementById('loadingPercentage')
-        };
-    }
-    
-    show(title = 'Carregando...', message = 'Processando...') {
-        if (!this.overlay) {
-            console.warn('Loading overlay não encontrado');
-            return;
-        }
-        
-        this.isActive = true;
-        this.progress = 0;
-        
-        this.updateContent(title, message);
-        this.updateProgress(0);
-        this.overlay.classList.add('active');
-        
-        console.log(`🔄 Loading iniciado: ${title}`);
-    }
-    
-    hide() {
-        if (!this.overlay) return;
-        
-        this.isActive = false;
-        this.currentOperation = null;
-        this.overlay.classList.remove('active');
-        
-        console.log('✅ Loading finalizado');
-    }
-    
-    updateContent(title, message) {
-        if (this.elements.title) {
-            this.elements.title.textContent = title;
-        }
-        if (this.elements.message) {
-            this.elements.message.textContent = message;
-        }
-    }
-    
-    updateProgress(percentage, message) {
-        this.progress = Math.min(100, Math.max(0, percentage));
-        
-        if (this.elements.progress) {
-            this.elements.progress.style.width = this.progress + '%';
-        }
-        if (this.elements.percentage) {
-            this.elements.percentage.textContent = Math.round(this.progress) + '%';
-        }
-        if (message && this.elements.message) {
-            this.elements.message.textContent = message;
-        }
-    }
-    
-    setOperation(operation, steps) {
-        this.currentOperation = {
-            name: operation,
-            steps: steps,
-            currentStep: 0,
-            stepProgress: 0
-        };
-    }
-
-    
-    
-    nextStep(stepName) {
-        if (!this.currentOperation) return;
-        
-        this.currentOperation.currentStep++;
-        this.currentOperation.stepProgress = 0;
-        
-        const totalSteps = this.currentOperation.steps.length;
-        const stepProgress = (this.currentOperation.currentStep / totalSteps) * 100;
-        
-        this.updateProgress(stepProgress, stepName);
-    }
-    
-    // Método para operações com promise
-    async withLoading(title, message, operation) {
-        try {
-            this.show(title, message);
-            const result = await operation();
-            return result;
-        } finally {
-            this.hide();
-        }
-    }
-}
 
 
 class PersonalApp {
@@ -143,7 +33,10 @@ hideOperationLoading(element) {
 
     constructor() {
             // Inicializar loading manager
+            
     this.loadingManager = new LoadingManager();
+    this.sessionManager = new SessionRestoreManager(this);
+    this.CoreManager = window.coreManager || new CoreManager();
 
 
         this.currentUser = null;
@@ -159,7 +52,8 @@ hideOperationLoading(element) {
         this.deletePlan = this.deletePlan.bind(this);
 
         // Recuperar estado imediatamente se disponível
-        this.recoverAuthStateOnInit();
+
+        
         this.aiMuscleConfig = {
             enabled: false,
             workouts: {}
@@ -182,6 +76,7 @@ hideOperationLoading(element) {
                     { id: 'ombro', name: 'OMBRO', icon: '🚁' },
                     { id: 'corpo', name: 'CORPO TODO', icon: '🏋️' }
                 ],
+
                 presetConfigurations: {
                     1: {
                         A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps'] }
@@ -196,9 +91,9 @@ hideOperationLoading(element) {
                         C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
                     },
                     4: {
-                        A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-                        B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-                        C: { name: 'Ombros e Abdome', groups: ['ombro', 'abdome'] },
+                        A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps', 'antebraco'] },
+                        B: { name: 'Pernas e Corpo', groups: ['perna', 'corpo'] },
+                        C: { name: 'Costas e Bícepes', groups: ['costas', 'biceps', 'abdome'] },
                         D: { name: 'Pernas e Glúteos', groups: ['perna', 'gluteo'] }
                     },
                     5: {
@@ -221,11 +116,7 @@ hideOperationLoading(element) {
 
             
 
-            
-    
-            // Estado da configuração de músculos da IA
 
-    
             // Base de técnicas avançadas
             this.tecnicasDatabase = {
                 // Técnicas existentes
@@ -288,158 +179,290 @@ hideOperationLoading(element) {
 
     }
     
-    
     async init() {
-
-        
         try {
             console.log('🚀 Iniciando aplicação JSFit...');
             
-            // Evitar múltiplas inicializações
-            if (this.initializationInProgress) {
-                console.log('⏸️ Inicialização já em progresso');
-                return;
-            }
-            
-            if (this.initializationComplete) {
-                console.log('✅ Aplicação já inicializada');
+            if (this.initializationInProgress || this.initializationComplete) {
                 return;
             }
             
             this.initializationInProgress = true;
+            this.loadingManager.show('🚀 Inicializando JS Fit', 'Verificando sessão...');
             
-            // INICIAR LOADING
-            this.loadingManager.show('🚀 Inicializando JS Fit', 'Carregando componentes...');
+            // USAR NOVO SISTEMA DE RESTAURAÇÃO
+            const sessionRestored = await this.sessionManager.restoreUserSession();
             
-            // Definir etapas da inicialização
-            const initSteps = [
-                'Verificando dependências',
-                'Inicializando JSFitCore',
-                'Configurando autenticação',
-                'Carregando exercícios',
-                'Verificando sessão',
-                'Finalizando'
-            ];
-            
-            this.loadingManager.setOperation('init', initSteps);
-            
-            // 1. Verificar dependências
-            this.loadingManager.nextStep('Verificando dependências...');
-            await this.waitForDependencies();
-            
-            // 2. Garantir instância AuthManager válida
-            this.loadingManager.updateProgress(20, 'Configurando autenticação...');
-            if (!window.authManager || !window.authManager._isAuthManagerInstance) {
-                console.log('🔄 Recriando AuthManager...');
-                window.authManager = new AuthManager();
-            }
-            
-            // 3. Inicializar JSFitCore
-            this.loadingManager.updateProgress(40, 'Inicializando JSFitCore...');
-            try {
-                if (!this.core && window.JSFitCore) {
-                    console.log('🔧 Inicializando JSFitCore...');
-                    this.core = new window.JSFitCore();
-                    await this.core.initializeFirebase();
-                    console.log('✅ JSFitCore inicializado');
-                }
-            } catch (coreError) {
-                console.warn('⚠️ JSFitCore falhou, criando fallback:', coreError.message);
-                this.core = this.createFallbackCore();
-            }
-    
-            // 4. Carregar exercícios
-            this.loadingManager.updateProgress(60, 'Carregando base de exercícios...');
-            if (this.core) {
-                await this.core.loadExerciseDatabase();
-                console.log('✅ Base de exercícios carregada');
-            }
-            
-            // 5. Inicializar AuthManager
-            this.loadingManager.updateProgress(75, 'Configurando autenticação...');
-            let authInitialized = false;
-            
-            if (window.authManager.isUserAuthenticated && window.authManager.isUserAuthenticated()) {
-                console.log('✅ AuthManager já funcionando com usuário logado');
-                authInitialized = true;
-            } else if (window.authManager.isInitialized) {
-                console.log('✅ AuthManager já inicializado');
-                authInitialized = true;
+            if (sessionRestored) {
+                console.log('✅ Sessão restaurada - usuário logado');
+                await this.continueAuthenticatedInit();
             } else {
-                try {
-                    console.log('🔐 Inicializando AuthManager...');
-                    await window.authManager.initialize();
-                    authInitialized = true;
-                    console.log('✅ AuthManager inicializado');
-                } catch (authError) {
-                    console.warn('❌ Falha na inicialização do AuthManager:', authError.message);
-                }
+                console.log('👤 Nenhuma sessão válida - mostrar login');
+                await this.continueUnauthenticatedInit();
             }
             
-            // 6. Verificar sessão
-            this.loadingManager.updateProgress(90, 'Verificando sessão...');
-            if (authInitialized) {
-                try {
-                    const sessionRestored = await window.authManager.checkAndRestoreSession();
-                    
-                    if (sessionRestored) {
-                        console.log('✅ Sessão restaurada');
-                        const currentUser = window.authManager.getCurrentUser();
-                        if (currentUser) {
-                            await this.initializeAuthenticatedUser(currentUser);
-                        }
-                    } else {
-                        console.log('👤 Mostrando tela de login');
-                        this.showAuthenticationScreen();
-                    }
-                } catch (sessionError) {
-                    console.error('❌ Erro na verificação de sessão:', sessionError);
-                    this.showAuthenticationScreen();
-                }
-            } else {
-                console.log('❌ AuthManager indisponível, mostrando login');
-                this.showAuthenticationScreen();
-            }
-            
-            // 7. Finalizar
-            this.loadingManager.updateProgress(100, 'Finalizando...');
-            this.setupEventListeners();
             this.initializationComplete = true;
             this.initializationInProgress = false;
-            
-            // Aguardar um pouco antes de ocultar o loading
-            setTimeout(() => {
-                this.loadingManager.hide();
-            }, 500);
-            
-            console.log('✅ Aplicação inicializada com sucesso!');
+            this.loadingManager.hide();
             
         } catch (error) {
-            console.error('❌ Erro crítico na inicialização:', error);
-            this.loadingManager.updateContent('❌ Erro na Inicialização', error.message);
-            
-            setTimeout(() => {
-                this.loadingManager.hide();
-                this.initializeEmergencyMode();
-            }, 2000);
-            
+            console.error('⚠️ Erro na inicialização:', error);
             this.initializationInProgress = false;
+            this.loadingManager.hide();
+            this.showAuthenticationScreen();
         }
     }
-    debugUserAndPlans() {
-        console.log('🔍 === DIAGNÓSTICO COMPLETO ===');
-        console.log('CurrentUserId:', this.currentUserId);
-        console.log('SavedPlans total:', this.savedPlans.length);
+    
+
+    
+async continueUnauthenticatedInit() {
+    this.loadingManager.updateContent('Carregando', 'Inicializando modo visitante...');
+    
+    await this.waitForDependencies();
+    this.setupEventListeners();
+    
+    // Mostrar tela de login
+    this.showAuthenticationScreen();
+    
+    console.log('Inicialização não autenticada completa');
+}
+
+async continueAuthenticatedInit() {
+    this.loadingManager.updateContent('Carregando', 'Inicializando para usuário autenticado...');
+    
+    await this.waitForDependencies();
+    this.setupEventListeners();
+    await this.loadPlanTypeConfiguration();
+    
+    // Mostrar aplicação principal
+    this.showMainApplication();
+    
+    // CORREÇÃO: Adicionar a atualização das informações do usuário no header
+    this.updateUserInfoInHeader();
+    
+    console.log('Inicialização autenticada completa');
+}
+
+async onUserAuthenticated(user) {
+    try {
+        console.log('Usuário autenticado via AuthManager:', user.email);
         
-        this.savedPlans.forEach((plan, i) => {
-            console.log(`Plano ${i}: ${plan.nome}`);
-            console.log(`  - ID: ${plan.id}`);
-            console.log(`  - UserID: ${plan.userId}`);
-            console.log(`  - Match: ${plan.userId === this.currentUserId}`);
+        // Usar o novo sistema para definir sessão
+        await this.sessionManager.setUserSession(user, 'authManager');
+        
+        // Verificar se já está processando
+        if (this.isProcessingAuthentication) {
+            console.log('Já processando autenticação, ignorando...');
+            return;
+        }
+        
+        this.isProcessingAuthentication = true;
+        
+        try {
+            this.showMainApplication();
+            
+            // CORREÇÃO: Garantir que as informações do usuário sejam exibidas após login
+            this.updateUserInfoInHeader();
+            
+            console.log('Usuário inicializado com sucesso');
+            
+        } finally {
+            setTimeout(() => {
+                this.isProcessingAuthentication = false;
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('Erro no onUserAuthenticated:', error);
+        this.isProcessingAuthentication = false;
+    }
+}
+
+logout() {
+    try {
+        console.log('🚪 Fazendo logout...');
+        
+        // CORREÇÃO: Limpar sessão ANTES de chamar outros logouts
+        if (this.sessionManager && typeof this.sessionManager.clearSession === 'function') {
+            this.sessionManager.clearSession();
+            console.log('✅ Sessão limpa pelo SessionManager');
+        }
+        
+        // Limpar Firebase Auth se disponível
+        if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+            window.firebaseAuth.signOut().then(() => {
+                console.log('✅ Firebase Auth sign out realizado');
+            }).catch(error => {
+                console.warn('⚠️ Erro ao fazer logout do Firebase:', error);
+            });
+        }
+        
+        // Logout do AuthManager se disponível
+        if (window.authManager && typeof window.authManager.logout === 'function') {
+            window.authManager.logout();
+            console.log('✅ AuthManager logout realizado');
+        }
+        
+        // CORREÇÃO: Limpar TODOS os dados de usuário da aplicação
+        this.currentUser = null;
+        this.currentUserId = null;
+        this.userEmail = null;
+        this.userDisplayName = null;
+        this.isUserAuthenticated = false;
+        
+        // Limpar dados da aplicação
+        this.savedPlans = [];
+        this.currentPlan = this.getEmptyPlan();
+        
+        // CORREÇÃO: Limpar informações do usuário do header
+        this.clearUserInfoFromHeader();
+        
+        // CORREÇÃO: Forçar limpeza adicional do localStorage
+        this.forceCleanLocalStorage();
+        
+        // Mostrar tela de login
+        this.showAuthenticationScreen();
+        
+        this.showMessage('Logout realizado com sucesso', 'info');
+        
+        console.log('✅ Logout completo realizado');
+        
+        // Verificar se limpeza foi realizada
+        setTimeout(() => {
+            this.verifySessionCleared();
+        }, 500);
+        
+    } catch (error) {
+        console.error('❌ Erro no logout:', error);
+    }
+}
+
+// Método para limpeza forçada do localStorage
+forceCleanLocalStorage() {
+    try {
+        console.log('🧹 Fazendo limpeza forçada do localStorage...');
+        
+        // Lista de todas as chaves possíveis relacionadas à sessão
+        const sessionKeys = [
+            'jsfitapp_session',
+            'jsfitapp_user',
+            'jsfit_user_session',
+            'authManager_session',
+            'firebase_session'
+        ];
+        
+        sessionKeys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                localStorage.removeItem(key);
+                console.log(`🗑️ Removida chave: ${key}`);
+            }
         });
+        
+        // Limpar também chaves de usuários específicos
+        const allKeys = Object.keys(localStorage);
+        allKeys.forEach(key => {
+            if (key.startsWith('jsfitapp_plans_') || 
+                key.startsWith('jsfitapp_user_') ||
+                key.includes('session') || 
+                key.includes('auth')) {
+                localStorage.removeItem(key);
+                console.log(`🗑️ Removida chave relacionada: ${key}`);
+            }
+        });
+        
+        console.log('✅ Limpeza forçada concluída');
+        
+    } catch (error) {
+        console.warn('⚠️ Erro na limpeza forçada:', error);
+    }
+}
+
+// Método para verificar se realmente limpou
+verifySessionCleared() {
+    try {
+        const sessionKeys = [
+            'jsfitapp_session',
+            'jsfitapp_user',
+            'jsfit_user_session'
+        ];
+        
+        let foundSessions = [];
+        
+        sessionKeys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                foundSessions.push(key);
+            }
+        });
+        
+        if (foundSessions.length > 0) {
+            console.warn('⚠️ Sessões ainda encontradas após logout:', foundSessions);
+            return false;
+        } else {
+            console.log('✅ Nenhuma sessão encontrada - logout completo');
+            return true;
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao verificar limpeza:', error);
+        return false;
+    }
+}
+
+// Método para atualizar informações do usuário no header
+updateUserInfoInHeader() {
+    if (!this.currentUser) {
+        console.warn('⚠️ currentUser não disponível para updateUserInfoInHeader');
+        return;
+    }
+    
+    console.log('📝 Atualizando informações do usuário no header');
+    
+    let userInfoDiv = document.getElementById('userInfo');
+    if (!userInfoDiv) {
+        userInfoDiv = document.createElement('div');
+        userInfoDiv.id = 'userInfo';
+        userInfoDiv.className = 'user-info';
+        
+        const header = document.querySelector('.header');
+        if (header) {
+            const mainActions = header.querySelector('.main-actions');
+            if (mainActions) {
+                header.insertBefore(userInfoDiv, mainActions);
+            } else {
+                header.appendChild(userInfoDiv);
+            }
+        }
     }
 
-  
+    const displayName = this.currentUser.displayName || 
+                       (this.currentUser.email ? this.currentUser.email.split('@')[0] : '') ||
+                       'Usuário';
+    
+    const email = this.currentUser.email || 'Email não disponível';
+    const avatar = displayName.charAt(0).toUpperCase();
+
+    userInfoDiv.innerHTML = `
+        <div class="user-details">
+            <div class="user-avatar">${avatar}</div>
+            <div class="user-text">
+                <div class="user-name">${displayName}</div>
+                <div class="user-email">${email}</div>
+            </div>
+        </div>
+        <button class="btn btn-outline logout-btn" onclick="app.logout()">
+            🚪 Sair
+        </button>
+    `;
+}
+
+// Método auxiliar para limpar informações do usuário do header
+clearUserInfoFromHeader() {
+    const userInfoDiv = document.getElementById('userInfo');
+    if (userInfoDiv) {
+        userInfoDiv.remove();
+        console.log('🗑️ Informações do usuário removidas do header');
+    }
+}
 
  // Método auxiliar para mostrar aplicação principal
 showMainApplication() {
@@ -551,133 +574,8 @@ async continueInitialization() {
         }
     }
     
-    // Método de fallback melhorado
-    async initializeFallbackMode() {
-        console.log('🚨 Modo fallback ativado');
-        
-        try {
-            // Criar core básico se não existir
-            if (!this.core) {
-                this.core = this.createFallbackCore();
-            }
-            
-            // Mostrar interface básica
-            this.showAuthenticationScreen();
-            
-            // Configurar listeners básicos
-            this.setupBasicEventListeners();
-            
-            console.log('✅ Modo fallback inicializado');
-            
-        } catch (error) {
-            console.error('❌ Erro no fallback:', error);
-            throw error;
-        }
-    }
-    
-    // Modo de emergência
-    initializeEmergencyMode() {
-        console.log('🆘 Modo de emergência ativado');
-        
-        try {
-            // Mostrar mensagem de erro
-            const body = document.body;
-            if (body) {
-                const errorDiv = document.createElement('div');
-                errorDiv.innerHTML = `
-                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-                               background: rgba(0,0,0,0.9); color: white; display: flex; 
-                               align-items: center; justify-content: center; z-index: 9999;
-                               font-family: Arial, sans-serif;">
-                        <div style="text-align: center; padding: 2rem; max-width: 500px;">
-                            <h2>🆘 Erro de Inicialização</h2>
-                            <p>A aplicação encontrou um erro crítico durante a inicialização.</p>
-                            <p>Por favor, recarregue a página ou entre em contato com o suporte.</p>
-                            <button onclick="window.location.reload()" 
-                                    style="margin-top: 1rem; padding: 0.5rem 1rem; 
-                                           background: #007bff; color: white; border: none; 
-                                           border-radius: 4px; cursor: pointer;">
-                                🔄 Recarregar Página
-                            </button>
-                        </div>
-                    </div>
-                `;
-                body.appendChild(errorDiv);
-            }
-            
-            console.log('🆘 Interface de emergência exibida');
-            
-        } catch (emergencyError) {
-            console.error('❌ Erro crítico no modo de emergência:', emergencyError);
-            // Último recurso: alert
-            alert('Erro crítico na aplicação. Por favor, recarregue a página.');
-        }
-    }
-    
-    // Método para configurar listeners básicos
-    setupBasicEventListeners() {
-        try {
-            // Event listener para formulário de login
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    if (window.authManager && typeof window.authManager.login === 'function') {
-                        window.authManager.login(e);
-                    } else {
-                        console.error('❌ AuthManager não disponível para login');
-                    }
-                });
-            }
-            
-            // Outros listeners básicos podem ser adicionados aqui
-            console.log('✅ Event listeners básicos configurados');
-            
-        } catch (error) {
-            console.error('❌ Erro ao configurar listeners básicos:', error);
-        }
-    }
-    
-    // Método para criar core de fallback
-    createFallbackCore() {
-        console.log('🔧 Criando JSFitCore de fallback');
-        
-        return {
-            showNotification: (message, type = 'info') => {
-                console.log(`${type.toUpperCase()}: ${message}`);
-                
-                // Tentar mostrar notificação visual simples
-                try {
-                    const notification = document.createElement('div');
-                    notification.style.cssText = `
-                        position: fixed; top: 20px; right: 20px; z-index: 1000;
-                        padding: 1rem; border-radius: 4px; color: white;
-                        background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#007bff'};
-                        max-width: 300px; word-wrap: break-word;
-                    `;
-                    notification.textContent = message;
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.parentNode.removeChild(notification);
-                        }
-                    }, 5000);
-                } catch (notificationError) {
-                    console.warn('⚠️ Erro ao mostrar notificação visual:', notificationError);
-                }
-            },
-            
-            loadUserData: async (userId) => {
-                console.log('📊 Fallback: loadUserData chamado para', userId);
-                // Implementação básica ou vazia
-                return {};
-            },
-            
-            isInitialized: true,
-            version: 'fallback-1.0'
-        };
-    }
+ 
+
 
   // MÉTODO AUXILIAR: getEmptyPlan
     // =============================================
@@ -718,8 +616,8 @@ clearUserData() {
     console.log('🧹 Limpando dados do usuário...');
     this.savedPlans = [];
     
-    if (this.updatePlansList) {
-        this.updatePlansList();
+    if (this.renderPlanList) {
+        this.renderPlanList();
     }
     
     if (this.core?.showNotification) {
@@ -793,19 +691,6 @@ async forceAuthCheck() {
     }
 }
 
-async waitForAuth() {
-    // Primeiro aguardar auth existir
-    let attempts = 0;
-    while (!window.authManager && attempts < 50) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    // Depois inicializar se necessário
-    if (window.authManager && typeof window.authManager.initialize === 'function') {
-        await window.authManager.initialize();
-    }
-}
 
     
     // Métodos auxiliares que você precisa implementar:
@@ -819,27 +704,7 @@ async waitForAuth() {
     }
     
  
-    
-
-    showInitializationLoading(message) {
-        // Implementar loading screen
-        console.log('Loading:', message);
-    }
-    
-
-    
-    hideInitializationLoading() {
-        console.log('Ocultando loading...');
-    }
-    
-    showMainApp() {
-        console.log('Mostrando app principal...');
-    }
-    
-    showAuthContainer() {
-        console.log('Mostrando tela de login...');
-    }
-
+   
     
     // MÉTODO AUXILIAR: Mostrar mensagem de forma segura
     showMessage(message, type = 'info', duration = 4000) {
@@ -863,72 +728,6 @@ async waitForAuth() {
         }
     }
 
- 
-    async initializeAuthenticatedUser(user) {
-        try {
-            console.log('👤 Inicializando dados do usuário:', user.uid);
-            
-            // Definir propriedades de autenticação
-            this.currentUser = user;
-            this.isUserAuthenticated = true;
-            this.currentUserId = user.uid;
-            this.userEmail = user.email;
-            this.userDisplayName = user.displayName || user.email?.split('@')[0] || 'Usuário';
-            
-            // CORREÇÃO CRÍTICA: Garantir que o core está disponível
-            if (!this.core) {
-                console.log('🔧 Core não encontrado, buscando instância...');
-                this.core = this.findCoreInstance();
-            }
-            
-
-            
-            // Mostrar aplicação principal diretamente
-            this.showMainApplication();
-            
-            console.log('✅ Usuário inicializado com sucesso');
-            
-        } catch (error) {
-            console.error('❌ Erro ao inicializar usuário:', error);
-        }
-    }
-
-    // 2. MÉTODO PARA ENCONTRAR A INSTÂNCIA DO CORE
-findCoreInstance() {
-    // Estratégia 1: Verificar se já existe globalmente
-    if (window.app && window.app.core) {
-        console.log('✅ Core encontrado em window.app.core');
-        return window.app.core;
-    }
-    
-    // Estratégia 2: Verificar outras localizações globais
-    if (window.core) {
-        console.log('✅ Core encontrado em window.core');
-        return window.core;
-    }
-    
-    // Estratégia 3: Criar nova instância se JSFitCore está disponível
-    if (window.JSFitCore && typeof window.JSFitCore === 'function') {
-        console.log('🔧 Criando nova instância do JSFitCore...');
-        try {
-            const newCore = new window.JSFitCore();
-            // Inicializar se necessário
-            if (typeof newCore.initializeFirebase === 'function') {
-                newCore.initializeFirebase();
-            }
-            window.core = newCore; // Salvar globalmente
-            return newCore;
-        } catch (error) {
-            console.error('❌ Erro ao criar JSFitCore:', error);
-        }
-    }
-    
-    console.warn('⚠️ Nenhuma instância do Core encontrada');
-    return null;
-}
-
-
-// 4. MÉTODO DELETEPLANS CORRIGIDO COM BUSCA DINÂMICA DO CORE
 
 async deletePlan(planId) {
     return this.loadingManager.withLoading(
@@ -966,7 +765,7 @@ async deletePlan(planId) {
                     
                     if (!coreInstance) {
                         console.log('🔍 Core não encontrado, buscando dinamicamente...');
-                        coreInstance = this.findCoreInstance();
+                        coreInstance = this.CoreManager.getCore();
                         
                         if (coreInstance) {
                             this.core = coreInstance; // Atualizar referência
@@ -1097,137 +896,6 @@ async deletePlanFromFirebase(planId) {
     }
 }
 
-async onUserAuthenticated(user) {
-    try {
-        console.log('✅ Usuário autenticado via AuthManager:', user.email);
-        
-        // CORREÇÃO CRÍTICA: Limpar TODOS os dados do usuário anterior
-        this.savedPlans = [];
-        this.currentPlan = this.getEmptyPlan();
-        
-        // Verificar se mudou de usuário
-        const previousUserId = this.currentUserId;
-        const newUserId = user.uid;
-        
-        if (previousUserId && previousUserId !== newUserId) {
-            console.log(`🔄 Mudança de usuário detectada: ${previousUserId} → ${newUserId}`);
-            
-            // Limpar localStorage do usuário anterior
-            try {
-                Object.keys(localStorage).forEach(key => {
-                    if (key.includes('jsfitapp_plans_') && key.includes(previousUserId)) {
-                        localStorage.removeItem(key);
-                        console.log(`🗑️ Removido dados antigos: ${key}`);
-                    }
-                });
-            } catch (cleanupError) {
-                console.warn('⚠️ Erro na limpeza de dados antigos:', cleanupError);
-            }
-        }
-        
-        // ATUALIZAR todas as propriedades de autenticação IMEDIATAMENTE
-        this.currentUser = user;
-        this.isUserAuthenticated = true;
-        this.currentUserId = user.uid;
-        this.userEmail = user.email;
-        this.userDisplayName = user.displayName || user.email?.split('@')[0] || 'Usuário';
-        
-        // Verificar se já está processando para evitar múltiplas chamadas
-        if (this.isProcessingAuthentication) {
-            console.log('⏸️ Já processando autenticação, ignorando...');
-            return;
-        }
-        
-        this.isProcessingAuthentication = true;
-        
-        try {
-            // Ocultar loading se existir
-            if (typeof this.hideInitializationLoading === 'function') {
-                this.hideInitializationLoading();
-            }
-            
-            // Mostrar aplicação principal
-            this.showMainApplication();
-          
-            
-            console.log('✅ Usuário inicializado com sucesso');
-            
-        } catch (error) {
-            console.error('❌ Erro no processamento de autenticação:', error);
-            this.showMessage('Erro ao carregar dados do usuário', 'error');
-        } finally {
-            // Garantir que flag é resetada
-            setTimeout(() => {
-                this.isProcessingAuthentication = false;
-            }, 1000);
-        }
-        
-    } catch (criticalError) {
-        console.error('💥 Erro crítico no onUserAuthenticated:', criticalError);
-        this.showMessage('Erro crítico na autenticação', 'error');
-        this.isProcessingAuthentication = false;
-    }
-}
-
-
-
-    // MÉTODO AUXILIAR: Modo fallback para funcionamento offline
-    initializeFallbackMode() {
-        try {
-            console.log('🔄 Iniciando modo fallback...');
-            
-            // Tentar criar core mínimo se ainda não existe
-            if (!this.core) {
-                try {
-                    
-                    console.log('⚠️ JSFitCore criado em modo offline');
-                } catch (coreError) {
-                    console.error('❌ Falha ao criar JSFitCore em modo fallback:', coreError);
-                }
-            }
-            
-            // Configurar interface básica
-            this.setupEventListeners();
-            
-            // Carregar dados locais se possível
-            this.loadLocalData();
-            
-            // Mostrar interface com funcionalidade limitada
-            this.showMainInterface();
-            
-            this.showMessage('Aplicação iniciada em modo offline. Algumas funcionalidades podem estar limitadas.', 'warning');
-            
-        } catch (error) {
-            console.error('❌ Erro crítico no modo fallback:', error);
-            alert('Erro crítico na aplicação. Por favor, recarregue a página.');
-        }
-    }
-    
-
-    // Método melhorado para aguardar AuthManager
-async waitForAuthManager() {
-    
-    
-    console.log('⏳ Aguardando AuthManager ficar disponível...');
-    
-    const timeout = 5000; // 5 segundos
-    const startTime = Date.now();
-    
-    while (Date.now() - startTime < timeout) {
-        if (window.authManager && 
-            typeof window.authManager === 'object' &&
-            (typeof window.authManager.initialize === 'function' || 
-             typeof window.authManager.getCurrentUser === 'function')) {
-            console.log('✅ AuthManager detectado e pronto');
-            return true;
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
-    console.warn('⚠️ Timeout aguardando AuthManager');
-    return false;
-}
 
 
 async waitForDependencies() {
@@ -1278,92 +946,8 @@ async waitForDependencies() {
 }
 
 
-async checkCurrentUser() {
-    const timeout = 2000; // Apenas 2 segundos
-    const startTime = Date.now();
-    
-    while (Date.now() - startTime < timeout) {
-        if (window.authManager && window.authManager.getCurrentUser) {
-            const user = window.authManager.getCurrentUser();
-            if (user && user.uid) {
-                return user;
-            }
-        }
-        
-        // Verificar também no Firebase Auth diretamente
-        if (window.authManager && window.authManager.auth && window.authManager.auth.currentUser) {
-            const firebaseUser = window.authManager.auth.currentUser;
-            if (firebaseUser.uid) {
-                return firebaseUser;
-            }
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 200));
-    }
-    
-    return null;
-}
 
 
-// ========================================
-// MÉTODO showMainInterface SEGURO
-// ========================================
-
-showMainInterface() {
-    try {
-        // Esconder tela de autenticação
-        const authContainer = document.getElementById('authContainer');
-        if (authContainer) {
-            authContainer.style.display = 'none';
-        }
-        
-        // Mostrar container principal
-        const mainContainer = document.querySelector('.container');
-        if (mainContainer) {
-            mainContainer.style.display = 'block';
-        }
-        
-        // Ir para lista de planos
-        this.showPlanList();
-        
-    } catch (error) {
-        console.error('Erro ao mostrar interface principal:', error);
-    }
-}
-
-
-
-// 5. MÉTODO loadLocalData MELHORADO
-loadLocalData() {
-    try {
-        // Tentar carregar planos do localStorage
-        const localPlans = localStorage.getItem('jsfitapp_plans');
-        if (localPlans) {
-            this.savedPlans = JSON.parse(localPlans);
-            console.log(`📋 ${this.savedPlans.length} planos carregados do localStorage`);
-        } else {
-            this.savedPlans = [];
-        }
-        
-        this.updatePlansList();
-        
-    } catch (error) {
-        console.error('❌ Erro ao carregar dados locais:', error);
-        this.savedPlans = [];
-    }
-}
-
-
-// 7. MÉTODO updatePlansList SEGURO
-updatePlansList() {
-    try {
-        if (typeof this.renderPlanList === 'function') {
-            this.renderPlanList();
-        }
-    } catch (error) {
-        console.error('❌ Erro ao atualizar lista de planos:', error);
-    }
-}
 
 // 8. MÉTODO createSimpleNotification MELHORADO
 createSimpleNotification(message, type = 'info') {
@@ -1413,33 +997,6 @@ createSimpleNotification(message, type = 'info') {
     }
 }
 
-updateLoadingMessage(message) {
-    this.loadingMessage = message;
-    const messageElement = document.getElementById('initLoadingMessage');
-    if (messageElement) {
-        messageElement.textContent = message;
-    }
-    
-    // Simular progresso baseado na mensagem
-    const progressElement = document.getElementById('initProgressFill');
-    if (progressElement) {
-        const progressMap = {
-            'Inicializando sistema...': 10,
-            'Conectando ao Firebase...': 25,
-            'Configurando autenticação...': 40,
-            'Carregando configurações...': 55,
-            'Carregando tipos de plano...': 65,
-            'Carregando seus planos...': 75,
-            'Carregando base de exercícios...': 85,
-            'Configurando interface...': 90,
-            'Sincronizando dados...': 95
-        };
-        
-        const progress = progressMap[message] || 50;
-        progressElement.style.width = progress + '%';
-    }
-}
-
 
 async checkAndMigrateUserData() {
     try {
@@ -1452,13 +1009,7 @@ async checkAndMigrateUserData() {
         if (!migrationDone) {
             console.log('🔄 Primeira vez do usuário, verificando migração...');
             
-            // Verificar se há dados antigos para migrar
-            const oldData = localStorage.getItem('jsfitapp_plans');
-            if (oldData) {
-                console.log('📦 Encontrados dados antigos, iniciando migração...');
-                await this.migrateOldDataToUser(oldData);
-            }
-            
+
             // Migrar planos no Firebase se necessário
             const result = await this.core.migrateExistingPlansToUser();
             if (result.migrated > 0) {
@@ -1476,62 +1027,6 @@ async checkAndMigrateUserData() {
         console.error('❌ Erro na verificação/migração:', error);
     }
 }
-
-async migrateOldDataToUser(oldDataString) {
-    try {
-        const oldPlans = JSON.parse(oldDataString);
-        if (Array.isArray(oldPlans) && oldPlans.length > 0) {
-            
-            const shouldMigrate = confirm(
-                `Encontramos ${oldPlans.length} plano(s) de uso anterior.\n\n` +
-                `Deseja importar estes planos para sua conta?\n\n` +
-                `(Recomendado: SIM)`
-            );
-            
-            if (shouldMigrate) {
-                let migratedCount = 0;
-                
-                for (const plan of oldPlans) {
-                    try {
-                        // Adicionar à lista atual
-                        plan.migrated_from_old = true;
-                        plan.migrated_at = new Date().toISOString();
-                        this.savedPlans.push(plan);
-                        migratedCount++;
-                    } catch (error) {
-                        console.error('Erro ao migrar plano individual:', error);
-                    }
-                }
-                
-                if (migratedCount > 0) {
-                    // Salvar planos migrados
-                    this.savePlansToStorage();
-                    
-                    // Tentar salvar no Firebase
-                    if (this.core && this.core.firebaseConnected) {
-                        for (const plan of this.savedPlans.filter(p => p.migrated_from_old)) {
-                            try {
-                                await this.savePlan(plan);
-                            } catch (error) {
-                                console.warn('Erro ao salvar plano migrado no Firebase:', error);
-                            }
-                        }
-                    }
-                    
-                    this.showMessage(`${migratedCount} plano(s) importado(s) para sua conta!`, 'success');
-                    
-                    // Remover dados antigos após migração bem-sucedida
-                    localStorage.removeItem('jsfitapp_plans');
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Erro na migração de dados antigos:', error);
-    }
-}
-
-
-
 
 
 clearOldUserData() {
@@ -1691,8 +1186,8 @@ async importPlan(event) {
                         
                         // Salvar backup local com fallbacks
                         try {
-                            if (typeof this.saveToLocalStorageAsBackup === 'function') {
-                                this.saveToLocalStorageAsBackup();
+                            if (typeof this.saveToUserLocalStorage === 'function') {
+                                this.saveToUserLocalStorage();
                             } else {
                                 // Fallback manual para localStorage
                                 const userId = this.getCurrentUserId ? this.getCurrentUserId() : 
@@ -1712,8 +1207,8 @@ async importPlan(event) {
                         try {
                             if (typeof this.renderPlanList === 'function') {
                                 this.renderPlanList();
-                            } else if (typeof this.updatePlansList === 'function') {
-                                this.updatePlansList();
+                            } else if (typeof this.renderPlanList === 'function') {
+                                this.renderPlanList();
                             } else if (typeof this.showPlanList === 'function') {
                                 this.showPlanList();
                             } else {
@@ -1773,28 +1268,6 @@ async importPlan(event) {
 
 }
 
-    savePlansToStorage() {
-        
-        if (!this.isUserAuthenticated) {
-            console.warn('Usuário não autenticado, não salvando no localStorage');
-            return;
-        }
-        
-        try {
-            const key = this.getLocalStorageKey();
-            const dataToSave = {
-                plans: this.savedPlans,
-                userId: this.currentUserId,
-                savedAt: new Date().toISOString(),
-                userEmail: this.userEmail
-            };
-            
-            localStorage.setItem(key, JSON.stringify(dataToSave));
-            console.log(`💾 ${this.savedPlans.length} planos salvos no localStorage para usuário ${this.currentUserId}`);
-        } catch (error) {
-            console.error('❌ Erro ao salvar no localStorage:', error);
-        }
-    }
 
 
 // ============================================
@@ -1862,7 +1335,7 @@ onUserLogout() {
     
     // Limpar interface
     this.showAuthenticationScreen();
-    this.updatePlansList();
+    this.renderPlanList();
     
     // Mostrar mensagem
     if (this.core?.showNotification) {
@@ -1916,83 +1389,10 @@ onUserLoggedOut() {
     
     // Mostrar tela de login
     this.showAuthenticationScreen();
-    this.updatePlansList();
+    this.renderPlanList();
     
     if (this.core?.showNotification) {
         this.core.showNotification('Sessão encerrada', 'info');
-    }
-}
-
-
-
-
-
-showCriticalError(error) {
-    console.error('💥 ERRO CRÍTICO:', error);
-    
-    const errorContainer = document.createElement('div');
-    errorContainer.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.9);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 999999;
-        font-family: monospace;
-    `;
-    
-    errorContainer.innerHTML = `
-        <div style="text-align: center; max-width: 600px; padding: 20px;">
-            <h2>❌ Erro Crítico na Inicialização</h2>
-            <p style="margin: 20px 0;">${error.message}</p>
-            <button onclick="location.reload()" style="
-                background: #ff4444;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 16px;
-            ">
-                🔄 Recarregar Página
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(errorContainer);
-}
-
-// ============================================
-// MÉTODOS AUXILIARES DE INTERFACE
-
-hideAuthContainer() {
-    const authContainer = document.getElementById('authContainer');
-    if (authContainer) {
-        authContainer.style.display = 'none';
-    }
-}
-
-loadPlansFromLocalStorage() {
-    try {
-        const userId = this.currentUserId || 'anonymous';
-        const storageKey = `jsfitapp_plans_${userId}`;
-        const stored = localStorage.getItem(storageKey);
-        
-        if (stored) {
-            this.savedPlans = JSON.parse(stored);
-            console.log(`✅ ${this.savedPlans.length} planos carregados do localStorage`);
-        } else {
-            this.savedPlans = [];
-            console.log('ℹ️ Nenhum plano encontrado no localStorage');
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar do localStorage:', error);
-        this.savedPlans = [];
     }
 }
 
@@ -2034,12 +1434,7 @@ startAutoSync() {
         this.cleanupPendingDeletions();
     }, 30 * 60 * 1000);
 
-    // Atualização do painel debug a cada minuto
-    this.debugUpdateInterval = setInterval(() => {
-        if (document.getElementById('debugPanel').style.display !== 'none') {
-            this.updateDebugInfo();
-        }
-    }, 60 * 1000);
+    
 
     console.log('Auto-sync iniciado (Firebase prioritário)');
 }
@@ -2055,10 +1450,8 @@ stopAutoSync() {
         this.cleanupInterval = null;
     }
     
-    if (this.debugUpdateInterval) {
-        clearInterval(this.debugUpdateInterval);
-        this.debugUpdateInterval = null;
-    }
+
+    
     
     console.log('Auto-sync parado');
 }
@@ -2107,7 +1500,7 @@ async mergeFirebaseData() {
             });
 
             // Salvar backup local atualizado
-            this.saveToLocalStorageAsBackup();
+            this.saveToUserLocalStorage();
             
             // Atualizar interface
             this.renderPlanList();
@@ -2163,16 +1556,13 @@ async forceUploadAllToFirebase() {
         }
 
         // Salvar backup atualizado
-        this.saveToLocalStorageAsBackup();
+        this.saveToUserLocalStorage();
 
         if (errorCount === 0) {
             this.showMessage(`${successCount} planos enviados para Firebase com sucesso!`, 'success');
         } else {
             this.showMessage(`Upload parcial: ${successCount} ok, ${errorCount} erros`, 'warning');
         }
-
-        // Atualizar debug
-        this.updateDebugInfo();
 
     } catch (error) {
         console.error('Erro no upload forçado:', error);
@@ -2342,11 +1732,8 @@ setupEventListeners() {
             e.preventDefault();
             this.showAIPlanCreator();
         }
-        // NOVO: Ctrl+D para debug
-        if (e.ctrlKey && e.key === 'd') {
-            e.preventDefault();
-            this.debugDataState();
-        }
+
+        
         // NOVO: Ctrl+R para recarregar dados
         if (e.ctrlKey && e.key === 'r') {
             e.preventDefault();
@@ -2402,144 +1789,38 @@ setupEventListeners() {
             this.onAIDaysChange();
         });
     }
+    this.setupActivityListeners();
+
 }
 
-// MÉTODOS PARA CONTROLAR O PAINEL DE DEBUG - ADICIONAR À CLASSE PersonalApp
-
-toggleDebugPanel() {
-    const panel = document.getElementById('debugPanel');
-    if (panel) {
-        const isVisible = panel.style.display !== 'none';
-        panel.style.display = isVisible ? 'none' : 'block';
-        
-        // Atualizar informações quando abrir
-        if (!isVisible) {
-            this.updateDebugInfo();
-        }
-    }
-}
-
-updateDebugInfo() {
-    const status = this.getSyncStatus();
-    
-    // Elementos básicos
-    const planCountElement = document.getElementById('debugPlanCount');
-    const firebaseCountElement = document.getElementById('debugFirebaseCount');
-    const pendingCountElement = document.getElementById('debugPendingCount');
-    const progressBarElement = document.getElementById('syncProgressBar');
-    const syncStatusElement = document.getElementById('syncStatus');
-    
-    if (planCountElement) {
-        planCountElement.textContent = status.totalPlans;
-    }
-    
-    if (firebaseCountElement) {
-        firebaseCountElement.textContent = status.firebasePlans;
-    }
-    
-    if (pendingCountElement) {
-        pendingCountElement.textContent = status.pendingSaves + status.pendingDeletions;
-    }
-    
-    if (progressBarElement) {
-        progressBarElement.style.width = status.syncPercentage + '%';
-    }
-    
-    if (syncStatusElement) {
-        let statusText = '';
-        let statusClass = 'sync-status';
-        
-        if (status.isFullySynced) {
-            statusText = 'Totalmente sincronizado';
-            statusClass += ' synced';
-        } else if (status.pendingSaves > 0 || status.pendingDeletions > 0) {
-            statusText = `${status.pendingSaves + status.pendingDeletions} operações pendentes`;
-            statusClass += ' pending';
-        } else if (status.localOnlyPlans > 0) {
-            statusText = `${status.localOnlyPlans} apenas locais`;
-            statusClass += ' partial';
-        } else {
-            statusText = 'Firebase indisponível';
-            statusClass += ' offline';
-        }
-        
-        syncStatusElement.textContent = statusText;
-        syncStatusElement.className = statusClass;
-    }
-}
-
-// VERSÃO MELHORADA DO debugDataState COM INFORMAÇÕES DE SINCRONIZAÇÃO
-debugDataState() {
-    const status = this.getSyncStatus();
-    
-    console.log('=== DEBUG: Estado dos dados (Firebase Prioritário) ===');
-    console.log('Total de planos:', status.totalPlans);
-    console.log('Salvos no Firebase:', status.firebasePlans);
-    console.log('Apenas locais:', status.localOnlyPlans);
-    console.log('Salvamentos pendentes:', status.pendingSaves);
-    console.log('Deleções pendentes:', status.pendingDeletions);
-    console.log('Sincronização:', status.syncPercentage + '%');
-    console.log('Firebase conectado:', this.core?.firebaseConnected || false);
-    
-    let message = `=== RELATÓRIO DE SINCRONIZAÇÃO ===\n`;
-    message += `Total de planos: ${status.totalPlans}\n`;
-    message += `Sincronizados com Firebase: ${status.firebasePlans}\n`;
-    message += `Apenas locais: ${status.localOnlyPlans}\n`;
-    message += `Operações pendentes: ${status.pendingSaves + status.pendingDeletions}\n`;
-    message += `Percentual sincronizado: ${status.syncPercentage}%\n`;
-    message += `Status: ${status.isFullySynced ? 'TOTALMENTE SINCRONIZADO' : 'SINCRONIZAÇÃO PARCIAL'}\n\n`;
-    
-    if (this.savedPlans && this.savedPlans.length > 0) {
-        message += `=== DETALHES DOS PLANOS ===\n`;
-        this.savedPlans.forEach((plan, index) => {
-            let planStatus = '';
-            if (plan.saved_in_firebase) {
-                planStatus = '✅ Firebase';
-            } else if (plan.retry_firebase) {
-                planStatus = '⏳ Pendente';
-            } else if (plan.saved_in_localstorage_only) {
-                planStatus = '💾 Local';
-            } else {
-                planStatus = '❓ Indefinido';
+setupActivityListeners() {
+    // Atualizar atividade em ações do usuário
+    ['click', 'keydown', 'scroll'].forEach(event => {
+        document.addEventListener(event, () => {
+            if (this.sessionManager && this.sessionManager.sessionRestored) {
+                this.sessionManager.updateActivity();
             }
-            
-            const planInfo = `${index + 1}. ${plan.nome} - ${planStatus}`;
-            console.log(planInfo);
-           // message += `${planInfo}\n`;
-        });
-    }
-    
-    // Verificar localStorage
-    try {
-        const localData = localStorage.getItem('jsfitapp_plans');
-        if (localData) {
-            const localPlans = JSON.parse(localData);
-            message += `\nBackup localStorage: ${localPlans.length} planos`;
-            console.log(`LocalStorage backup: ${localPlans.length} planos`);
-        } else {
-            message += '\nLocalStorage backup: vazio';
-            console.log('LocalStorage backup: vazio');
-        }
-    } catch (error) {
-        message += '\nLocalStorage backup: erro ao ler';
-        console.log('LocalStorage backup: erro ao ler');
-    }
-    
-    // Verificar deleções pendentes
-    if (this.pendingDeletions && this.pendingDeletions.length > 0) {
-        message += `\n\n=== DELEÇÕES PENDENTES ===\n`;
-        this.pendingDeletions.forEach(del => {
-            message += `- ${del.name} (${del.retryCount || 0} tentativas)\n`;
-        });
-    }
-    
-    // Mostrar alerta com resumo
-    console.log(message);
-    
-    // Atualizar painel de debug
-    this.updateDebugInfo();
-}
+        }, { passive: true });
+    });
 
+    // Verificar sessão quando a página fica visível novamente
+    document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden && this.sessionManager && this.sessionManager.sessionRestored) {
+            const currentSession = localStorage.getItem('jsfitapp_session');
+            if (currentSession) {
+                try {
+                    const sessionData = JSON.parse(currentSession);
+                    if (sessionData.expiresAt < Date.now()) {
+                        console.log('⚠️ Sessão expirou, fazendo logout');
+                        this.logout();
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Erro ao verificar sessão:', error);
+                }
+            }
+        }
+    });
+}
 
    // Usar métodos do core para exercícios
     findExerciseByName(name) {
@@ -2563,81 +1844,7 @@ debugDataState() {
     }
 
  
-
-
-// 2. MÉTODO PARA BACKUP SECUNDÁRIO NO LOCALSTORAGE
-
-saveToLocalStorageAsBackup() {
-    if (!this.isUserAuthenticated) {
-        console.warn('Usuário não autenticado, não salvando no localStorage');
-        return false;
-    }
     
-    try {
-        const key = this.getLocalStorageKey();
-        const dataToSave = {
-            plans: this.savedPlans,
-            userId: this.currentUserId,
-            savedAt: new Date().toISOString(),
-            userEmail: this.userEmail,
-            backup_type: 'secondary',
-            firebase_primary: true
-        };
-        
-        localStorage.setItem(key, JSON.stringify(dataToSave));
-        console.log(`💾 Backup local criado com ${this.savedPlans.length} planos`);
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Erro ao criar backup localStorage:', error);
-        return false;
-    }
-}
-
-// 10. ADICIONAR MÉTODO DE MIGRAÇÃO DE ESTRUTURA
-migratePlanStructure(plan) {
-    // Garantir estrutura mínima do plano
-    if (!plan.aluno) {
-        plan.aluno = {
-            nome: plan.perfil?.nome || '',
-            dataNascimento: '',
-            cpf: '',
-            idade: plan.perfil?.idade || 25,
-            altura: plan.perfil?.altura || '1,75m',
-            peso: plan.perfil?.peso || '75kg'
-        };
-    }
-    
-    // Garantir que exercícios tenham todos os campos
-    if (plan.treinos) {
-        plan.treinos.forEach(treino => {
-            if (treino.exercicios) {
-                treino.exercicios.forEach(ex => {
-                    if (!ex.descanso) ex.descanso = '90 segundos';
-                    if (!ex.observacoesEspeciais) ex.observacoesEspeciais = '';
-                    if (!ex.tecnica) ex.tecnica = '';
-                });
-            }
-        });
-    }
-    
-    // Garantir técnicas aplicadas
-    if (!plan.tecnicas_aplicadas) {
-        plan.tecnicas_aplicadas = {};
-    }
-    
-    // Garantir porte no perfil
-    if (plan.perfil && !plan.perfil.porte) {
-        plan.perfil.porte = this.calculateBodyType(
-            plan.perfil.altura || plan.aluno?.altura || '1,75m',
-            plan.perfil.peso || plan.aluno?.peso || '75kg'
-        );
-    }
-    
-    return plan;
-}
-
-// 4. MÉTODO PARA NORMALIZAR ESTRUTURA DE PLANOS
 normalizePlanStructure(planData) {
     // Estrutura do aluno
     if (!planData.aluno) {
@@ -2710,7 +1917,7 @@ async retryFirebaseSave(planId) {
             plan.synced_at = new Date().toISOString();
             
             // Salvar backup atualizado
-            this.saveToLocalStorageAsBackup();
+            this.saveToUserLocalStorage();
             
             console.log(`Retry Firebase bem-sucedido para: ${plan.nome}`);
             this.showMessage(`Plano "${plan.nome}" sincronizado com Firebase`, 'success');
@@ -2722,6 +1929,8 @@ async retryFirebaseSave(planId) {
         setTimeout(() => this.retryFirebaseSave(planId), 120000);
     }
 }
+
+
 
 scheduleFailedPlansRetry() {
     const failedPlans = this.savedPlans.filter(p => p.retry_firebase);
@@ -2750,7 +1959,7 @@ async loadSavedPlans() {
                     console.log(`${firebasePlans.length} planos carregados do Firebase`);
                     
                     // Criar backup local dos dados do Firebase
-                    this.saveToLocalStorageAsBackup();
+                    this.saveToUserLocalStorage();
                     
                     return; // Sucesso Firebase, não precisa do localStorage
                 }
@@ -2761,112 +1970,13 @@ async loadSavedPlans() {
 
         // PRIORIDADE 2: FALLBACK PARA LOCALSTORAGE
         console.log('Carregando backup do localStorage...');
-        await this.loadFromLocalStorageAsBackup();
+        await this.loadFromUserLocalStorage();
         
     } catch (error) {
         console.error('Erro ao carregar planos:', error);
         this.savedPlans = [];
     }
 }
-
-// CORREÇÃO 2: Modificar loadFromLocalStorageAsBackup para aceitar estado recuperado
-async loadFromLocalStorageAsBackup() {
-    // Verificar autenticação com fallback
-    const isAuthenticated = this.isUserAuthenticated || 
-                           (window.authManager && window.authManager.isUserAuthenticated()) ||
-                           localStorage.getItem('jsfitapp_user');
-    
-    if (!isAuthenticated) {
-        console.warn('⚠️ Usuário não autenticado, tentando carregar dados gerais...');
-        
-        // Como último recurso, tentar carregar qualquer dado disponível
-        const allKeys = Object.keys(localStorage).filter(key => key.startsWith('jsfitapp_plans_'));
-        
-        for (const key of allKeys) {
-            try {
-                const data = localStorage.getItem(key);
-                if (data) {
-                    const parsed = JSON.parse(data);
-                    if (parsed.plans && Array.isArray(parsed.plans) && parsed.plans.length > 0) {
-                        this.savedPlans = parsed.plans;
-                        console.log(`📂 Dados carregados de ${key}:`, this.savedPlans.length);
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn(`Erro ao tentar ${key}:`, e);
-            }
-        }
-        
-        this.savedPlans = [];
-        return;
-    }
-    
-    // Resto do método existente...
-    try {
-        const userId = this.currentUserId || window.authManager?.getCurrentUser()?.uid;
-        if (!userId) {
-            console.warn('UserId não encontrado');
-            return;
-        }
-        
-        const key = `jsfitapp_plans_${userId}`;
-        const stored = localStorage.getItem(key);
-        
-        if (stored) {
-            const data = JSON.parse(stored);
-            
-            if (data.plans && Array.isArray(data.plans)) {
-                this.savedPlans = data.plans;
-                console.log(`📂 ${this.savedPlans.length} planos carregados do backup localStorage`);
-            } else {
-                console.log('ℹ️ Estrutura de dados inválida no localStorage');
-                this.savedPlans = [];
-            }
-        } else {
-            console.log('ℹ️ Nenhum backup local encontrado');
-            this.savedPlans = [];
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar backup localStorage:', error);
-        this.savedPlans = [];
-    }
-}
-
-// CORREÇÃO 4: Método para recuperar estado na inicialização
-recoverAuthStateOnInit() {
-    try {
-        // Verificar AuthManager
-        if (window.authManager && window.authManager.isUserAuthenticated()) {
-            const user = window.authManager.getCurrentUser();
-            if (user) {
-                this.isUserAuthenticated = true;
-                this.currentUserId = user.uid;
-                this.currentUser = user;
-                this.userEmail = user.email;
-                console.log('🔄 Estado recuperado na inicialização:', user.email);
-            }
-        }
-        
-        // Verificar localStorage como backup
-        if (!this.isUserAuthenticated) {
-            const storedUser = localStorage.getItem('jsfitapp_user');
-            if (storedUser) {
-                const userData = JSON.parse(storedUser);
-                if (userData.sessionActive) {
-                    this.isUserAuthenticated = true;
-                    this.currentUserId = userData.uid;
-                    this.userEmail = userData.email;
-                    console.log('🔄 Estado recuperado do localStorage:', userData.email);
-                }
-            }
-        }
-    } catch (error) {
-        console.warn('⚠️ Erro ao recuperar estado na inicialização:', error);
-    }
-}
-
-
 
 
 
@@ -2971,7 +2081,7 @@ async verifyAndRestorePlans() {
             });
             
             // Salvar dados restaurados
-            this.saveToLocalStorageAsBackup();
+            this.saveToUserLocalStorage();
             
             this.renderPlanList();
             this.showMessage(`${missingPlans.length} plano(s) restaurado(s)`, 'success');
@@ -3018,106 +2128,12 @@ async syncAfterImport() {
         }
         
         // Salvar backup local atualizado
-        this.saveToLocalStorageAsBackup();
+        this.saveToUserLocalStorage();
         
         console.log('Sincronização concluída');
         
     } catch (error) {
         console.error('Erro na sincronização:', error);
-    }
-}
-
-// 5. VERIFICAR INTEGRIDADE DOS DADOS APÓS INICIALIZAÇÃO
-verifyDataIntegrity() {
-    console.log('Verificando integridade dos dados...');
-    
-    const issues = [];
-    
-    // Verificar estrutura dos planos
-    if (this.savedPlans && Array.isArray(this.savedPlans)) {
-        this.savedPlans.forEach((plan, index) => {
-            if (!plan.id) {
-                issues.push(`Plano ${index + 1} sem ID`);
-            }
-            if (!plan.nome) {
-                issues.push(`Plano ${index + 1} sem nome`);
-            }
-            if (!plan.treinos || !Array.isArray(plan.treinos)) {
-                issues.push(`Plano ${index + 1} sem treinos válidos`);
-            }
-            // Verificar se tem flags de sincronização inconsistentes
-            if (plan.saved_in_firebase && plan.retry_firebase) {
-                issues.push(`Plano ${plan.nome} com flags inconsistentes`);
-                // Corrigir automaticamente
-                delete plan.retry_firebase;
-            }
-        });
-    } else {
-        issues.push('savedPlans não é um array válido');
-    }
-    
-    // Verificar base de exercícios
-    if (!this.core.exerciseDatabaseLoaded) {
-        issues.push('Base de exercícios não carregada');
-    }
-    
-    // Verificar configuração de tipos de plano
-    if (!this.planTypeConfiguration.muscleGroups) {
-        issues.push('Configuração de grupos musculares ausente');
-    }
-    
-    // Verificar estado de sincronização
-    const syncStatus = this.getSyncStatus();
-    if (syncStatus.pendingSaves > 10) {
-        issues.push(`Muitos salvamentos pendentes: ${syncStatus.pendingSaves}`);
-    }
-    
-    if (this.pendingDeletions && this.pendingDeletions.length > 5) {
-        issues.push(`Muitas deleções pendentes: ${this.pendingDeletions.length}`);
-    }
-    
-    // Log dos problemas encontrados
-    if (issues.length > 0) {
-        console.warn('Problemas de integridade encontrados:');
-        issues.forEach(issue => console.warn(`  - ${issue}`));
-        
-        // Tentar correções automáticas
-        this.performAutomaticFixes(issues);
-    } else {
-        console.log('Integridade dos dados verificada com sucesso');
-    }
-    
-    return issues.length === 0;
-}
-
-// 6. CORREÇÕES AUTOMÁTICAS DE INTEGRIDADE
-performAutomaticFixes(issues) {
-    let fixesApplied = 0;
-    
-    // Corrigir planos sem ID
-    this.savedPlans.forEach(plan => {
-        if (!plan.id) {
-            plan.id = this.core.generateId();
-            plan.fixed_missing_id = true;
-            fixesApplied++;
-        }
-    });
-    
-    // Corrigir savedPlans se não for array
-    if (!Array.isArray(this.savedPlans)) {
-        this.savedPlans = [];
-        fixesApplied++;
-    }
-    
-    // Inicializar pendingDeletions se não existe
-    if (!this.pendingDeletions) {
-        this.pendingDeletions = [];
-        fixesApplied++;
-    }
-    
-    if (fixesApplied > 0) {
-        console.log(`${fixesApplied} correção(ões) automática(s) aplicada(s)`);
-        this.saveToLocalStorageAsBackup();
     }
 }
 
@@ -3127,7 +2143,7 @@ performAutomaticFixes(issues) {
 setupBeforeUnloadHandler() {
     window.addEventListener('beforeunload', (event) => {
         // Salvar dados antes de sair
-        this.saveToLocalStorageAsBackup();
+
         
         // Criar backup de emergência se há dados não salvos
         if (this.savedPlans && this.savedPlans.length > 0) {
@@ -3301,10 +2317,7 @@ stopAllIntervals() {
         this.cleanupInterval = null;
     }
     
-    if (this.debugUpdateInterval) {
-        clearInterval(this.debugUpdateInterval);
-        this.debugUpdateInterval = null;
-    }
+
     
     if (this.localAutoSaveInterval) {
         clearInterval(this.localAutoSaveInterval);
@@ -3492,7 +2505,7 @@ async forceSyncAllPlans() {
         }
         
         // Salvar atualizações
-        this.savePlansToStorage();
+        this.saveToUserLocalStorage();
         
         if (errorCount === 0) {
             this.showMessage(`${syncedCount} planos sincronizados com sucesso`, 'success');
@@ -3861,55 +2874,37 @@ syncDataFromCore() {
         groupFilter.appendChild(allGroupsOption);
 
         groupFilter.value = 'contextual';
-        this.showContextualFilterInfo(workout, configuredGroups);
+   
     }
     
-
-    // =============================================
-    // MÉTODOS BÁSICOS DE EXERCÍCIOS E TREINOS
-    // =============================================
 
     generateWorkoutEditor(days) {
         const editor = document.getElementById('workoutEditor');
         const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const workoutNames = {
-            1: ['A - Corpo Inteiro'],
-            2: ['A - Membros Superiores', 'B - Membros Inferiores'],
-            3: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Pernas e Ombros'],
-            4: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Ombros', 'D - Pernas'],
-            5: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Ombros e Trapézio', 'D - Pernas (Quadríceps)', 'E - Posterior e Core'],
-            6: ['A - Peito', 'B - Costas', 'C - Ombros', 'D - Braços', 'E - Pernas (Quadríceps)', 'F - Posterior e Core']
-        };
-
+    
         let html = '<div class="form-section"><h2>🏋️ Treinos</h2>';
-
+    
         this.currentPlan.treinos = [];
-
+    
         for (let i = 0; i < days; i++) {
+            const letter = letters[i];
+            
+            // USAR DADOS DAS presetConfigurations COMO FONTE ÚNICA
+            const presetConfig = this.planTypeConfiguration.presetConfigurations[days];
+            const workoutConfig = presetConfig ? presetConfig[letter] : null;
+            
             const workout = {
-                id: letters[i],
-                nome: workoutNames[days][i],
-                foco: workoutNames[days][i].split(' - ')[1] || 'Treino geral',
-                exercicios: [
-                    {
-                        id: i * 10 + 1,
-                        nome: 'Aquecimento',
-                        descricao: 'Aquecimento geral de 5-10 minutos',
-                        series: 1,
-                        repeticoes: '8-10 min',
-                        carga: 'Leve',
-                        descanso: '0',
-                        observacoesEspeciais: '',
-                        tecnica: '',
-                        concluido: false
-                    }
-                ],
+                id: letter,
+                nome: workoutConfig ? workoutConfig.name : `Treino ${letter}`, // Usar nome da preset
+                foco: workoutConfig ? this.generateWorkoutFocusFromGroups(workoutConfig.groups) : 'Treino geral',
+                exercicios: [], // SEM AQUECIMENTO AUTOMÁTICO
+                gruposMusculares: workoutConfig ? workoutConfig.groups : [], // Grupos da preset
                 concluido: false,
                 execucoes: 0
             };
-
+    
             this.currentPlan.treinos.push(workout);
-
+    
             html += `
                 <div class="workout-editor">
                     <div class="workout-header">
@@ -3924,12 +2919,10 @@ syncDataFromCore() {
                 </div>
             `;
         }
-
+    
         html += '</div>';
         editor.innerHTML = html;
     }
-
-
 
     // Corrigir getLocalStorageKey() para ser mais específico:
 getLocalStorageKey() {
@@ -4072,50 +3065,6 @@ renderPlanList() {
     }
 }
 
-// CORREÇÃO 4: Método para verificar estado dos dados
-debugDataState() {
-    console.log('🔬 === DIAGNÓSTICO DETALHADO ===');
-    
-    // Estado da aplicação
-    console.log('📊 Estado da Aplicação:');
-    console.log('- this.savedPlans:', this.savedPlans);
-    console.log('- this.savedPlans.length:', this.savedPlans?.length);
-    console.log('- this.isUserAuthenticated:', this.isUserAuthenticated);
-    console.log('- this.currentUserId:', this.currentUserId);
-    
-    // localStorage
-    const allKeys = Object.keys(localStorage);
-    const jsfitKeys = allKeys.filter(key => key.includes('jsfit'));
-    console.log('💾 LocalStorage:');
-    console.log('- Todas as chaves:', allKeys);
-    console.log('- Chaves JSFit:', jsfitKeys);
-    
-    jsfitKeys.forEach(key => {
-        try {
-            const data = localStorage.getItem(key);
-            if (data) {
-                const parsed = JSON.parse(data);
-                console.log(`- ${key}:`, {
-                    length: data.length,
-                    type: typeof parsed,
-                    isArray: Array.isArray(parsed),
-                    plansCount: parsed.plans ? parsed.plans.length : 'N/A'
-                });
-            }
-        } catch (e) {
-            console.log(`- ${key}: ERRO ao parsear`);
-        }
-    });
-    
-    // Core e Firebase
-    console.log('🔥 Firebase/Core:');
-    console.log('- this.core exists:', !!this.core);
-    console.log('- this.core.firebaseConnected:', this.core?.firebaseConnected);
-    console.log('- window.db:', !!window.db);
-    
-  
-    
-}
 
 
 
@@ -4324,7 +3273,7 @@ async saveSharedPlanToFirebase(shareId, planData) {
         let coreInstance = this.core;
         if (!coreInstance) {
             console.log('Core não encontrado, buscando...');
-            coreInstance = this.findCoreInstance();
+            coreInstance = this.CoreManager.getCore();
             if (coreInstance) {
                 this.core = coreInstance;
                 console.log('Core encontrado e atualizado');
@@ -4570,173 +3519,173 @@ async syncPlanConfiguration() {
         this.showPlanTypeConfigModal();
     }
 
-    // IMPLEMENTAÇÃO DE PRESERVAÇÃO NO selectPlanType()
-// ================================================
 
-// 1. MODIFICAR O MÉTODO selectPlanType() EXISTENTE
-selectPlanType(days, letters, element) {
-    // Validações existentes
-    if (days < 1 || days > 6) {
-        console.error(`Número de dias inválido: ${days}`);
-        this.showMessage('Tipo de plano não suportado', 'error');
-        return;
-    }
-
-    if (element.classList.contains('disabled')) {
-        console.warn(`Tipo de plano ${days} dias está desabilitado`);
-        this.showMessage('Este tipo de plano não está disponível', 'warning');
-        return;
-    }
-
-    console.log(`🎯 Selecionado plano de ${days} dias`);
-
-    // **NOVO**: PRESERVAR EXERCÍCIOS ANTES DE MUDANÇA
-    const previousDays = this.selectedDays || this.planTypeConfiguration.days || 0;
-    let preservedWorkouts = [];
+    selectPlanType(days, letters, element) {
+        // Validações básicas
+        if (days < 1 || days > 6) {
+            console.error(`Número de dias inválido: ${days}`);
+            this.showMessage('Tipo de plano não suportado', 'error');
+            return;
+        }
     
-    if (previousDays > 0 && this.currentPlan && this.currentPlan.treinos && this.currentPlan.treinos.length > 0) {
-        console.log(`🔄 Mudando de ${previousDays} para ${days} dias - preservando exercícios`);
-        preservedWorkouts = this.preserveExistingExercises(days);
+        if (element.classList.contains('disabled')) {
+            console.warn(`Tipo de plano ${days} dias está desabilitado`);
+            this.showMessage('Este tipo de plano não está disponível', 'warning');
+            return;
+        }
+    
+        console.log(`Selecionado plano de ${days} dias`);
+    
+        // Preservar exercícios antes de mudança
+        const previousDays = this.selectedDays || this.planTypeConfiguration.days || 0;
+        let preservedWorkouts = [];
         
-        // Log das mudanças
-        this.logPlanTypeChange(previousDays, days, preservedWorkouts);
-    }
-
-    // Aplicar configuração padrão se não existe configuração personalizada
-    if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
-        this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
-        this.planTypeConfiguration.days = days;
-    }
-
-    // Atualizar estado
-    this.selectedDays = days;
+        if (previousDays > 0 && this.currentPlan && this.currentPlan.treinos && this.currentPlan.treinos.length > 0) {
+            console.log(`Mudando de ${previousDays} para ${days} dias - preservando exercícios`);
+            
+            // PRESERVAÇÃO DE EXERCÍCIOS EXISTENTES
+            const currentWorkouts = this.currentPlan.treinos || [];
+            for (let i = 0; i < days; i++) {
+                if (currentWorkouts[i] && currentWorkouts[i].exercicios && currentWorkouts[i].exercicios.length > 0) {
+                    // Manter treino existente que TEM exercícios
+                    preservedWorkouts[i] = {
+                        ...currentWorkouts[i],
+                        preserved: true
+                    };
+                    console.log(`Treino ${i} preservado: ${currentWorkouts[i].nome}`);
+                } else {
+                    // Criar treino vazio para novo dia
+                    preservedWorkouts[i] = null; // Será criado abaixo
+                }
+            }
+        }
     
-    // Remover classe active de todos os botões
-    document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+        // Aplicar configuração padrão se não existe configuração personalizada
+        if (!this.planTypeConfiguration.configuration[Object.keys(this.planTypeConfiguration.presetConfigurations[days])[0]]) {
+            this.planTypeConfiguration.configuration = this.planTypeConfiguration.presetConfigurations[days];
+            this.planTypeConfiguration.days = days;
+        }
     
-    // Adicionar classe active ao botão selecionado
-    element.classList.add('active');
+        // Atualizar estado
+        this.selectedDays = days;
+        
+        // Remover classe active de todos os botões
+        document.querySelectorAll('.plan-type-btn').forEach(btn => btn.classList.remove('active'));
+        
+        // Adicionar classe active ao botão selecionado
+        element.classList.add('active');
+        
+        // GERAÇÃO DO EDITOR COM FONTE ÚNICA DE DADOS (presetConfigurations)
+        const editor = document.getElementById('workoutEditor');
+        const lettersArray = ['A', 'B', 'C', 'D', 'E', 'F'];
+        
+        // USAR presetConfigurations COMO FONTE ÚNICA
+        const presetConfig = this.planTypeConfiguration.presetConfigurations[days];
     
-    // **MODIFICADO**: USAR GERAÇÃO COM PRESERVAÇÃO
-    if (preservedWorkouts.length > 0) {
-        this.generateWorkoutEditorWithConfigPreserving(days, preservedWorkouts);
+        let html = '<div class="form-section"><h2>Treinos</h2>';
+        
+        // Atualizar currentPlan.treinos
+        this.currentPlan.treinos = [];
+    
+        for (let i = 0; i < days; i++) {
+            const letter = lettersArray[i];
+            const workoutPreset = presetConfig ? presetConfig[letter] : null;
+            
+            // Garantir configuração existe usando dados da preset
+            if (!this.planTypeConfiguration.configuration[letter]) {
+                console.warn(`Configuração não encontrada para treino ${letter}, usando preset...`);
+                this.planTypeConfiguration.configuration[letter] = workoutPreset ? {
+                    name: workoutPreset.name,
+                    groups: [...workoutPreset.groups]
+                } : {
+                    name: `Treino ${letter}`,
+                    groups: ['corpo']
+                };
+            }
+    
+            let workout;
+            
+            // Usar treino preservado se existir, senão criar novo
+            if (preservedWorkouts[i] && preservedWorkouts[i].preserved) {
+                workout = {
+                    ...preservedWorkouts[i],
+                    // Atualizar nome se configuração mudou (usar preset como fonte)
+                    nome: this.planTypeConfiguration.configuration[letter]?.name || 
+                          (workoutPreset ? workoutPreset.name : `Treino ${letter}`),
+                    foco: this.generateWorkoutFocusFromGroups(
+                        this.planTypeConfiguration.configuration[letter]?.groups || 
+                        (workoutPreset ? workoutPreset.groups : ['corpo'])
+                    ),
+                    gruposMusculares: this.planTypeConfiguration.configuration[letter]?.groups || 
+                                    (workoutPreset ? workoutPreset.groups : ['corpo'])
+                };
+                console.log(`Usando treino preservado ${i}: ${workout.nome}`);
+            } else {
+                // Criar novo treino VAZIO usando dados da preset
+                workout = {
+                    id: letter,
+                    nome: workoutPreset ? workoutPreset.name : `Treino ${letter}`,
+                    foco: workoutPreset ? this.generateWorkoutFocusFromGroups(workoutPreset.groups) : 'Treino geral',
+                    exercicios: [], // ARRAY VAZIO - SEM AQUECIMENTO
+                    gruposMusculares: workoutPreset ? workoutPreset.groups : ['corpo'],
+                    concluido: false,
+                    execucoes: 0
+                };
+                console.log(`Criado novo treino vazio ${i}: ${workout.nome}`);
+            }
+    
+            this.currentPlan.treinos.push(workout);
+    
+            // Indicador visual se treino foi preservado
+            const preservedIndicator = (preservedWorkouts[i] && preservedWorkouts[i].preserved) ? 
+                '<span class="preserved-indicator">Exercícios preservados</span>' : '';
+    
+            // Usar grupos da configuração atual (que agora vem da preset)
+            const currentGroups = this.planTypeConfiguration.configuration[letter]?.groups || 
+                                (workoutPreset ? workoutPreset.groups : ['corpo']);
+    
+            html += `
+            <div class="workout-editor">
+                <div class="workout-header">
+                    <h3 class="workout-title">${workout.nome}</h3>
+                    ${preservedIndicator}
+                    <div class="workout-muscle-groups">
+                        ${currentGroups.map(groupId => {
+                            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+                            return group ? `<span class="muscle-group-badge">${group.icon} ${group.name}</span>` : '';
+                        }).join('')}
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="app.addExercise(${i})">
+                        Adicionar Exercício
+                    </button>
+                </div>
+                <div class="exercise-list" id="exerciseList${i}">
+                    ${this.renderExercises(workout.exercicios, i)}
+                </div>
+            </div>`;
+        }
+    
+        html += '</div>';
+        editor.innerHTML = html;
+        
+        // Atualizar indicadores visuais
+        this.updatePlanConfigIndicators();
         
         // Mostrar feedback sobre preservação
         const preservedCount = preservedWorkouts.filter(w => w && w.preserved).length;
         const removedCount = Math.max(0, previousDays - days);
         const addedCount = Math.max(0, days - previousDays);
         
-        let message = `Tipo de plano alterado para ${days} dias`;
-        if (preservedCount > 0) message += ` (${preservedCount} treino(s) preservado(s))`;
-        if (removedCount > 0) message += ` (${removedCount} removido(s))`;
-        if (addedCount > 0) message += ` (${addedCount} adicionado(s))`;
+        let message = `Tipo alterado para ${days} dias`;
+        if (preservedCount > 0) message += ` (${preservedCount} preservados)`;
+        if (removedCount > 0) message += ` (${removedCount} removidos)`;
+        if (addedCount > 0) message += ` (${addedCount} novos)`;
         
         this.showMessage(message, 'success');
-    } else {
-        // Primeira seleção ou sem treinos existentes - usar método original
-        this.generateWorkoutEditor(days);
-    }
-    
-    // Atualizar indicadores visuais
-    this.updatePlanConfigIndicators();
-}
-
-// 2. MÉTODO AUXILIAR PARA LOGGING DE MUDANÇAS
-logPlanTypeChange(previousDays, newDays, preservedWorkouts) {
-    console.group(`📊 Mudança de Tipo de Plano: ${previousDays} → ${newDays} dias`);
-    
-    console.log('Estado anterior:', {
-        dias: previousDays,
-        treinos: this.currentPlan?.treinos?.length || 0
-    });
-    
-    console.log('Ações realizadas:');
-    
-    for (let i = 0; i < Math.max(previousDays, newDays); i++) {
-        const preserved = preservedWorkouts[i];
         
-        if (i < newDays) {
-            if (preserved && preserved.preserved) {
-                const exerciseCount = preserved.exercicios?.length || 0;
-                console.log(`  Treino ${i}: ✅ PRESERVADO (${exerciseCount} exercícios)`);
-            } else if (preserved && preserved.isNew) {
-                console.log(`  Treino ${i}: 🆕 NOVO CRIADO`);
-            }
-        } else {
-            console.log(`  Treino ${i}: ❌ REMOVIDO`);
-        }
+        console.log(`Editor gerado para ${days} dias usando presetConfigurations como fonte única`);
     }
-    
-    console.groupEnd();
-}
 
-// 3. MÉTODO PARA DETECTAR SE HÁ MUDANÇA SIGNIFICATIVA
-shouldPreserveExercises(previousDays, newDays) {
-    // Preservar se:
-    // 1. Há treinos existentes
-    // 2. Mudança não é muito drástica (máximo ±3 dias)
-    // 3. Não é a primeira seleção
-    
-    const hasExistingWorkouts = this.currentPlan && 
-                               this.currentPlan.treinos && 
-                               this.currentPlan.treinos.length > 0;
-    
-    const hasExercises = hasExistingWorkouts && 
-                        this.currentPlan.treinos.some(t => 
-                            t.exercicios && t.exercicios.length > 1 // Mais que só aquecimento
-                        );
-    
-    const reasonableChange = Math.abs(newDays - previousDays) <= 3;
-    const notFirstSelection = previousDays > 0;
-    
-    const shouldPreserve = hasExercises && reasonableChange && notFirstSelection;
-    
-    console.log('🤔 Análise de preservação:', {
-        hasExistingWorkouts,
-        hasExercises,
-        reasonableChange,
-        notFirstSelection,
-        shouldPreserve
-    });
-    
-    return shouldPreserve;
-}
-
-// 4. MÉTODO MELHORADO DE PRESERVAÇÃO COM VALIDAÇÕES
-preserveExistingExercisesEnhanced(newDays) {
-    console.log('🔄 Preservando exercícios com validações...');
-    
-    const currentWorkouts = this.currentPlan?.treinos || [];
-    const preservedWorkouts = [];
-    let preservedCount = 0;
-    let createdCount = 0;
-    
-    // Preservar treinos existentes dentro do novo limite
-    for (let i = 0; i < newDays; i++) {
-        if (currentWorkouts[i] && this.isValidWorkout(currentWorkouts[i])) {
-            // Preservar treino existente
-            preservedWorkouts[i] = {
-                ...this.deepClone(currentWorkouts[i]), // Clone profundo
-                preserved: true,
-                preservedAt: new Date().toISOString()
-            };
-            preservedCount++;
-            console.log(`✅ Treino ${i} preservado: ${currentWorkouts[i].nome}`);
-        } else {
-            // Criar novo treino
-            preservedWorkouts[i] = this.createEmptyWorkout(i);
-            createdCount++;
-            console.log(`🆕 Novo treino ${i} criado`);
-        }
-    }
-    
-    // Log estatísticas
-    console.log(`📊 Preservação concluída: ${preservedCount} preservados, ${createdCount} criados`);
-    
-    return preservedWorkouts;
-}
-
-// 5. VALIDAR SE TREINO É VÁLIDO PARA PRESERVAÇÃO
 isValidWorkout(workout) {
     return workout && 
            workout.nome && 
@@ -4745,33 +3694,7 @@ isValidWorkout(workout) {
            workout.exercicios.length > 0;
 }
 
-// 6. CRIAR TREINO VAZIO PADRONIZADO
-createEmptyWorkout(index) {
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const letter = letters[index];
-    
-    return {
-        id: letter,
-        nome: `Treino ${letter}`,
-        foco: 'Treino geral',
-        exercicios: [{
-            id: index * 10 + 1,
-            nome: 'Aquecimento',
-            descricao: 'Aquecimento específico',
-            series: 1,
-            repeticoes: '8-10 min',
-            carga: 'Leve',
-            descanso: '0',
-            observacoesEspeciais: '',
-            tecnica: '',
-            concluido: false
-        }],
-        concluido: false,
-        execucoes: 0,
-        isNew: true,
-        createdAt: new Date().toISOString()
-    };
-}
+
 
 // 7. MÉTODO PARA CONFIRMAR MUDANÇAS DRÁSTICAS
 async confirmDrasticChange(previousDays, newDays, currentWorkouts) {
@@ -4824,13 +3747,7 @@ async selectPlanTypeWithConfirmation(days, letters, element) {
         }
     }
     
-    // Continuar com preservação
-    console.log(`🎯 Confirmado: plano de ${days} dias`);
-    
-    let preservedWorkouts = [];
-    if (this.shouldPreserveExercises(previousDays, days)) {
-        preservedWorkouts = this.preserveExistingExercisesEnhanced(days);
-    }
+
     
     // Aplicar configuração e atualizar interface
     this.applyPlanTypeConfiguration(days);
@@ -4874,65 +3791,144 @@ showPreservationFeedback(previousDays, newDays, preservedWorkouts) {
     this.showMessage(message, 'success');
 }
 
-    showInlineQuickConfig() {
-        const configSection = document.getElementById('inlineQuickConfig');
-        const content = document.getElementById('inlineQuickConfigContent');
+showInlineQuickConfig() {
+       // OBTER CONFIGURAÇÃO ATUAL DA TELA
+       const days = this.selectedDays || this.planTypeConfiguration.days || 3;
+       const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+       
+       // DETECTAR CONFIGURAÇÃO ATUAL DOS TREINOS EXISTENTES
+       const currentConfig = {};
+    const configSection = document.getElementById('inlineQuickConfig');
+    const content = document.getElementById('inlineQuickConfigContent');
+    
+    // Garantir sincronia entre grupos disponíveis e selecionados
+for (let i = 0; i < days; i++) {
+    const letter = letters[i];
+    if (currentConfig[letter] && currentConfig[letter].groups) {
+        // Filtrar apenas grupos que existem na lista principal
+        currentConfig[letter].groups = currentConfig[letter].groups.filter(groupId => 
+            this.planTypeConfiguration.muscleGroups.some(g => g.id === groupId)
+        );
+    }
+}
+
+    if (!configSection || !content) {
+        console.error('Elementos de configuração inline não encontrados');
+        return;
+    }
+    
+ 
+    
+    // Método 1: Verificar treinos atuais na tela PRIMEIRO (prioridade)
+    if (this.currentPlan && this.currentPlan.treinos && this.currentPlan.treinos.length > 0) {
+        console.log('Carregando configuração dos treinos atuais na tela');
         
-        if (!configSection || !content) {
-            console.error('Elementos de configuração inline não encontrados');
-            return;
-        }
-        
-        const days = this.selectedDays || this.planTypeConfiguration.days;
-        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        
-        let html = '<div class="quick-config-grid">';
-        
-        for (let i = 0; i < days; i++) {
+        for (let i = 0; i < Math.min(days, this.currentPlan.treinos.length); i++) {
+            const treino = this.currentPlan.treinos[i];
             const letter = letters[i];
-            const config = this.planTypeConfiguration.configuration[letter] || { 
-                name: `Treino ${letter}`, 
-                groups: [] 
+            
+            // USAR DADOS REAIS DO TREINO ATUAL
+            currentConfig[letter] = {
+                name: treino.nome || `Treino ${letter}`,
+                groups: treino.gruposMusculares || this.inferGroupsFromExercises(treino.exercicios || [])
             };
             
-            html += `
-                <div class="quick-config-item">
-                    <h4>Treino ${letter}</h4>
-                    <input type="text" 
-                           class="form-input workout-name-input" 
-                           placeholder="Nome do treino"
-                           value="${config.name}"
-                           data-letter="${letter}"
-                           onchange="app.updateInlineConfigName('${letter}', this.value)"
-                           style="margin-bottom: 15px;">
-                    <div class="quick-muscle-groups">
-                        ${this.planTypeConfiguration.muscleGroups.map(group => `
-                            <label class="quick-muscle-check">
-                                <input type="checkbox" 
-                                       name="inline-${letter}" 
-                                       value="${group.id}"
-                                       ${config.groups.includes(group.id) ? 'checked' : ''}
-                                       onchange="app.updateInlineConfigGroups()">
-                                <span>${group.icon} ${group.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
+            console.log(`Configuração do treino ${letter}: "${currentConfig[letter].name}" - Grupos: [${currentConfig[letter].groups.join(', ')}]`);
         }
-        
-        html += '</div>';
-        content.innerHTML = html;
-        
-        // Mostrar seção com animação
-        configSection.style.display = 'block';
-        configSection.scrollIntoView({ behavior: 'smooth' });
-        
-        console.log('Interface de configuração inline criada');
     }
-
-
-
+    // Método 2: Usar configuração salva se não há treinos na tela
+    else if (this.planTypeConfiguration.configuration && Object.keys(this.planTypeConfiguration.configuration).length > 0) {
+        Object.assign(currentConfig, this.planTypeConfiguration.configuration);
+        console.log('Carregando configuração salva existente');
+    }
+    // Método 3: Usar configuração padrão como último recurso
+    else {
+        console.log('Usando configuração padrão como fallback');
+        const presetConfig = this.planTypeConfiguration.presetConfigurations[days];
+        if (presetConfig) {
+            Object.assign(currentConfig, presetConfig);
+        }
+    }
+    
+    // GARANTIR que todos os dias tenham configuração
+    for (let i = 0; i < days; i++) {
+        const letter = letters[i];
+        if (!currentConfig[letter]) {
+            // Se há treino atual, usar seus dados
+            if (this.currentPlan?.treinos?.[i]) {
+                currentConfig[letter] = {
+                    name: this.currentPlan.treinos[i].nome || `Treino ${letter}`,
+                    groups: this.currentPlan.treinos[i].gruposMusculares || []
+                };
+            } else {
+                currentConfig[letter] = {
+                    name: `Treino ${letter}`,
+                    groups: []
+                };
+            }
+        }
+    }
+    
+    console.log(`Gerando interface inline para ${days} dias:`, currentConfig);
+    
+    let html = '<div class="quick-config-grid">';
+    
+    for (let i = 0; i < days; i++) {
+        const letter = letters[i];
+        const config = currentConfig[letter];
+        
+        // GARANTIR que o nome do treino seja exibido corretamente
+        const treinoNome = config.name || `Treino ${letter}`;
+        const gruposSelecionados = config.groups || [];
+        
+        html += `
+            <div class="quick-config-item">
+                <h4>Treino ${letter}</h4>
+                <input type="text" 
+                       class="form-input workout-name-input" 
+                       placeholder="Nome do treino"
+                       value="${treinoNome}"
+                       data-letter="${letter}"
+                       onchange="app.updateInlineConfigName('${letter}', this.value)"
+                       style="margin-bottom: 15px;">
+                <div class="quick-muscle-groups">
+                    ${this.planTypeConfiguration.muscleGroups.map(group => `
+                        <label class="quick-muscle-check">
+                            <input type="checkbox" 
+                                   name="inline-${letter}" 
+                                   value="${group.id}"
+                                   ${gruposSelecionados.includes(group.id) ? 'checked' : ''}
+                                   onchange="app.updateInlineConfigGroups()">
+                            <span>${group.icon} ${group.name}</span>
+                        </label>
+                    `).join('')}
+                </div>
+                <div class="group-preview">
+                    <strong>Selecionados:</strong><br>
+                    <span class="selected-groups">
+                        ${gruposSelecionados.map(groupId => {
+                            const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
+                            return group ? `${group.icon} ${group.name}` : groupId;
+                        }).join(', ') || 'Nenhum grupo selecionado'}
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    content.innerHTML = html;
+    
+    // Atualizar configuração interna com os dados carregados
+    this.planTypeConfiguration.configuration = currentConfig;
+    this.planTypeConfiguration.days = days;
+    
+    // Mostrar seção com animação
+    configSection.style.display = 'block';
+    configSection.scrollIntoView({ behavior: 'smooth' });
+    
+    console.log('✅ Interface inline criada com nomes atuais dos treinos:', Object.keys(currentConfig).map(k => `${k}: ${currentConfig[k].name}`));
+}
     // Atualizar nome na configuração inline
     updateInlineConfigName(letter, name) {
         if (!this.planTypeConfiguration.configuration[letter]) {
@@ -5308,7 +4304,7 @@ showPlanTypeConfigModal() {
                 this.populateContextualGroupFilter(configuredGroups, workout);
                 
                 // CORREÇÃO: Buscar core dinamicamente se perdido
-                this.ensureCoreAvailable();
+                this.CoreManager.getCore();
                 
                 this.populateExerciseSelect('contextual');
     
@@ -5321,7 +4317,7 @@ showPlanTypeConfigModal() {
                 this.populateGroupFilter();
                 
                 // CORREÇÃO: Buscar core dinamicamente se perdido
-                this.ensureCoreAvailable();
+                this.CoreManager.getCore();
                 
                 this.populateExerciseSelect('todos');
     
@@ -5411,9 +4407,7 @@ populateExerciseSelect(filterGroup = 'todos') {
         } else {
             console.warn(`⚠️ Nenhum exercício encontrado no banco para grupo: ${filterGroup}`);
             
-            // Mostrar quais grupos existem no banco
-            this.showAvailableGroups();
-            
+
             // Adicionar mensagem informativa
             const noExerciseOption = document.createElement('option');
             noExerciseOption.value = '';
@@ -5454,64 +4448,9 @@ populateExerciseSelect(filterGroup = 'todos') {
             .replace(/S$/, ''); // Remove plural (OMBROS → OMBRO)
     }
     
-    // MÉTODO AUXILIAR: Mostrar grupos disponíveis no banco (para debug)
-    showAvailableGroups() {
-        if (!this.core.exerciseDatabase) return;
-        
-        const uniqueGroups = [...new Set(this.core.exerciseDatabase.map(ex => ex.grupo))].sort();
-        console.log('📊 Grupos disponíveis no banco:', uniqueGroups);
-        
-        // Contar exercícios por grupo
-        const groupCounts = {};
-        this.core.exerciseDatabase.forEach(ex => {
-            const group = ex.grupo || 'SEM_GRUPO';
-            groupCounts[group] = (groupCounts[group] || 0) + 1;
-        });
-        
-        console.log('📊 Exercícios por grupo no banco:');
-        Object.entries(groupCounts).forEach(([group, count]) => {
-            console.log(`  ${group}: ${count} exercícios`);
-        });
-    }
+ 
     
    
-    
-
-
-    ensureCoreAvailable() {
-        // Se core não existe, tentar recuperar
-        if (!this.core) {
-            console.warn('🔄 Core perdido, tentando recuperar...');
-            
-            // Estratégia 1: Buscar em window.app
-            if (window.app && window.app.core) {
-                this.core = window.app.core;
-                console.log('✅ Core recuperado de window.app');
-                return;
-            }
-            
-            // Estratégia 2: Buscar em window global
-            if (window.core) {
-                this.core = window.core;
-                console.log('✅ Core recuperado de window.core');
-                return;
-            }
-            
-            // Estratégia 3: Criar novo se necessário
-            if (window.JSFitCore) {
-                this.core = new window.JSFitCore();
-                console.log('✅ Novo core criado');
-            }
-        }
-        
-        // Verificar se base está carregada
-        if (this.core && !this.core.exerciseDatabaseLoaded) {
-            console.warn('⚠️ Base não carregada no core recuperado');
-        }
-    }
-
-    
-    
     setDefaultExerciseName(currentExercise) {
         const exerciseSelect = document.getElementById('exerciseName');
         const customGroup = document.getElementById('customExerciseGroup');
@@ -5596,8 +4535,8 @@ saveInlineExercise() {
         this.closeInlineEditor();
         
         // 6. USAR workoutIndex ARMAZENADO PARA ATUALIZAÇÃO
-        console.log(`🔄 Chamando forceCompleteUIUpdate com workoutIndex: ${workoutIndex}`);
-        this.forceCompleteUIUpdate(workoutIndex); // ← USAR VALOR ARMAZENADO
+        console.log(`🔄 Chamando updateExerciseList com workoutIndex: ${workoutIndex}`);
+        this.updateExerciseList(workoutIndex); // ← USAR VALOR ARMAZENADO
         
         this.clearEditingIndices(); // ← Adicionar esta linha
 
@@ -5680,96 +4619,8 @@ collectAndValidateFormData() {
     };
 }
 
-// VERSÃO CORRIGIDA DO forceCompleteUIUpdate
-forceCompleteUIUpdate(workoutIndex) {
-    console.log('🔄 Forçando atualização completa da UI...');
-    
-    // VALIDAÇÃO CRÍTICA DO PARÂMETRO
-    if (workoutIndex === null || workoutIndex === undefined) {
-        console.error('❌ forceCompleteUIUpdate: workoutIndex é obrigatório!', { workoutIndex });
-        this.showMessage('Erro interno: índice do treino inválido', 'error');
-        return;
-    }
-    
-    // VALIDAÇÃO DA ESTRUTURA DE DADOS
-    if (!this.currentPlan || !this.currentPlan.treinos || !this.currentPlan.treinos[workoutIndex]) {
-        console.error('❌ forceCompleteUIUpdate: estrutura de dados inválida', { 
-            workoutIndex, 
-            planExists: !!this.currentPlan,
-            treinosExists: !!(this.currentPlan && this.currentPlan.treinos),
-            workoutExists: !!(this.currentPlan && this.currentPlan.treinos && this.currentPlan.treinos[workoutIndex])
-        });
-        this.showMessage('Erro: treino não encontrado', 'error');
-        return;
-    }
-    
-    console.log(`✅ Iniciando atualização para workout ${workoutIndex}`);
-    
-    // MÉTODO MAIS DIRETO - SEM MÚLTIPLOS TIMEOUTS
-    setTimeout(() => {
-        try {
-            // 1. Atualizar lista de exercícios
-            this.updateExerciseList(workoutIndex);
-            
-            // 2. Forçar re-renderização do container
-            const container = document.getElementById(`exerciseList${workoutIndex}`);
-            if (container) {
-                console.log(`✅ Container exerciseList${workoutIndex} encontrado`);
-                
-                // Força reflow completo
-                const currentDisplay = container.style.display;
-                container.style.display = 'none';
-                container.offsetHeight; // Força reflow
-                container.style.display = currentDisplay || '';
-                
-                // Re-renderizar conteúdo
-                const workout = this.currentPlan.treinos[workoutIndex];
-                if (workout && workout.exercicios) {
-                    const newHTML = this.renderExercises(workout.exercicios, workoutIndex);
-                    container.innerHTML = newHTML;
-                    console.log('✅ Interface atualizada com sucesso');
-                } else {
-                    console.warn('⚠️ Workout ou exercícios não encontrados para re-renderização');
-                }
-            } else {
-                console.error(`❌ Container exerciseList${workoutIndex} não encontrado após updateExerciseList`);
-            }
-            
-            // 3. Verificação final (com delay menor)
-            setTimeout(() => {
-                this.verifyUIUpdate(workoutIndex);
-            }, 50);
-            
-        } catch (error) {
-            console.error('❌ Erro durante forceCompleteUIUpdate:', error);
-            this.showMessage('Erro ao atualizar interface', 'error');
-        }
-    }, 10); // Delay reduzido
-}
-
-// MÉTODO PARA VERIFICAR SE A ATUALIZAÇÃO FOI BEM-SUCEDIDA
-verifyUIUpdate(workoutIndex) {
-    const container = document.getElementById(`exerciseList${workoutIndex}`);
-    if (!container) {
-        console.error('Container não encontrado após atualização');
-        return;
-    }
-
-    const exerciseItems = container.querySelectorAll('.exercise-item');
-    const expectedCount = this.currentPlan.treinos[workoutIndex].exercicios.length;
-    
-    if (exerciseItems.length !== expectedCount) {
-        console.warn(`Discrepância na UI: esperado ${expectedCount}, encontrado ${exerciseItems.length}`);
-        // Tentar nova atualização
-        this.updateExerciseList(workoutIndex);
-    } else {
-        console.log('✅ Verificação da UI concluída com sucesso');
-    }
-}
 
 
-
-// 2. MÉTODO PARA COLETAR DADOS DO FORMULÁRIO DE FORMA ROBUSTA
 collectFormData() {
     // Coletar elementos do formulário
     const exerciseSelect = document.getElementById('exerciseName');
@@ -6519,11 +5370,6 @@ async getExercisesFromFirebaseByGroup(grupo) {
             }
         }
 
-        if (groupExercises.length === 0) {
-            console.warn(`⚠️ Nenhum exercício encontrado para "${grupo}" e suas variações`);
-            // Mostrar grupos disponíveis para debug
-            this.debugAvailableGroups();
-        }
 
         return groupExercises;
 
@@ -6551,27 +5397,6 @@ getGroupSearchVariations(grupo) {
     return variations[grupo] || [grupo];
 }
 
-// 7. MÉTODO PARA DEBUG DOS GRUPOS DISPONÍVEIS
-debugAvailableGroups() {
-    if (!this.core?.exerciseDatabase) return;
-
-    const uniqueGroups = [...new Set(this.core.exerciseDatabase.map(ex => ex.grupo))].sort();
-    console.log('🔍 Grupos disponíveis no banco:', uniqueGroups);
-    
-    // Contar exercícios por grupo
-    const groupCounts = {};
-    this.core.exerciseDatabase.forEach(ex => {
-        const group = ex.grupo || 'SEM_GRUPO';
-        groupCounts[group] = (groupCounts[group] || 0) + 1;
-    });
-    
-    console.log('📊 Exercícios por grupo:');
-    Object.entries(groupCounts).forEach(([group, count]) => {
-        console.log(`  ${group}: ${count} exercícios`);
-    });
-}
-
-// SUBSTITUA O MÉTODO generateAIPlan COMPLETO no personal.js
 
 async generateAIPlan() {
     const generator = new ImprovedAIPlanGenerator(this);
@@ -6747,14 +5572,7 @@ validateAIWorkoutConfig(letter) {
     }
 }
 
-// 5. ATUALIZAR DISPLAY DO CONTADOR
-updateGroupCountDisplay(letter, count) {
-    const countElement = document.querySelector(`[data-letter="${letter}"] + .group-count`);
-    if (countElement) {
-        countElement.textContent = `${count} grupo(s) selecionado(s)`;
-        countElement.className = `group-count ${count > 0 ? 'has-groups' : 'no-groups'}`;
-    }
-}
+
 
 // 6. VALIDAR E SALVAR CONFIGURAÇÃO
 validateAndSaveAIConfig() {
@@ -6837,10 +5655,18 @@ resetAIMuscleConfig() {
 onAIDaysChange() {
     // Este método deve ser chamado quando o campo aiAvailableDays mudar
     if (this.aiMuscleConfig && this.aiMuscleConfig.enabled) {
-        console.log('Dias alterados, regenerando interface AI...');
+        console.log('📅 Dias alterados, reaplicando preset e regenerando interface IA...');
+        
+        // Reaplicar configurações preset para o novo número de dias
+        this.applyPresetToAIMuscleConfig();
+        
+        // Regenerar interface com as novas configurações
         this.generateAIMuscleConfigInterface();
+        
+        console.log('✅ Interface IA atualizada para novo número de dias');
     }
 }
+
 
 // 6. MÉTODO PARA APLICAR CONFIGURAÇÃO (CORRIGIDO)
 applyAIConfigToPlan(days) {
@@ -6901,7 +5727,7 @@ generateAIMuscleConfigInterface() {
     let html = `
         <div class="ai-config-header">
             <h4>🏋️ Configure os Treinos (${days} dias)</h4>
-            <p>Selecione os grupos musculares para cada dia de treino:</p>
+            <p>Configuração baseada no modelo padrão. Ajuste conforme necessário:</p>
         </div>
         <div class="ai-muscle-config-grid">
     `;
@@ -6909,6 +5735,13 @@ generateAIMuscleConfigInterface() {
     for (let i = 0; i < days; i++) {
         const letter = letters[i];
         const existingConfig = this.aiMuscleConfig.workouts[letter] || {};
+        // Se não há configuração, aplicar uma básica
+if (!existingConfig.name && !existingConfig.groups) {
+    console.warn(`Configuração faltando para treino ${letter}, aplicando padrão`);
+    existingConfig.name = `Treino ${letter}`;
+    existingConfig.groups = ['corpo']; // Grupo padrão
+}
+
         
         html += `
             <div class="ai-workout-config" data-letter="${letter}">
@@ -6994,32 +5827,36 @@ generateAIGroupsPreview(letter, selectedGroups) {
     `;
 }
 
-
-// 3. MÉTODOS DE EXERCÍCIOS INTELIGENTES
-getSmartWarmupForGroups(muscleGroups, equipments) {
-    const warmups = {
-        'peito': 'Aquecimento peitoral com movimentos circulares',
-        'costas': 'Aquecimento dorsal com extensões e rotações',
-        'ombro': 'Rotações de ombro e elevações laterais leves',
-        'perna': 'Aquecimento de pernas com agachamentos leves',
-        'gluteo': 'Ativação glútea com pontes e caminhadas',
-        'biceps': 'Rotações de braços e flexões leves',
-        'triceps': 'Extensões de braços e rotações',
-        'abdome': 'Rotações de tronco e prancha isométrica'
+generateWorkoutEditorWithoutWarmup(days) {
+    const editor = document.getElementById('workoutEditor');
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const workoutNames = {
+        1: ['A - Corpo Inteiro'],
+        2: ['A - Membros Superiores', 'B - Membros Inferiores'],
+        3: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Pernas e Ombros'],
+        4: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Ombros', 'D - Pernas'],
+        5: ['A - Peito e Tríceps', 'B - Costas e Bíceps', 'C - Ombros e Trapézio', 'D - Pernas (Quadríceps)', 'E - Posterior e Core'],
+        6: ['A - Peito', 'B - Costas', 'C - Ombros', 'D - Braços', 'E - Pernas (Quadríceps)', 'F - Posterior e Core']
     };
-    
-    const primaryGroup = muscleGroups[0] || 'corpo';
-    return warmups[primaryGroup] || 'Aquecimento geral articular';
+
+    let html = '<div class="form-section"><h2>🏋️ Treinos</h2>';
+    this.currentPlan.treinos = [];
+
+    for (let i = 0; i < days; i++) {
+        const workout = {
+            id: letters[i],
+            nome: workoutNames[days][i], // USA workoutNames CONFORME SOLICITADO
+            foco: workoutNames[days][i].split(' - ')[1] || 'Treino geral',
+            exercicios: [], // ARRAY VAZIO - SEM AQUECIMENTO AUTOMÁTICO
+            concluido: false,
+            execucoes: 0
+        };
+
+        this.currentPlan.treinos.push(workout);
+        // ... resto do HTML igual ao método original
+    }
 }
 
-getWarmupDescriptionForGroups(muscleGroups) {
-    return `Aquecimento específico focado em ${muscleGroups.join(', ')}, ` +
-           'incluindo mobilidade articular e ativação neuromuscular';
-}
-
-getSmartCooldownForGroups(muscleGroups) {
-    return `Alongamento dos grupos trabalhados: ${muscleGroups.join(', ')}`;
-}
 
 getFallbackExercise(grupoId) {
     const fallbacks = {
@@ -7037,26 +5874,312 @@ getFallbackExercise(grupoId) {
     return fallbacks[grupoId] || 'Exercício funcional';
 }
 
-getWarmupIntensity() {
-    return 'Leve a moderada (40-60% FCmax)';
-}
 
-// 4. MÉTODOS DE TÉCNICAS E ESPECIFICAÇÕES
-getTecnicaForExercise(exercisePosition, level, muscleGroup) {
-    const techniques = {
-        'iniciante': ['', '', 'tempo-controlado'],
-        'intermediario': ['', 'drop-set', 'rest-pause', 'bi-set'],
-        'avancado': ['super-set-mesmo-musculo', 'pre-exaustao', 'tri-set', 'cluster-set']
+// =============================================
+// SISTEMA UNIFICADO DE TÉCNICAS
+// Fonte única: this.tecnicasDatabase
+// =============================================
+
+// Método auxiliar para categorizar técnicas automaticamente
+categorizeTechniquesByComplexity() {
+    const allTechniques = Object.keys(this.tecnicasDatabase);
+    
+    // Categorização automática baseada em palavras-chave e complexidade
+    const categorization = {
+        iniciante: [],
+        intermediario: [],
+        avancado: []
     };
     
-    const levelTechniques = techniques[level] || techniques['intermediario'];
+    allTechniques.forEach(technique => {
+        const description = this.tecnicasDatabase[technique].toLowerCase();
+        
+        // Técnicas para iniciantes (foco em controle e aprendizado)
+        if (
+            technique.includes('tempo-controlado') ||
+            technique.includes('pausa-contracao') ||
+            technique.includes('iso-hold') ||
+            technique.includes('static-holds') ||
+            technique.includes('pause-reps') ||
+            technique.includes('explosivas') ||
+            technique.includes('pre-stretch') ||
+            description.includes('controlada') ||
+            description.includes('aprendizado') ||
+            description.includes('lenta')
+        ) {
+            categorization.iniciante.push(technique);
+        }
+        // Técnicas avançadas (alta complexidade, risco ou supervisão necessária)
+        else if (
+            technique.includes('super-set') ||
+            technique.includes('tri-set') ||
+            technique.includes('cluster') ||
+            technique.includes('negativas') ||
+            technique.includes('forcadas') ||
+            technique.includes('myo-reps') ||
+            technique.includes('dante') ||
+            technique.includes('meta') ||
+            technique.includes('contrast') ||
+            technique.includes('wave') ||
+            technique.includes('accommodating') ||
+            technique.includes('potentiation') ||
+            technique.includes('blood-flow') ||
+            technique.includes('eccentric-overload') ||
+            technique.includes('mechanical-advantage') ||
+            description.includes('consecutivos') ||
+            description.includes('assistidas') ||
+            description.includes('superior ao 1rm') ||
+            description.includes('máxima velocidade') ||
+            description.includes('restrição') ||
+            description.includes('complexa')
+        ) {
+            categorization.avancado.push(technique);
+        }
+        // Intermediário (padrão para técnicas não categorizadas especificamente)
+        else {
+            categorization.intermediario.push(technique);
+        }
+    });
     
-    // Aplicar técnica em 1 a cada 3 exercícios
-    if (exercisePosition % 3 === 0 && exercisePosition > 0) {
-        return levelTechniques[Math.floor(Math.random() * levelTechniques.length)];
+    return categorization;
+}
+
+// Método auxiliar para obter técnicas específicas por grupo muscular
+getTechniquesByMuscleGroup() {
+    const allTechniques = Object.keys(this.tecnicasDatabase);
+    
+    return {
+        'peito': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('drop-set') || 
+                   technique.includes('pre-exaustao') || 
+                   technique.includes('pos-exaustao') ||
+                   technique.includes('serie-composta') ||
+                   technique.includes('serie-reversa') ||
+                   technique.includes('pausa-contracao') ||
+                   desc.includes('isolamento') ||
+                   desc.includes('composto');
+        }),
+        
+        'costas': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('rest-pause') ||
+                   technique.includes('cluster') ||
+                   technique.includes('strip') ||
+                   technique.includes('negativas') ||
+                   technique.includes('eccentric') ||
+                   desc.includes('excêntrica') ||
+                   desc.includes('controlada');
+        }),
+        
+        'ombro': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('drop-set') ||
+                   technique.includes('21s') ||
+                   technique.includes('parciais') ||
+                   technique.includes('serie-queima') ||
+                   technique.includes('piramide') ||
+                   desc.includes('parciais') ||
+                   desc.includes('amplitude');
+        }),
+        
+        'biceps': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('21s') ||
+                   technique.includes('rest-pause') ||
+                   technique.includes('drop-set') ||
+                   technique.includes('serie-queima') ||
+                   technique.includes('iso-hold') ||
+                   desc.includes('parciais') ||
+                   desc.includes('isométrica');
+        }),
+        
+        'triceps': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('drop-set') ||
+                   technique.includes('rest-pause') ||
+                   technique.includes('pos-exaustao') ||
+                   technique.includes('parciais') ||
+                   technique.includes('negativas') ||
+                   desc.includes('isolamento');
+        }),
+        
+        'perna': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('cluster') ||
+                   technique.includes('rest-pause') ||
+                   technique.includes('pause-reps') ||
+                   technique.includes('iso-hold') ||
+                   technique.includes('post-activation') ||
+                   desc.includes('pausa') ||
+                   desc.includes('potencialização');
+        }),
+        
+        'gluteo': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('pause-reps') ||
+                   technique.includes('iso-hold') ||
+                   technique.includes('tempo-controlado') ||
+                   technique.includes('pausa-contracao') ||
+                   technique.includes('static-holds') ||
+                   desc.includes('pausa') ||
+                   desc.includes('sustentada');
+        }),
+        
+        'abdome': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('iso-hold') ||
+                   technique.includes('static-holds') ||
+                   technique.includes('circuito') ||
+                   technique.includes('density') ||
+                   technique.includes('meta-contracao') ||
+                   desc.includes('isométrica') ||
+                   desc.includes('densidade');
+        }),
+        
+        'antebraco': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('iso-hold') ||
+                   technique.includes('static-holds') ||
+                   technique.includes('drop-set') ||
+                   technique.includes('serie-queima') ||
+                   desc.includes('sustentada') ||
+                   desc.includes('isométrica');
+        }),
+        
+        'corpo': allTechniques.filter(technique => {
+            const desc = this.tecnicasDatabase[technique].toLowerCase();
+            return technique.includes('circuito') ||
+                   technique.includes('super-set-antagonista') ||
+                   technique.includes('tri-set') ||
+                   technique.includes('density') ||
+                   technique.includes('antagonist-paired') ||
+                   desc.includes('sequência') ||
+                   desc.includes('circuito');
+        })
+    };
+}
+
+// 1. getTecnicaForExercise - Versão unificada
+getTecnicaForExercise(exercisePosition, level, muscleGroup) {
+    const categorizedTechniques = this.categorizeTechniquesByComplexity();
+    const muscleSpecificTechniques = this.getTechniquesByMuscleGroup();
+    
+    // Obter técnicas válidas para o nível
+    const levelTechniques = categorizedTechniques[level] || categorizedTechniques['intermediario'];
+    
+    // Lógica de aplicação
+    if (exercisePosition <= 1) {
+        return ''; // Primeiros exercícios sem técnica
     }
     
-    return '';
+    // Probabilidade baseada no nível
+    const probabilities = {
+        'iniciante': 0.2,
+        'intermediario': 0.4,
+        'avancado': 0.6
+    };
+    
+    const baseProbability = probabilities[level] || 0.3;
+    const positionMultiplier = Math.min(1.5, 1 + (exercisePosition - 2) * 0.1);
+    
+    if (Math.random() > (baseProbability * positionMultiplier)) {
+        return '';
+    }
+    
+    // Combinar técnicas do nível com específicas do músculo
+    let availableTechniques = [...levelTechniques];
+    
+    if (muscleGroup && muscleSpecificTechniques[muscleGroup]) {
+        const muscleSpecific = muscleSpecificTechniques[muscleGroup];
+        // Filtrar apenas técnicas do nível atual
+        const validMuscleSpecific = muscleSpecific.filter(tech => 
+            levelTechniques.includes(tech)
+        );
+        availableTechniques.push(...validMuscleSpecific, ...validMuscleSpecific);
+    }
+    
+    // Selecionar técnica aleatória
+    if (availableTechniques.length === 0) return '';
+    
+    const selectedTechnique = availableTechniques[
+        Math.floor(Math.random() * availableTechniques.length)
+    ];
+    
+    return selectedTechnique || '';
+}
+
+// 2. getUsedTechniques - Versão unificada
+getUsedTechniques(level) {
+    const categorizedTechniques = this.categorizeTechniquesByComplexity();
+    const levelTechniques = categorizedTechniques[level] || categorizedTechniques['intermediario'];
+    
+    // Construir objeto de retorno com técnicas e descrições do banco
+    const result = {};
+    
+    levelTechniques.forEach(technique => {
+        if (this.tecnicasDatabase[technique]) {
+            result[technique] = this.tecnicasDatabase[technique];
+        }
+    });
+    
+    // Limitar número de técnicas
+    const maxTechniques = {
+        'iniciante': 3,
+        'intermediario': 6,
+        'avancado': 10
+    };
+    
+    const maxCount = maxTechniques[level] || 6;
+    
+    if (Object.keys(result).length <= maxCount) {
+        return result;
+    }
+    
+    // Selecionar aleatoriamente se exceder o limite
+    const limitedResult = {};
+    const shuffled = Object.keys(result).sort(() => 0.5 - Math.random());
+    
+    shuffled.slice(0, maxCount).forEach(key => {
+        limitedResult[key] = result[key];
+    });
+    
+    return limitedResult;
+}
+
+// 3. getProgressionByLevel - Versão unificada
+getProgressionByLevel(level) {
+    // Buscar técnicas do nível para contextualizar a progressão
+    const categorizedTechniques = this.categorizeTechniquesByComplexity();
+    const levelTechniques = categorizedTechniques[level] || [];
+    const techniqueCount = levelTechniques.length;
+    
+    // Analisar características das técnicas do nível
+    const hasControlledTechniques = levelTechniques.some(tech => 
+        tech.includes('tempo-controlado') || tech.includes('pausa')
+    );
+    const hasIntensityTechniques = levelTechniques.some(tech => 
+        tech.includes('drop-set') || tech.includes('rest-pause')
+    );
+    const hasComplexTechniques = levelTechniques.some(tech => 
+        tech.includes('super-set') || tech.includes('cluster')
+    );
+    
+    const progressions = {
+        'iniciante': `Progressão semanal de 2-5% na carga, priorizando técnica perfeita. ${
+            hasControlledTechniques ? 'Foque em técnicas de controle temporal para desenvolvimento motor.' : ''
+        } Disponíveis ${techniqueCount} técnicas básicas para variação.`,
+        
+        'intermediario': `Progressão quinzenal de 2-3% na carga, introduzindo variações técnicas. ${
+            hasIntensityTechniques ? 'Utilize técnicas de intensidade com moderação.' : ''
+        } Acesso a ${techniqueCount} técnicas intermediárias para quebra de platôs.`,
+        
+        'avancado': `Progressão mensal de 1-2% com periodização complexa. ${
+            hasComplexTechniques ? 'Empregue técnicas avançadas estrategicamente para supercompensação.' : ''
+        } Domínio de ${techniqueCount} técnicas especializadas para máxima adaptação.`
+    };
+    
+    return progressions[level] || progressions['intermediario'];
 }
 
 adjustLoadForLevel(baseLoad, level) {
@@ -7069,34 +6192,6 @@ adjustLoadForLevel(baseLoad, level) {
     return adjustments[level] || baseLoad;
 }
 
-getUsedTechniques(level) {
-    const techniques = {
-        'iniciante': {
-            'tempo-controlado': 'Execução controlada para aprendizado motor'
-        },
-        'intermediario': {
-            'drop-set': 'Redução de carga para maior volume',
-            'rest-pause': 'Pausas breves para completar séries'
-        },
-        'avancado': {
-            'super-set-mesmo-musculo': 'Exercícios consecutivos para mesmo músculo',
-            'pre-exaustao': 'Isolamento antes de exercício composto',
-            'tri-set': 'Três exercícios em sequência'
-        }
-    };
-    
-    return techniques[level] || {};
-}
-
-getProgressionByLevel(level) {
-    const progressions = {
-        'iniciante': 'Progressão semanal de 2-5% na carga, foco na técnica',
-        'intermediario': 'Progressão quinzenal de 2-3%, variação de técnicas',
-        'avancado': 'Progressão mensal de 1-2%, periodização complexa'
-    };
-    
-    return progressions[level] || progressions['intermediario'];
-}
 
 getNutritionByObjective(objective) {
     const nutrition = {
@@ -7113,78 +6208,6 @@ getNutritionByObjective(objective) {
     };
     
     return nutrition[objective] || nutrition['Condicionamento geral'];
-}
-
-// 5. MÉTODOS DE INTERFACE
-showGeneratingIndicator() {
-    // Remover indicadores existentes
-    document.querySelectorAll('.ai-generating-indicator').forEach(el => el.remove());
-    
-    const indicator = document.createElement('div');
-    indicator.className = 'ai-generating-indicator';
-    indicator.innerHTML = `
-        <div class="generating-overlay">
-            <div class="generating-content">
-                <div class="generating-spinner"></div>
-                <h3>🤖 IA Gerando Plano</h3>
-                <p>Analisando objetivos e criando treinos personalizados...</p>
-                <div class="generating-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
-                    </div>
-                    <span class="progress-text">Processando...</span>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    indicator.style.cssText = `
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.8); z-index: 10000;
-        display: flex; align-items: center; justify-content: center;
-    `;
-    
-    document.body.appendChild(indicator);
-    
-    // Animar progresso
-    this.animateGeneratingProgress();
-}
-
-hideGeneratingIndicator() {
-    const indicator = document.querySelector('.ai-generating-indicator');
-    if (indicator) {
-        indicator.style.opacity = '0';
-        setTimeout(() => indicator.remove(), 300);
-    }
-}
-
-animateGeneratingProgress() {
-    const progressFill = document.querySelector('.progress-fill');
-    const progressText = document.querySelector('.progress-text');
-    
-    if (!progressFill || !progressText) return;
-    
-    const steps = [
-        { percent: 20, text: 'Analisando perfil...' },
-        { percent: 40, text: 'Selecionando exercícios...' },
-        { percent: 60, text: 'Aplicando técnicas...' },
-        { percent: 80, text: 'Otimizando treinos...' },
-        { percent: 100, text: 'Finalizando...' }
-    ];
-    
-    let currentStep = 0;
-    
-    const updateProgress = () => {
-        if (currentStep < steps.length) {
-            const step = steps[currentStep];
-            progressFill.style.width = step.percent + '%';
-            progressText.textContent = step.text;
-            currentStep++;
-            setTimeout(updateProgress, 800);
-        }
-    };
-    
-    updateProgress();
 }
 
 getWorkoutLetters(days) {
@@ -7251,197 +6274,9 @@ calculateAge(birthDate) {
 }
 
 
-async generateAdvancedAIWorkouts(aiData) {
-    const workouts = [];
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const config = this.planTypeConfiguration.configuration;
-
-    console.log(`Gerando treinos IA avançados para ${aiData.dias} dias`);
-
-    // ESTRATÉGIA 1: Verificar se core atual tem os dados
-    if (this.core && this.core.exerciseDatabase && Array.isArray(this.core.exerciseDatabase) && this.core.exerciseDatabase.length > 0) {
-        console.log(`✅ Usando core atual com ${this.core.exerciseDatabase.length} exercícios`);
-    } 
-    // ESTRATÉGIA 2: Buscar core global com dados
-    else if (window.core && window.core.exerciseDatabase && Array.isArray(window.core.exerciseDatabase) && window.core.exerciseDatabase.length > 0) {
-        console.log('🔧 Usando core global com exercícios carregados');
-        this.core = window.core;
+    getWarmupIntensity() {
+        return 'Leve a moderada';
     }
-    // ESTRATÉGIA 3: Verificar se aplicação tem core com dados
-    else if (window.app && window.app.core && window.app.core.exerciseDatabase && Array.isArray(window.app.core.exerciseDatabase) && window.app.core.exerciseDatabase.length > 0) {
-        console.log('🔧 Usando core da aplicação com exercícios carregados');
-        this.core = window.app.core;
-    }
-    // ESTRATÉGIA 4: Buscar qualquer instância JSFitCore com dados
-    else {
-        let foundCore = null;
-        
-        // Verificar propriedades globais
-        for (let prop in window) {
-            try {
-                if (window[prop] && window[prop].exerciseDatabase && Array.isArray(window[prop].exerciseDatabase) && window[prop].exerciseDatabase.length > 0) {
-                    foundCore = window[prop];
-                    console.log(`🔧 Core encontrado em window.${prop} com ${foundCore.exerciseDatabase.length} exercícios`);
-                    break;
-                }
-            } catch (e) {
-                // Ignorar erros de acesso a propriedades
-            }
-        }
-        
-        if (foundCore) {
-            this.core = foundCore;
-        } else {
-            throw new Error('Sistema de exercícios não está disponível. Recarregue a página e aguarde o carregamento completo.');
-        }
-    }
-
-    console.log(`✅ Base de exercícios confirmada: ${this.core.exerciseDatabase.length} exercícios disponíveis`);
-
-    for (let i = 0; i < aiData.dias; i++) {
-        const letter = letters[i];
-        const workoutConfig = config[letter];
-
-        if (!workoutConfig) {
-            console.warn(`Configuração não encontrada para treino ${letter}`);
-            continue;
-        }
-
-        console.log(`Criando treino ${letter}: ${workoutConfig.name}`);
-
-        const exercises = await this.generateExercisesWithAdvancedSpecs(
-            workoutConfig.groups,
-            aiData,
-            i + 1
-        );
-
-        workouts.push({
-            id: letter,
-            nome: workoutConfig.name,
-            foco: this.generateWorkoutFocusFromGroups(workoutConfig.groups),
-            exercicios: exercises,
-            gruposMusculares: workoutConfig.groups,
-            configuracao_original: workoutConfig,
-            concluido: false,
-            execucoes: 0,
-            specs_aplicadas: this.getWorkoutSpecs(aiData.objetivo)
-        });
-    }
-
-    console.log(`${workouts.length} treinos gerados com especificações avançadas`);
-    return workouts;
-}
-    
-    async generateExercisesWithAdvancedSpecs(muscleGroups, aiData, workoutNumber) {
-        const exercises = [];
-        let exerciseId = workoutNumber * 10;
-    
-        console.log(`Gerando exercícios para grupos: ${muscleGroups.join(', ')}`);
-    
-        // Obter especificações baseadas no objetivo
-        const specs = this.getObjectiveSpecs(aiData.objetivo);
-        const exerciseCount = this.getExerciseCountPerGroup(aiData.objetivo);
-    
-        // 1. AQUECIMENTO ESPECÍFICO
-        exercises.push({
-            id: exerciseId++,
-            nome: this.getSmartWarmupForGroups(muscleGroups, aiData.equipamentos),
-            descricao: this.getWarmupDescriptionForGroups(muscleGroups),
-            series: 1,
-            repeticoes: "8-10 min",
-            carga: this.getWarmupIntensity(),
-            descanso: '0',
-            observacoesEspeciais: 'Aquecimento progressivo e específico',
-            tecnica: '',
-            concluido: false,
-            categoria: 'aquecimento'
-        });
-    
-        // 2. EXERCÍCIOS PRINCIPAIS POR GRUPO MUSCULAR
-        for (const grupoId of muscleGroups) {
-            const mappedGroup = this.mapCustomGroupToSystemGroup(grupoId);
-            const numExercises = exerciseCount;
-    
-            console.log(`Buscando ${numExercises} exercícios para ${grupoId} (${mappedGroup})`);
-    
-            // Buscar exercícios do Firebase para o grupo específico
-            const groupExercises = await this.getExercisesFromFirebaseByGroup(mappedGroup);
-    
-            if (groupExercises.length > 0) {
-                // Selecionar exercícios de forma inteligente
-                const selectedExercises = this.selectExercisesForObjective(
-                    groupExercises,
-                    numExercises,
-                    aiData
-                );
-    
-                selectedExercises.forEach((baseExercise, exIndex) => {
-                    const tecnicaSelecionada = this.getTecnicaForExercise(
-                        exercises.length - 1,
-                        aiData.nivel,
-                        mappedGroup
-                    );
-    
-                    exercises.push({
-                        id: exerciseId++,
-                        nome: baseExercise.nome,
-                        descricao: baseExercise.descricao || 'Descrição não disponível',
-                        series: specs.series,
-                        repeticoes: specs.repeticoes,
-                        carga: this.adjustLoadForLevel(specs.carga, aiData.nivel),
-                        descanso: specs.descanso,
-                        observacoesEspeciais: this.getObservacaoEspecial(tecnicaSelecionada, baseExercise.nome),
-                        tecnica: tecnicaSelecionada,
-                        concluido: false,
-                        grupo_muscular: grupoId,
-                        categoria: exIndex === 0 ? 'principal' : 'auxiliar',
-                        musculos_trabalhados: baseExercise.musculos || [],
-                        fonte: 'firebase'
-                    });
-                });
-            } else {
-                console.warn(`Nenhum exercício encontrado no Firebase para grupo ${mappedGroup}`);
-                
-                // Exercício fallback
-                exercises.push({
-                    id: exerciseId++,
-                    nome: this.getFallbackExercise(grupoId),
-                    descricao: `Exercício básico para ${grupoId}`,
-                    series: specs.series,
-                    repeticoes: specs.repeticoes,
-                    carga: specs.carga,
-                    descanso: specs.descanso,
-                    observacoesEspeciais: 'Exercício substituto - ajustar conforme necessário',
-                    tecnica: '',
-                    concluido: false,
-                    grupo_muscular: grupoId,
-                    categoria: 'substituto',
-                    fonte: 'fallback'
-                });
-            }
-        }
-    
-        // 3. ALONGAMENTO ESPECÍFICO
-        if (exercises.length > 1) {
-            exercises.push({
-                id: exerciseId++,
-                nome: this.getSmartCooldownForGroups(muscleGroups),
-                descricao: "Relaxamento e flexibilidade dos grupos musculares trabalhados",
-                series: 1,
-                repeticoes: "8-10 min",
-                carga: "Peso corporal",
-                descanso: '0',
-                observacoesEspeciais: 'Foco nos grupos trabalhados no treino',
-                tecnica: '',
-                concluido: false,
-                categoria: 'alongamento'
-            });
-        }
-    
-        console.log(`${exercises.length} exercícios criados com especificações do objetivo: ${aiData.objetivo}`);
-        return exercises;
-    }
-    
 
     
     // Selecionar exercícios baseados no objetivo
@@ -7638,7 +6473,12 @@ async generateAdvancedAIWorkouts(aiData) {
     }
 
 
-// 7. CORRIGIR O MÉTODO toggleAIMuscleConfig
+    // Localizar esta seção no código:
+toggleAIMuscleConfig() {
+    // ... código atual
+}
+
+// Substituir por:
 toggleAIMuscleConfig() {
     const checkbox = document.getElementById('aiUseCustomMuscleConfig');
     const section = document.getElementById('aiMuscleConfigSection');
@@ -7649,19 +6489,55 @@ toggleAIMuscleConfig() {
         section.style.display = 'block';
         section.classList.add('active');
         
-        // Gerar interface
+        // APLICAR CONFIGURAÇÕES PRESET AUTOMATICAMENTE
+        this.applyPresetToAIMuscleConfig();
+        
+        // Gerar interface com configurações aplicadas
         this.generateAIMuscleConfigInterface();
         
-        console.log('🎯 Configuração de músculos IA: ATIVADA');
+        console.log('Configuração de músculos IA: ATIVADA com preset aplicado');
     } else {
         section.style.display = 'none';
         section.classList.remove('active');
         this.aiMuscleConfig.workouts = {};
         
-        console.log('🎯 Configuração de músculos IA: DESATIVADA');
+        console.log('Configuração de músculos IA: DESATIVADA');
     }
 }
 
+// NOVO MÉTODO PARA APLICAR PRESET AUTOMATICAMENTE
+applyPresetToAIMuscleConfig() {
+    console.log('Aplicando configuração preset à configuração IA...');
+    
+    // Obter número de dias selecionado
+    const daysField = document.getElementById('aiAvailableDays');
+    const days = parseInt(daysField?.value) || 3;
+    
+    console.log(`Aplicando preset para ${days} dias`);
+    
+    // Buscar configuração preset correspondente
+    const presetConfig = this.planTypeConfiguration.presetConfigurations[days];
+    
+    if (!presetConfig) {
+        console.warn(`Não há configuração preset para ${days} dias`);
+        return;
+    }
+    
+    // Limpar configurações anteriores
+    this.aiMuscleConfig.workouts = {};
+    
+    // Aplicar configuração preset
+    Object.entries(presetConfig).forEach(([letter, config]) => {
+        this.aiMuscleConfig.workouts[letter] = {
+            name: config.name || `Treino ${letter}`,
+            groups: [...config.groups] // Clone do array
+        };
+        
+        console.log(`Treino ${letter}: "${config.name}" - Grupos: [${config.groups.join(', ')}]`);
+    });
+    
+    console.log('Configuração preset aplicada com sucesso à IA:', this.aiMuscleConfig.workouts);
+}
 
 
 
@@ -7833,39 +6709,6 @@ loadInlinePresetConfig() {
     }
 
 
-    // Função para duplicar configuração entre tipos de plano
-    duplicatePlanConfiguration(fromDays, toDays) {
-        const fromConfig = this.planTypeConfiguration.presetConfigurations[fromDays];
-        if (!fromConfig) return;
-
-        const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const newConfig = {};
-
-        // Duplicar configuração existente
-        for (let i = 0; i < Math.min(fromDays, toDays); i++) {
-            const letter = letters[i];
-            if (fromConfig[letter]) {
-                newConfig[letter] = { ...fromConfig[letter] };
-            }
-        }
-
-        // Adicionar treinos extras se necessário
-        if (toDays > fromDays) {
-            const remainingGroups = ['abdome', 'antebraco'];
-            for (let i = fromDays; i < toDays; i++) {
-                const letter = letters[i];
-                newConfig[letter] = {
-                    name: `Treino ${letter}`,
-                    groups: remainingGroups.slice(0, 1) || ['corpo']
-                };
-            }
-        }
-
-        this.planTypeConfiguration.configuration = newConfig;
-        this.planTypeConfiguration.days = toDays;
-        this.savePlanTypeConfiguration();
-    }
-
     // Função para validar configuração antes de gerar treinos
     validatePlanConfiguration() {
         const config = this.planTypeConfiguration.configuration;
@@ -7916,174 +6759,44 @@ loadInlinePresetConfig() {
         return { errors, warnings, isValid: errors.length === 0 };
     }
 
-    // Função para otimizar automaticamente a configuração
-    optimizePlanConfiguration() {
-        const days = this.planTypeConfiguration.days;
-        const config = { ...this.planTypeConfiguration.configuration };
 
-        // Aplicar otimizações baseadas em boas práticas
+    preserveExistingExercises(selectedDaysFromUI) {
+        const currentWorkouts = this.currentPlan?.treinos || [];
+        const preservedWorkouts = [];
         const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-        // Regras de otimização
-        const optimizationRules = {
-            2: {
-                A: { preferredGroups: ['peito', 'ombro', 'triceps'], avoid: ['perna'] },
-                B: { preferredGroups: ['perna', 'gluteo', 'costas', 'biceps'], avoid: ['peito'] }
-            },
-            3: {
-                A: { preferredGroups: ['peito', 'triceps'], avoid: ['costas', 'biceps'] },
-                B: { preferredGroups: ['costas', 'biceps'], avoid: ['peito', 'triceps'] },
-                C: { preferredGroups: ['perna', 'gluteo', 'ombro'], avoid: [] }
-            },
-            4: {
-                A: { preferredGroups: ['peito', 'triceps'], avoid: ['costas', 'biceps'] },
-                B: { preferredGroups: ['costas', 'biceps'], avoid: ['peito', 'triceps'] },
-                C: { preferredGroups: ['ombro'], avoid: [] },
-                D: { preferredGroups: ['perna', 'gluteo'], avoid: [] }
+        
+        for (let i = 0; i < selectedDaysFromUI; i++) {
+            if (currentWorkouts[i] && currentWorkouts[i].exercicios && 
+                currentWorkouts[i].exercicios.length > 0) {
+                // Preservar treino existente
+                preservedWorkouts[i] = {
+                    ...currentWorkouts[i],
+                    preserved: true
+                };
+            } else {
+                // Criar treino vazio usando preset
+                const presetConfig = this.planTypeConfiguration.presetConfigurations[selectedDaysFromUI];
+                const workoutConfig = presetConfig ? presetConfig[letters[i]] : null;
+                
+                preservedWorkouts[i] = {
+                    id: letters[i],
+                    nome: workoutConfig ? workoutConfig.name : `Treino ${letters[i]}`,
+                    foco: 'Treino geral',
+                    exercicios: [],
+                    concluido: false,
+                    execucoes: 0,
+                    isNew: true
+                };
             }
-        };
-
-        const rules = optimizationRules[days];
-        if (!rules) return;
-
-        // Aplicar regras
-        Object.entries(rules).forEach(([letter, rule]) => {
-            if (config[letter]) {
-                // Remover grupos que devem ser evitados
-                config[letter].groups = config[letter].groups.filter(
-                    group => !rule.avoid.includes(group)
-                );
-
-                // Adicionar grupos preferidos se não existirem
-                rule.preferredGroups.forEach(preferredGroup => {
-                    if (!config[letter].groups.includes(preferredGroup)) {
-                        // Verificar se não está em outro treino incompatível
-                        const canAdd = true; // Lógica mais complexa pode ser adicionada aqui
-                        if (canAdd) {
-                            config[letter].groups.push(preferredGroup);
-                        }
-                    }
-                });
-            }
-        });
-
-        this.planTypeConfiguration.configuration = config;
-        this.savePlanTypeConfiguration();
-        this.showMessage('🔧 Configuração otimizada automaticamente!', 'success');
-    }
-
-    // Função para obter sugestões de configuração
-    getPlanConfigurationSuggestions(days) {
-        const suggestions = {
-            1: [
-                {
-                    name: 'Corpo Inteiro Básico',
-                    description: 'Treino completo para iniciantes',
-                    config: {
-                        A: { name: 'Treino Corpo Inteiro', groups: ['peito', 'costas', 'perna', 'ombro'] }
-                    }
-                },
-                {
-                    name: 'Corpo Inteiro Avançado',
-                    description: 'Treino completo com todos os grupos',
-                    config: {
-                        A: { name: 'Treino Completo', groups: ['peito', 'costas', 'perna', 'ombro', 'biceps', 'triceps', 'abdome'] }
-                    }
-                }
-            ],
-            2: [
-                {
-                    name: 'Superior/Inferior',
-                    description: 'Divisão clássica entre membros superiores e inferiores',
-                    config: {
-                        A: { name: 'Membros Superiores', groups: ['peito', 'costas', 'ombro', 'biceps', 'triceps'] },
-                        B: { name: 'Membros Inferiores', groups: ['perna', 'gluteo', 'abdome'] }
-                    }
-                },
-                {
-                    name: 'Push/Pull',
-                    description: 'Divisão por padrões de movimento',
-                    config: {
-                        A: { name: 'Empurrar + Pernas', groups: ['peito', 'ombro', 'triceps', 'perna'] },
-                        B: { name: 'Puxar + Core', groups: ['costas', 'biceps', 'abdome', 'gluteo'] }
-                    }
-                }
-            ],
-            3: [
-                {
-                    name: 'Push/Pull/Legs',
-                    description: 'Divisão clássica de 3 dias',
-                    config: {
-                        A: { name: 'Empurrar', groups: ['peito', 'ombro', 'triceps'] },
-                        B: { name: 'Puxar', groups: ['costas', 'biceps'] },
-                        C: { name: 'Pernas', groups: ['perna', 'gluteo', 'abdome'] }
-                    }
-                },
-                {
-                    name: 'Peito-Costas-Pernas',
-                    description: 'Foco nos grandes grupos musculares',
-                    config: {
-                        A: { name: 'Peito e Tríceps', groups: ['peito', 'triceps'] },
-                        B: { name: 'Costas e Bíceps', groups: ['costas', 'biceps'] },
-                        C: { name: 'Pernas e Ombros', groups: ['perna', 'gluteo', 'ombro', 'abdome'] }
-                    }
-                }
-            ]
-        };
-
-        return suggestions[days] || [];
-    }
-
-   // 1. ADICIONAR MÉTODO PARA PRESERVAR EXERCÍCIOS EXISTENTES
-preserveExistingExercises(selectedDaysFromUI) {
-    console.log('🔄 Preservando exercícios existentes...');
-    
-    // Backup dos treinos atuais
-    const currentWorkouts = this.currentPlan?.treinos || [];
-    const preservedWorkouts = [];
-    
-    // Preservar apenas os treinos dentro do novo número de dias
-    for (let i = 0; i < selectedDaysFromUI; i++) {
-        if (currentWorkouts[i]) {
-            // Manter treino existente
-            preservedWorkouts[i] = {
-                ...currentWorkouts[i],
-                preserved: true
-            };
-            console.log(`✅ Treino ${i} preservado: ${currentWorkouts[i].nome}`);
-        } else {
-            // Criar treino vazio para novo dia
-            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-            preservedWorkouts[i] = {
-                id: letters[i],
-                nome: `Treino ${letters[i]}`,
-                foco: 'Treino geral',
-                exercicios: [{
-                    id: i * 10 + 1,
-                    nome: 'Aquecimento',
-                    descricao: 'Aquecimento específico',
-                    series: 1,
-                    repeticoes: '8-10 min',
-                    carga: 'Leve',
-                    descanso: '0',
-                    observacoesEspeciais: '',
-                    tecnica: '',
-                    concluido: false
-                }],
-                concluido: false,
-                execucoes: 0,
-                isNew: true
-            };
-            console.log(`🆕 Novo treino ${i} criado`);
         }
+        
+        return preservedWorkouts;
     }
     
-    return preservedWorkouts;
-}
-
 // 2. MODIFICAR generateWorkoutEditorWithConfigPreserving (NOVO MÉTODO)
 generateWorkoutEditorWithConfigPreserving(days, preservedWorkouts) {
     console.log(`🔧 Gerando editor preservando exercícios para ${days} dias`);
+    this.ensureWorkoutConfiguration(days);
     
     const editor = document.getElementById('workoutEditor');
     const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -8235,25 +6948,30 @@ saveInlineQuickConfig() {
     }
 }
 
-logPreservationStats(preservedWorkouts, selectedDays) {
-    console.group('📊 Estatísticas de Preservação');
+
+// Método para garantir configuração padrão
+ensureWorkoutConfiguration(days) {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const defaultConfigs = this.planTypeConfiguration.presetConfigurations[days];
     
-    for (let i = 0; i < selectedDays; i++) {
-        const workout = preservedWorkouts[i];
-        if (workout) {
-            const status = workout.preserved ? '💾 Preservado' : 
-                          workout.isNew ? '🆕 Novo' : '🔄 Atualizado';
-            const exerciseCount = workout.exercicios?.length || 0;
+    for (let i = 0; i < days; i++) {
+        const letter = letters[i];
+        
+        if (!this.planTypeConfiguration.configuration[letter]) {
+            // Usar configuração padrão ou criar uma básica
+            if (defaultConfigs && defaultConfigs[letter]) {
+                this.planTypeConfiguration.configuration[letter] = { ...defaultConfigs[letter] };
+            } else {
+                this.planTypeConfiguration.configuration[letter] = {
+                    name: `Treino ${letter}`,
+                    groups: ['corpo'] // Grupo padrão
+                };
+            }
             
-            console.log(`Treino ${i}: ${status} - ${exerciseCount} exercícios`);
+            console.log(`✅ Configuração padrão criada para treino ${letter}`);
         }
     }
-    
-    console.groupEnd();
 }
-
-
-
     // Validação específica para número de dias
 validateInlineConfigurationForDays(targetDays) {
     const errors = [];
@@ -8636,20 +7354,28 @@ validateInlineConfiguration() {
         }, 100);
     }
     
+
     resetExerciseFilters() {
-        // Resetar filtro de grupos musculares
+        // ADICIONAR verificação de existência
         const groupFilter = document.getElementById('exerciseGroupFilter');
+        const exerciseSelect = document.getElementById('exerciseName');
+        
+        // Só executar se os elementos existirem
         if (groupFilter) {
             groupFilter.value = 'todos';
         }
-    
-        // Re-popular os selects de exercícios
-        setTimeout(() => {
-            this.populateGroupFilter();
-            this.populateExerciseSelect('todos');
-        }, 100);
+        
+        // Só popular se os elementos existirem
+        if (groupFilter && exerciseSelect) {
+            setTimeout(() => {
+                this.populateGroupFilter();
+                this.populateExerciseSelect('todos');
+            }, 100);
+        } else {
+            console.log('Elementos de filtro não disponíveis - resetando apenas formulário principal');
+        }
     }
-    
+
     // Método auxiliar para definir valores padrão em campos específicos
     setDefaultFieldValues() {
         // Objetivo padrão
@@ -8672,59 +7398,8 @@ validateInlineConfiguration() {
         console.log('Valores padrão definidos nos campos');
     }
     
-    // Método para validar se o reset foi bem sucedido
-    validateReset() {
-        const issues = [];
-    
-        // Verificar se campos principais estão vazios
-        const nameField = document.getElementById('studentName');
-        if (nameField && nameField.value !== '') {
-            issues.push('Nome do estudante não foi limpo');
-        }
-    
-        const planNameField = document.getElementById('planName');
-        if (planNameField && planNameField.value !== '') {
-            issues.push('Nome do plano não foi limpo');
-        }
-    
-        // Verificar se estado interno foi resetado
-        if (this.isEditing) {
-            issues.push('Estado de edição não foi resetado');
-        }
-    
-        if (this.currentPlan.treinos.length > 0) {
-            issues.push('Treinos não foram limpos');
-        }
-    
-        if (issues.length > 0) {
-            console.warn('Problemas detectados no reset:', issues);
-            return false;
-        }
-    
-        console.log('Reset validado com sucesso');
-        return true;
-    }
-    
-    // Método para reset completo com validação
-    performFullReset() {
-        this.resetPlanForm();
-        this.setDefaultFieldValues();
-        
-        // Validar reset
-        const isValid = this.validateReset();
-        
-        if (!isValid) {
-            console.error('Reset não foi executado corretamente');
-            // Tentar reset novamente
-            setTimeout(() => {
-                this.resetPlanForm();
-            }, 100);
-        }
-        
-        return isValid;
-    }
 
-
+    
     closeInlineEditor() {
         // Remover editor do DOM
         const editor = document.querySelector('.exercise-inline-editor');
@@ -8822,51 +7497,6 @@ async loadPlanTypeConfiguration() {
     }
 }
 
-// Método auxiliar para carregar do Firebase (se disponível)
-async loadPlanConfigFromFirebase() {
-    try {
-        // Simular estrutura do Firebase - ajustar conforme implementação real
-        if (!window.db) return null;
-        
-        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-        
-        const configRef = doc(window.db, 'plan_configurations', 'default');
-        const configDoc = await getDoc(configRef);
-        
-        if (configDoc.exists()) {
-            return configDoc.data();
-        }
-        
-        return null;
-        
-    } catch (error) {
-        console.error('Erro ao carregar configuração do Firebase:', error);
-        return null;
-    }
-}
-
-// Método auxiliar para migrar configuração para Firebase
-async migratePlanConfigToFirebase(localConfig) {
-    try {
-        if (!window.db) return;
-        
-        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-        
-        const configData = {
-            ...localConfig,
-            migratedAt: new Date(),
-            migrated_from_local: true
-        };
-        
-        const configRef = doc(window.db, 'plan_configurations', 'default');
-        await setDoc(configRef, configData, { merge: true });
-        
-        console.log('Configuração migrada para Firebase');
-        
-    } catch (error) {
-        console.warn('Erro na migração para Firebase:', error);
-    }
-}
 
 async savePlan() {
 
@@ -9229,7 +7859,7 @@ async showPlanList() {
                 this.loadingManager.updateProgress(30, 'Verificando autenticação...');
                 try {
                     console.log('📋 Iniciando showPlanList...');
-                    this.ensureCoreAvailable()
+                    this.CoreManager.getCore()
                     
                     // CORREÇÃO CRÍTICA: Sempre obter userId atual dinamicamente
                     const currentUserId = this.getUserId() || 
@@ -9283,7 +7913,7 @@ async showPlanList() {
                             }
                         } else {
                             console.warn('⚠️ Firebase não conectado, carregando do localStorage');
-                            await this.loadFromUserLocalStorage();
+                            await this.saveToUserLocalStorage();
                         }
                     } catch (loadError) {
                         console.error('❌ Erro ao carregar planos:', loadError);
@@ -9327,35 +7957,6 @@ async showPlanList() {
 
 }
 
-
-// Método auxiliar para carregar do localStorage do usuário específico
-async loadFromUserLocalStorage() {
-    try {
-        const key = `jsfitapp_plans_${this.currentUserId}`;
-        const stored = localStorage.getItem(key);
-        
-        if (stored) {
-            const data = JSON.parse(stored);
-            
-            // Verificar se os dados são do usuário correto
-            if (data.userId === this.currentUserId && data.plans) {
-                this.savedPlans = data.plans.filter(plan => 
-                    plan.userId === this.currentUserId
-                );
-                console.log(`✅ ${this.savedPlans.length} planos carregados do localStorage`);
-            } else {
-                console.warn('⚠️ Dados localStorage não correspondem ao usuário');
-                this.savedPlans = [];
-            }
-        } else {
-            console.log('ℹ️ Nenhum backup local encontrado');
-            this.savedPlans = [];
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar localStorage:', error);
-        this.savedPlans = [];
-    }
-}
 
 viewPlan(planId) {
     try {
@@ -9550,60 +8151,6 @@ async sharePlan(planId) {
 
 
 
-// MÉTODO AUXILIAR: BUSCA INTELIGENTE DO CORE
-// ========================================
-async findAndValidateCore() {
-    // 1. Verificar this.core
-    if (this.core && this.isValidCoreInstance(this.core)) {
-        if (this.core.firebaseConnected) {
-            return this.core;
-        }
-        // Tentar reconectar
-        try {
-            await this.core.initializeFirebase();
-            if (this.core.firebaseConnected) {
-                return this.core;
-            }
-        } catch (reconnectError) {
-            console.warn('Erro ao reconectar this.core:', reconnectError);
-        }
-    }
-
-    // 2. Buscar outras instâncias
-    const globalCore = this.findGlobalCoreInstance();
-    if (globalCore) {
-        try {
-            if (!globalCore.firebaseConnected) {
-                await globalCore.initializeFirebase();
-            }
-            if (globalCore.firebaseConnected) {
-                this.core = globalCore; // Atualizar referência
-                return globalCore;
-            }
-        } catch (initError) {
-            console.warn('Erro ao inicializar core global:', initError);
-        }
-    }
-
-    // 3. Criar nova instância
-    if (window.JSFitCore) {
-        try {
-            const newCore = new window.JSFitCore();
-            await newCore.initializeFirebase();
-            if (newCore.firebaseConnected) {
-                this.core = newCore;
-                return newCore;
-            }
-        } catch (createError) {
-            console.error('Erro ao criar nova instância:', createError);
-        }
-    }
-
-    console.warn('❌ Nenhuma instância válida do Core encontrada');
-    return null;
-}
-
-
 async deactivateSharedPlanFixed(shareId, coreInstance) {
     try {
         console.log(`🗑️ Desativando compartilhamento: ${shareId}`);
@@ -9660,7 +8207,7 @@ async stopSharing(planId) {
         // ========================================
         // BUSCA INTELIGENTE DO CORE (CORRIGIDA)
         // ========================================
-        let coreInstance = await this.findAndValidateCore();
+        let coreInstance = await this.CoreManager.getCore();
         
         // Desativar no Firebase SE core disponível
         if (coreInstance && coreInstance.firebaseConnected) {
@@ -9715,39 +8262,6 @@ isValidCoreInstance(coreInstance) {
            typeof coreInstance.getUserId === 'function';
 }
 
-findGlobalCoreInstance() {
-    const possibleCores = [
-        window.jsfitCore,
-        window.jsfit,
-        window.appCore,
-        window.firebaseCore,
-        this.jsfitCore,
-        this.jsfit
-    ];
-    
-    for (let possibleCore of possibleCores) {
-        if (this.isValidCoreInstance(possibleCore)) {
-            console.log('Core encontrado em:', possibleCore.constructor?.name || 'unknown global');
-            return possibleCore;
-        }
-    }
-    
-    // Buscar por propriedades que possam conter instâncias do core
-    const globalProperties = Object.getOwnPropertyNames(window);
-    for (let prop of globalProperties) {
-        if (prop.toLowerCase().includes('core') || prop.toLowerCase().includes('jsfit')) {
-            const candidate = window[prop];
-            if (this.isValidCoreInstance(candidate)) {
-                console.log('Core encontrado na propriedade global:', prop);
-                return candidate;
-            }
-        }
-    }
-    
-    return null;
-}
-
-
 
 async ensureFirebaseReady(coreInstance) {
     try {
@@ -9777,13 +8291,6 @@ async ensureFirebaseReady(coreInstance) {
     }
 }
 
-getCoreStrategy(coreInstance) {
-    if (this.core === coreInstance) return 'this.core';
-    if (window.core === coreInstance) return 'window.core';
-    if (window.app && window.app.core === coreInstance) return 'window.app.core';
-    if (window.jsfitCore === coreInstance) return 'window.jsfitCore';
-    return 'created_new';
-}
 
 // MÉTODO AUXILIAR: Salvar especificamente no localStorage do usuário
 async saveToUserLocalStorage() {
@@ -9967,60 +8474,6 @@ calculateAge(birthDate) {
 
 
 
-
-
-// Método auxiliar para salvar no Firebase
-async savePlanConfigToFirebase(configData) {
-    try {
-        if (!window.db) throw new Error('Firebase não disponível');
-        
-        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-        
-        const configRef = doc(window.db, 'plan_configurations', 'default');
-        await setDoc(configRef, configData, { merge: true });
-        
-    } catch (error) {
-        console.error('Erro ao salvar configuração no Firebase:', error);
-        throw error;
-    }
-}
-
-
-// Método auxiliar para mostrar informações do filtro contextual
-showContextualFilterInfo(workout, configuredGroups) {
-    const statusElement = document.getElementById('exerciseSelectStatus');
-    const countElement = document.getElementById('exerciseCount');
-
-    if (!statusElement || !countElement) return;
-
-    // Calcular total de exercícios para os grupos configurados
-    let totalExercises = 0;
-    configuredGroups.forEach(groupId => {
-        const mappedGroup = this.mapCustomGroupToSystemGroup ? 
-            this.mapCustomGroupToSystemGroup(groupId) : groupId;
-        const groupExercises = this.getExercisesByGroupAndLevel(mappedGroup, 'intermediario');
-        totalExercises += groupExercises.length;
-    });
-
-    // Criar nomes dos grupos para exibição
-    const groupNames = configuredGroups.map(groupId => {
-        const group = this.planTypeConfiguration.muscleGroups.find(g => g.id === groupId);
-        return group ? group.name : groupId;
-    }).join(', ');
-
-    // Atualizar interface
-    statusElement.className = 'form-hint contextual';
-    countElement.innerHTML = `
-        <div class="contextual-filter-info">
-            <div class="contextual-title">Filtro contextual ativo</div>
-            <div class="contextual-workout">Treino ${workout.id}: ${workout.nome}</div>
-            <div class="contextual-groups">Grupos: ${groupNames}</div>
-            <div class="contextual-count">${totalExercises} exercícios disponíveis</div>
-        </div>
-    `;
-}
-
-
 // 4. GETCONFIGUREDGROUPSFORWORKOUT - Obter grupos configurados para treino específico
 getConfiguredGroupsForWorkout(workoutIndex, workout) {
     let configuredGroups = [];
@@ -10144,158 +8597,9 @@ inferGroupsFromWorkoutName(nome, foco) {
     return Array.from(inferredGroups);
 }
 
-
-
-
 }
 
-// =============================================
-// GERADOR DE PLANOS IA MELHORADO
-// Seleção inteligente de exercícios com alternância muscular
-// =============================================
 
-
-// =============================================
-// INTEGRAÇÃO COM A CLASSE PRINCIPAL
-// =============================================
-
-// Modificar o método generateAIPlan na classe PersonalApp
-PersonalApp.prototype.generateAIPlan = async function() {
-    const generator = new ImprovedAIPlanGenerator(this);
-    return await generator.generateAIPlan();
-};
-
-// =============================================
-// MÉTODOS AUXILIARES ADICIONAIS PARA SELEÇÃO INTELIGENTE
-// =============================================
-
-// Método para detectar exercícios com equipamentos específicos
-PersonalApp.prototype.detectExerciseEquipment = function(exerciseName) {
-    const name = exerciseName.toLowerCase();
-    
-    if (name.includes('máquina') || name.includes('equipamento')) return 'maquina';
-    if (name.includes('cabo') || name.includes('polia')) return 'cabo';
-    if (name.includes('halteres') || name.includes('halter')) return 'halteres';
-    if (name.includes('barra') && !name.includes('fixa')) return 'barra';
-    if (name.includes('peso corporal') || name.includes('flexão') || name.includes('barra fixa')) return 'peso_corporal';
-    if (name.includes('kettlebell')) return 'kettlebell';
-    if (name.includes('elástico') || name.includes('banda')) return 'elastico';
-    
-    return 'geral';
-};
-
-// Método para priorizar exercícios por objetivo
-PersonalApp.prototype.prioritizeExercisesByObjective = function(exercises, objetivo) {
-    return exercises.map(exercise => {
-        let priority = 0;
-        const name = exercise.nome.toLowerCase();
-        
-        switch (objetivo) {
-            case 'Hipertrofia e ganho de massa muscular':
-                if (this.isCompoundExercise(name)) priority += 20;
-                if (name.includes('pesado') || name.includes('livre')) priority += 10;
-                break;
-                
-            case 'Perda de peso e definição':
-                if (name.includes('circuito') || name.includes('funcional')) priority += 20;
-                if (this.isCompoundExercise(name)) priority += 15;
-                break;
-                
-            case 'Força e potência':
-                if (this.isCompoundExercise(name)) priority += 25;
-                if (name.includes('explosivo') || name.includes('potência')) priority += 20;
-                break;
-                
-            case 'Resistência muscular':
-                if (name.includes('resistência') || name.includes('longo')) priority += 15;
-                break;
-        }
-        
-        return { ...exercise, priority };
-    }).sort((a, b) => b.priority - a.priority);
-};
-
-// Método para balancear tipos de exercícios
-PersonalApp.prototype.balanceExerciseTypes = function(selectedExercises, targetComposition) {
-    const composition = {
-        compound: 0,
-        isolation: 0,
-        functional: 0
-    };
-    
-    // Contar tipos atuais
-    selectedExercises.forEach(exercise => {
-        const name = exercise.nome.toLowerCase();
-        if (this.isCompoundExercise(name)) composition.compound++;
-        else if (this.isFunctionalExercise(name)) composition.functional++;
-        else composition.isolation++;
-    });
-    
-    // Retornar informações de balanceamento
-    return {
-        current: composition,
-        target: targetComposition,
-        isBalanced: this.checkBalance(composition, targetComposition)
-    };
-};
-
-PersonalApp.prototype.checkBalance = function(current, target) {
-    const tolerance = 1; // Tolerância de 1 exercício
-    
-    return Math.abs(current.compound - target.compound) <= tolerance &&
-           Math.abs(current.isolation - target.isolation) <= tolerance &&
-           Math.abs(current.functional - target.functional) <= tolerance;
-};
-
-// Método para logging detalhado da seleção
-PersonalApp.prototype.logExerciseSelection = function(groupId, selectedExercises, criteria) {
-    console.group(`🎯 Seleção Inteligente - Grupo: ${groupId}`);
-    console.log('Critérios aplicados:', criteria);
-    console.log('Exercícios selecionados:');
-    
-    selectedExercises.forEach((exercise, index) => {
-        console.log(`  ${index + 1}. ${exercise.nome}`);
-        console.log(`     Categoria: ${exercise.categoria || 'N/A'}`);
-        console.log(`     Método: ${exercise.selection_method || 'N/A'}`);
-        console.log(`     Músculo: ${exercise.target_muscle || 'N/A'}`);
-    });
-    
-    console.groupEnd();
-};
-
-// Método para validar diversidade muscular
-PersonalApp.prototype.validateMuscularDiversity = function(workoutExercises, muscleGroups) {
-    const muscleCount = {};
-    const warnings = [];
-    
-    // Contar exercícios por músculo
-    workoutExercises.forEach(exercise => {
-        const muscle = exercise.target_muscle || exercise.grupo_muscular || 'indefinido';
-        muscleCount[muscle] = (muscleCount[muscle] || 0) + 1;
-    });
-    
-    // Verificar se todos os grupos estão representados
-    muscleGroups.forEach(group => {
-        if (!muscleCount[group] || muscleCount[group] === 0) {
-            warnings.push(`Grupo ${group} não tem exercícios específicos`);
-        }
-    });
-    
-    // Verificar sobrecarregamento de algum músculo
-    Object.entries(muscleCount).forEach(([muscle, count]) => {
-        if (count > 3) {
-            warnings.push(`Músculo ${muscle} tem muitos exercícios (${count})`);
-        }
-    });
-    
-    return {
-        distribution: muscleCount,
-        warnings: warnings,
-        isDiverse: warnings.length === 0
-    };
-};
-
-console.log('🚀 Sistema de Geração IA Melhorado carregado com seleção inteligente de exercícios!');
 
 const app = new PersonalApp();
 window.app = app;
