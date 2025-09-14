@@ -270,25 +270,45 @@ class AuthManager {
         }
     }
 
+
     async logout() {
         if (!confirm('Deseja realmente sair?')) {
             return;
         }
-
         try {
             console.log('🚪 Executando logout intencional...');
             
             this.intentionalLogout = true;
             
-            const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-            await signOut(this.auth);
+            // 1. PRIMEIRO: Verificar e guardar referência do auth ANTES da limpeza
+            const authInstance = this.auth;
+            console.log('🔍 Auth instance:', authInstance ? 'encontrada' : 'não encontrada');
+            
+            if (!authInstance) {
+                console.warn('⚠️ Auth instance não encontrada, mas continuando com limpeza...');
+                // Mesmo sem auth, continuar com limpeza local
+                this.showMessage('Sessão finalizada localmente', 'info');
+                return;
+            }
+            
+            // 2. SEGUNDO: Fazer logout do Firebase ANTES de limpar dados locais
+            try {
+                const firebaseAuth = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+                console.log('🔥 Fazendo signOut do Firebase...');
+                await firebaseAuth.signOut(authInstance);
+                console.log('✅ SignOut do Firebase realizado');
+            } catch (firebaseError) {
+                console.error('❌ Erro no signOut do Firebase:', firebaseError);
+                // Continuar mesmo com erro do Firebase
+            }
             
             this.showMessage('Logout realizado com sucesso', 'success');
             
         } catch (error) {
-            console.error('❌ Erro no logout:', error);
-            this.showMessage('Erro ao fazer logout', 'error');
+            console.error('❌ Erro geral no logout:', error);
+            this.showMessage('Erro ao fazer logout, mas sessão será limpa', 'warning');
         } finally {
+            // 3. TERCEIRO: Garantir limpeza final
             setTimeout(() => {
                 this.intentionalLogout = false;
             }, 3000);
@@ -475,7 +495,7 @@ class AuthManager {
                     <div class="user-email">${email}</div>
                 </div>
             </div>
-            <button class="btn btn-outline logout-btn" onclick="authManager.logout()">
+            <button class="btn btn-outline logout-btn" onclick="app.logout()">
                 🚪 Sair
             </button>
         `;

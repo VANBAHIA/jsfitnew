@@ -282,61 +282,30 @@ logout() {
     try {
         console.log('🚪 Fazendo logout...');
         
-        // CORREÇÃO: Limpar sessão ANTES de chamar outros logouts
-        if (this.sessionManager && typeof this.sessionManager.clearSession === 'function') {
-            this.sessionManager.clearSession();
-            console.log('✅ Sessão limpa pelo SessionManager');
-        }
+        // Limpeza de sessão
+        this.sessionManager?.clearSession();
         
-        // Limpar Firebase Auth se disponível
-        if (window.firebaseAuth && window.firebaseAuth.currentUser) {
-            window.firebaseAuth.signOut().then(() => {
-                console.log('✅ Firebase Auth sign out realizado');
-            }).catch(error => {
-                console.warn('⚠️ Erro ao fazer logout do Firebase:', error);
-            });
-        }
+        // Firebase logout (sem bloquear se falhar)
+        window.firebaseAuth?.signOut?.().catch(() => {});
         
-        // Logout do AuthManager se disponível
-        if (window.authManager && typeof window.authManager.logout === 'function') {
-            window.authManager.logout();
-            console.log('✅ AuthManager logout realizado');
-        }
+        // AuthManager logout (sem bloquear se falhar)
+        window.authManager?.logout?.();
         
-        // CORREÇÃO: Limpar TODOS os dados de usuário da aplicação
+        // Limpar dados locais
         this.currentUser = null;
-        this.currentUserId = null;
-        this.userEmail = null;
-        this.userDisplayName = null;
-        this.isUserAuthenticated = false;
-        
-        // Limpar dados da aplicação
         this.savedPlans = [];
-        this.currentPlan = this.getEmptyPlan();
-        
-        // CORREÇÃO: Limpar informações do usuário do header
-        this.clearUserInfoFromHeader();
-        
-        // CORREÇÃO: Forçar limpeza adicional do localStorage
-        this.forceCleanLocalStorage();
         
         // Mostrar tela de login
         this.showAuthenticationScreen();
         
-        this.showMessage('Logout realizado com sucesso', 'info');
-        
-        console.log('✅ Logout completo realizado');
-        
-        // Verificar se limpeza foi realizada
-        setTimeout(() => {
-            this.verifySessionCleared();
-        }, 500);
+        console.log('✅ Logout realizado');
         
     } catch (error) {
         console.error('❌ Erro no logout:', error);
+        // Mesmo com erro, mostrar tela de login
+        this.showAuthenticationScreen();
     }
 }
-
 // Método para limpeza forçada do localStorage
 forceCleanLocalStorage() {
     try {
