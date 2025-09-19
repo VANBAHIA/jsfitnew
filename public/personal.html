@@ -20,6 +20,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzc5NDVmZiIvPgo8cGF0aCBkPSJtMTYgOGMtNC40MTggMC04IDMuNTgyLTggOHY4YzAgNC40MTggMy41ODIgOCA4IDhzOC0zLjU4MiA4LTh2LThjMC00LjQxOC0zLjU4Mi04LTgtOHoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
     <link rel="stylesheet" href="css/stylePersonal.css">
+    <link rel="stylesheet" href="js/css/exerciseManager.css">
     
  
         
@@ -128,6 +129,11 @@
                 <label class="btn btn-outline" for="importFile">
                     📂 Importar Plano
                 </label>
+                <!-- Adicionar na .main-actions do header -->
+<button class="btn btn-secondary" onclick="app.showExerciseManager()">
+    💪 Gerenciar Exercícios
+</button>
+
             </div>
         </header>
 
@@ -481,56 +487,72 @@
                 <!-- Plan details will be loaded here -->
             </div>
         </div>
-        
-    </div>
 
-
-
-<!-- Controles de Debug e Sincronização -->
-<div class="debug-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-    <div class="debug-panel" id="debugPanel" style="display: none;">
-        <div class="debug-header">
-            <h4>Controles de Debug</h4>
-            <button onclick="app.toggleDebugPanel()" class="close-debug">&times;</button>
-        </div>
-        <div class="debug-actions">
-            <button class="btn btn-sm btn-outline" onclick="app.debugDataState()">
-                Estado dos Dados
-            </button>
-            <button class="btn btn-sm btn-primary" onclick="app.reloadData()">
-                Recarregar Dados
-            </button>
-            <button class="btn btn-sm btn-success" onclick="app.forceSyncAllPlans()">
-                Forçar Sync Firebase
-            </button>
-            <button class="btn btn-sm btn-warning" onclick="app.createEmergencyBackup()">
-                Backup Emergência
-            </button>
-            <button class="btn btn-sm btn-info" onclick="app.verifyAndRestorePlans()">
-                Restaurar Planos
-            </button>
-            <button class="btn btn-sm btn-secondary" onclick="app.syncAllPendingOperations()">
-                Sync Firebase
-            </button>
-            <div class="debug-info">
-                <small>
-                    Total: <span id="debugPlanCount">0</span> | 
-                    Firebase: <span id="debugFirebaseCount">0</span> | 
-                    Pendentes: <span id="debugPendingCount">0</span>
-                </small>
-                <div class="sync-status-bar">
-                    <div class="sync-progress" id="syncProgressBar"></div>
-                </div>
-                <small id="syncStatus" class="sync-status"></small>
-            </div>
+    <!-- Substituir a div #exerciseManager existente -->
+<div id="exerciseManager" class="content-card" style="display: none;">
+    <div class="exercise-manager-header">
+        <button class="btn btn-outline btn-small" onclick="app.showPlanList()">
+            ← Voltar
+        </button>
+        <h2>💪 Gerenciar Exercícios</h2>
+        <div class="header-stats" id="exerciseStats">
+            <span class="stats-label">Base carregada</span>
         </div>
     </div>
     
-    <!-- Botão para mostrar/ocultar painel -->
-    <button class="btn btn-debug" onclick="app.toggleDebugPanel()" title="Debug Controls">
-        🔧
-    </button>
+    <!-- Barra de Busca Otimizada -->
+    <div class="exercisedb-search-bar">
+        <div class="search-input-group">
+            <div class="search-input-container">
+                <input type="text" 
+                       id="exerciseSearch" 
+                       placeholder="🔍 Digite pelo menos 2 caracteres para buscar..." 
+                       class="form-input search-input"
+                       autocomplete="off">
+                <button class="search-clear-btn" onclick="exerciseManager.clearSearch()" title="Limpar busca">
+                    ✕
+                </button>
+            </div>
+            <select id="exerciseGroupFilterDB" class="form-select group-filter">
+                <option value="">🏷️ Todos os grupos</option>
+            </select>
+        </div>
+        <div class="search-help">
+            <small>💡 Dica: Use palavras-chave como "supino", "agachamento" ou selecione um grupo muscular</small>
+        </div>
+    </div>
+
+    <div class="search-results-header">
+    
+        <div class="results-actions">
+            <button class="btn btn-outline btn-small" onclick="exerciseManager.clearSearch()">
+                🔄 Nova Busca
+            </button>
+            <button class="btn btn-primary btn-small" onclick="exerciseManager.showAddForm()">
+                ➕ Novo Exercício
+            </button>
+        </div>
+    </div>
+
+    
+    <!-- Formulário de Exercício (oculto inicialmente) -->
+    <div id="exerciseForm" class="exercise-dbform" style="display: none;">
+        <!-- Conteúdo será gerado dinamicamente -->
+    </div>
+    
+    <!-- Área de Resultados -->
+    <div id="exerciseList" class="exercisedb-results">
+        <div class="loading-placeholder">Carregando base de exercícios...</div>
+    </div>
 </div>
+
+
+    
+
+</div>
+        
+    </div>
+
 
 <div id="globalLoadingOverlay" class="loading-overlay">
     <div class="loading-content">
@@ -548,14 +570,18 @@
 <!-- Hidden file input -->
 <input type="file" id="importFile" style="display: none;" accept=".json" onchange="app.importPlan(event)">
 
+<!-- Na seção de scripts, adicionar APÓS jsfitcore.js e ANTES de personal.js -->
 <script src="js/shared/jsfitcore.js"></script>
 <script src="js/loadingManager.js"></script>
 <script src="js/shared/SessionRestoreManager.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/shared/coremanager.js"></script>
+<script src="js/components/ExerciseSettings.js"></script>
+<script src="js/components/ExerciseManager.js"></script>
+<script src="js/components/ExerciseFormValidator.js"></script>
+<script src="js/components/ExerciseRenderer.js"></script>
 <script src="js/ImprovedAIPlanGenerator.js"></script>  
 <script src="js/personal.js"></script>
-
 <script>
     // INICIALIZAÇÃO ÚNICA COM COREMANAGER
 (function() {
@@ -700,6 +726,38 @@ console.log('✅ PersonalApp inicializado com sucesso');
         waitForDependencies().then(initializeApp);
     }
 })();
+
+// Contador de caracteres dinâmico
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar contadores de caracteres
+    document.addEventListener('input', function(e) {
+        if (e.target.matches('textarea[maxlength]')) {
+            updateCharCounter(e.target);
+        }
+    });
+    
+    function updateCharCounter(textarea) {
+        const maxLength = parseInt(textarea.getAttribute('maxlength'));
+        const currentLength = textarea.value.length;
+        const counter = textarea.parentElement.querySelector('.char-count');
+        
+        if (counter) {
+            counter.textContent = currentLength;
+            
+            const percentage = currentLength / maxLength;
+            const counterContainer = counter.parentElement;
+            
+            counterContainer.classList.remove('warning', 'danger');
+            
+            if (percentage >= 0.9) {
+                counterContainer.classList.add('danger');
+            } else if (percentage >= 0.7) {
+                counterContainer.classList.add('warning');
+            }
+        }
+    }
+});
+
 </script>
 
 

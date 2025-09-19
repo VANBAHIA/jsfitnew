@@ -69,7 +69,7 @@ class JSFitCore {
     async initializeFirebase() {
         try {
             console.log('🔥 Inicializando Firebase...');
-
+    
             if (this.initializationInProgress) {
                 console.log('⏸️ Inicialização já em progresso, aguardando...');
                 return;
@@ -85,20 +85,20 @@ class JSFitCore {
             const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
             const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
             const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+            const { getStorage } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js'); // NOVA LINHA
             
             // Inicializar Firebase
             console.log('🚀 Inicializando app Firebase...');
             window.firebaseApp = initializeApp(this.firebaseConfig);
             window.db = getFirestore(window.firebaseApp);
             window.firebaseAuth = getAuth(window.firebaseApp);
-            
-  
+            window.firebaseStorage = getStorage(window.firebaseApp); // NOVA LINHA
             
             console.log('🔍 Testando conexão...');
             await this.testFirebaseConnection();
             
             console.log('✅ Firebase inicializado com sucesso!');
-            this.firebaseConnected  =true ;
+            this.firebaseConnected = true;
             
         } catch (error) {
             console.error('❌ Erro ao inicializar Firebase:', error);
@@ -107,9 +107,6 @@ class JSFitCore {
             throw error;
         }
     }
-    
-
-    
 
     async testFirebaseConnection() {
         try {
@@ -1053,6 +1050,96 @@ async loadUserConfiguration() {
         console.error('❌ Erro ao carregar configurações:', error);
     }
 }
+// Adicionar ao JSFitCore class (no final, antes do fechamento da classe)
+
+// ========================================
+// MÉTODOS PARA CRUD DE EXERCÍCIOS
+// ========================================
+
+async saveExerciseToFirebase(exercise) {
+    try {
+        if (!this.firebaseConnected) {
+            throw new Error('Firebase não conectado');
+        }
+        
+        const { doc, setDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        
+        // Usar ID do exercício ou gerar novo
+        const exerciseId = exercise.id || this.generateId();
+        
+        const exerciseData = {
+            ...exercise,
+            id: exerciseId,
+            updated_at: new Date().toISOString(),
+            synchronized_at: new Date().toISOString()
+        };
+        
+        const exerciseRef = doc(window.db, 'exercises_database', exerciseId);
+        await setDoc(exerciseRef, exerciseData);
+        
+        console.log(`✅ Exercício salvo no Firebase: ${exerciseId}`);
+        return exerciseId;
+        
+    } catch (error) {
+        console.error('❌ Erro ao salvar exercício no Firebase:', error);
+        throw error;
+    }
+}
+
+async deleteExerciseFromFirebase(exerciseId) {
+    try {
+        if (!this.firebaseConnected) {
+            throw new Error('Firebase não conectado');
+        }
+        
+        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        
+        const exerciseRef = doc(window.db, 'exercises_database', exerciseId);
+        await deleteDoc(exerciseRef);
+        
+        console.log(`✅ Exercício excluído do Firebase: ${exerciseId}`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao excluir exercício do Firebase:', error);
+        throw error;
+    }
+}
+
+async loadExercisesFromFirebase() {
+    try {
+        if (!this.firebaseConnected) {
+            console.warn('Firebase não conectado - usando base local');
+            return this.exerciseDatabase || [];
+        }
+        
+        const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        
+        const exercisesRef = collection(window.db, 'exercises_database');
+        const q = query(exercisesRef, orderBy('nome'));
+        const querySnapshot = await getDocs(q);
+        
+        const exercises = [];
+        querySnapshot.forEach((doc) => {
+            exercises.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        console.log(`✅ ${exercises.length} exercícios carregados do Firebase`);
+        
+        // Atualizar base local
+        this.exerciseDatabase = exercises;
+        this.exerciseDatabaseLoaded = true;
+        
+        return exercises;
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar exercícios do Firebase:', error);
+        return this.exerciseDatabase || [];
+    }
+}
+
 }
 
 

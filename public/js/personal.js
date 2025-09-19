@@ -35,6 +35,7 @@ hideOperationLoading(element) {
             // Inicializar loading manager
             
     this.loadingManager = new LoadingManager();
+    this.exerciseManager = null;
     this.sessionManager = new SessionRestoreManager(this);
     this.CoreManager = window.coreManager || new CoreManager();
 
@@ -179,38 +180,89 @@ hideOperationLoading(element) {
 
     }
     
-    async init() {
-        try {
-            console.log('🚀 Iniciando aplicação JSFit...');
-            
-            if (this.initializationInProgress || this.initializationComplete) {
-                return;
-            }
-            
-            this.initializationInProgress = true;
-            this.loadingManager.show('🚀 Inicializando JS Fit', 'Verificando sessão...');
-            
-            // USAR NOVO SISTEMA DE RESTAURAÇÃO
-            const sessionRestored = await this.sessionManager.restoreUserSession();
-            
-            if (sessionRestored) {
-                console.log('✅ Sessão restaurada - usuário logado');
-                await this.continueAuthenticatedInit();
-            } else {
-                console.log('👤 Nenhuma sessão válida - mostrar login');
-                await this.continueUnauthenticatedInit();
-            }
-            
-            this.initializationComplete = true;
-            this.initializationInProgress = false;
-            this.loadingManager.hide();
-            
-        } catch (error) {
-            console.error('⚠️ Erro na inicialização:', error);
-            this.initializationInProgress = false;
-            this.loadingManager.hide();
-            this.showAuthenticationScreen();
+ // No método init() do PersonalApp, MODIFICAR estas linhas:
+
+async init() {
+    try {
+        console.log('🚀 Iniciando aplicação JSFit...');
+        
+        if (this.initializationInProgress || this.initializationComplete) {
+            return;
         }
+        
+        this.initializationInProgress = true;
+        this.loadingManager.show('🚀 Inicializando JS Fit', 'Verificando sessão...');
+        
+        // USAR NOVO SISTEMA DE RESTAURAÇÃO
+        const sessionRestored = await this.sessionManager.restoreUserSession();
+        
+        if (sessionRestored) {
+            console.log('✅ Sessão restaurada - usuário logado');
+            await this.continueAuthenticatedInit();
+        } else {
+            console.log('👤 Nenhuma sessão válida - mostrar login');
+            await this.continueUnauthenticatedInit();
+        }
+        
+        // 👈 MODIFICAR ESTA PARTE - INICIALIZAÇÃO CONDICIONAL
+        try {
+            if (typeof ExerciseManager === 'function') {
+                this.exerciseManager = new ExerciseManager(this);
+                await this.exerciseManager.init();
+                window.exerciseManager = this.exerciseManager;
+                console.log('✅ ExerciseManager inicializado');
+            } else {
+                console.warn('⚠️ ExerciseManager não disponível');
+            }
+        } catch (exerciseError) {
+            console.warn('⚠️ Erro ao inicializar ExerciseManager:', exerciseError);
+            // Não quebrar a aplicação
+        }
+        
+        this.initializationComplete = true;
+        this.initializationInProgress = false;
+        this.loadingManager.hide();
+        
+    } catch (error) {
+        console.error('⚠️ Erro na inicialização:', error);
+        this.initializationInProgress = false;
+        this.loadingManager.hide();
+        this.showAuthenticationScreen();
+    }
+}
+
+// ADICIONAR ESTE MÉTODO
+showExerciseManager() {
+    console.log('💪 Mostrando gerenciador de exercícios');
+    
+    // Ocultar outras telas
+    document.getElementById('planCreator').style.display = 'none';
+    document.getElementById('aiPlanCreator').style.display = 'none';
+    document.getElementById('planList').style.display = 'none';
+    document.getElementById('planDetails').style.display = 'none';
+    
+    // Mostrar tela de exercícios
+    document.getElementById('exerciseManager').style.display = 'block';
+    
+    // Inicializar se necessário
+    if (this.exerciseManager) {
+        this.exerciseManager.show();
+    } else {
+        console.warn('⚠️ ExerciseManager não disponível');
+        this.showMessage('Gerenciador de exercícios não disponível', 'warning');
+    }
+}
+
+
+
+    showExerciseManager() {
+        document.getElementById('planCreator').style.display = 'none';
+        document.getElementById('aiPlanCreator').style.display = 'none';
+        document.getElementById('planList').style.display = 'none';
+        document.getElementById('planDetails').style.display = 'none';
+        document.getElementById('exerciseManager').style.display = 'block';
+        
+        this.exerciseManager.show();
     }
     
 
@@ -2620,36 +2672,52 @@ capitalizeGroup(grupo) {
         this.populateExerciseSelect(selectedGroup);
     }
 
-    updateExerciseDescription() {
-        const exerciseSelect = document.getElementById('exerciseName');
-        const customGroup = document.getElementById('customExerciseGroup');
-        const descriptionTextarea = document.getElementById('exerciseDescription');
-        const gifGroup = document.getElementById('exerciseGifGroup');
-        const gifElement = document.getElementById('exerciseGif');
-        const gifError = document.getElementById('exerciseGifError');
+  // No personal.js, modifique o método updateExerciseDescription:
 
-        if (!exerciseSelect || !customGroup || !descriptionTextarea) return;
+updateExerciseDescription() {
+    const exerciseSelect = document.getElementById('exerciseName');
+    const customGroup = document.getElementById('customExerciseGroup');
+    const descriptionTextarea = document.getElementById('exerciseDescription');
+    const gifGroup = document.getElementById('exerciseGifGroup');
+    const gifElement = document.getElementById('exerciseGif');
+    const gifError = document.getElementById('exerciseGifError');
 
-        if (exerciseSelect.value === 'custom') {
-            customGroup.style.display = 'block';
-            descriptionTextarea.value = '';
-            
-            if (gifGroup) {
-                gifGroup.style.display = 'none';
+    if (!exerciseSelect || !customGroup || !descriptionTextarea) return;
+
+    if (exerciseSelect.value === 'custom') {
+        customGroup.style.display = 'block';
+        descriptionTextarea.value = '';
+        
+        if (gifGroup) {
+            gifGroup.style.display = 'none';
+        }
+        
+        // NOVO: Ocultar preview do ExerciseManager se estiver visível
+        if (window.exerciseManager && typeof window.exerciseManager.displayExerciseGifInForm === 'function') {
+            const gifPreviewGroup = document.getElementById('exerciseGifPreviewGroup');
+            if (gifPreviewGroup) {
+                gifPreviewGroup.style.display = 'none';
             }
-        } else {
-            customGroup.style.display = 'none';
+        }
+    } else {
+        customGroup.style.display = 'none';
 
-            // Usar core para buscar descrição
-            const exercise = this.findExerciseByName(exerciseSelect.value);
-            const descricao = exercise?.descricao || 'Descrição não disponível';
+        // Usar core para buscar descrição
+        const exercise = this.findExerciseByName(exerciseSelect.value);
+        const descricao = exercise?.descricao || 'Descrição não disponível';
 
-            descriptionTextarea.value = descricao.charAt(0).toUpperCase() + descricao.slice(1).toLowerCase();
-            
-            // Buscar e exibir GIF via core
-            this.loadExerciseGif(exerciseSelect.value, gifGroup, gifElement, gifError);
+        descriptionTextarea.value = descricao.charAt(0).toUpperCase() + descricao.slice(1).toLowerCase();
+        
+        // Buscar e exibir GIF via core (método original)
+        this.loadExerciseGif(exerciseSelect.value, gifGroup, gifElement, gifError);
+        
+        // NOVO: Se estivermos no contexto do ExerciseManager, usar seu método também
+        if (window.exerciseManager && typeof window.exerciseManager.displayExerciseGifInForm === 'function') {
+            window.exerciseManager.displayExerciseGifInForm(exerciseSelect.value);
         }
     }
+}
+
 
     loadExerciseGif(exerciseName, gifGroup, gifElement, gifError) {
         if (!gifGroup || !gifElement || !gifError) return;
@@ -4040,15 +4108,43 @@ showPlanTypeConfigModal() {
         const editorContainer = document.createElement('div');
         editorContainer.innerHTML = editorHTML;
         
-        // Buscar o editor criado e adicionar classe fullscreen
+        // Buscar o editor criado
         const editor = editorContainer.querySelector('.exercise-inline-editor');
-        editor.classList.add('fullscreen-mode');
+        
+        // Aplicar estilos inline
+        const headerHeight = document.querySelector('.header').offsetHeight || 80;
+        
+        editor.style.cssText = `
+            position: fixed !important;
+            top: ${headerHeight}px !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: calc(100vh - ${headerHeight}px) !important;
+            background: white !important;
+            z-index: 9999 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            overflow-y: auto !important;
+            padding: 20px !important;
+            box-sizing: border-box !important;
+        `;
         
         // Adicionar ao body
         document.body.appendChild(editor);
         
-        // Adicionar classe ao body para ocultar outros elementos
-        document.body.classList.add('editor-fullscreen');
+        // OCULTAR OUTROS ELEMENTOS (mantendo apenas header)
+        const container = document.querySelector('.container');
+        if (container) {
+            // Ocultar apenas o conteúdo, não o header
+            const children = container.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                if (!child.classList.contains('header')) {
+                    child.style.display = 'none';
+                }
+            }
+        }
         
         // Popular dados após inserir no DOM
         setTimeout(() => {
@@ -4217,10 +4313,10 @@ showPlanTypeConfigModal() {
                 </div>
                 <div class="exercise-actions">
                     <button class="btn btn-primary" onclick="app.saveInlineExercise()">
-                        Salvar
+                        💾 Salvar
                     </button>
                     <button class="btn btn-outline" onclick="app.closeInlineEditor()">
-                        Cancelar
+                        ❌ Cancelar
                     </button>
                 </div>
             </div>
@@ -7368,7 +7464,6 @@ validateInlineConfiguration() {
     }
     
 
-    
     closeInlineEditor() {
         // Remover editor do DOM
         const editor = document.querySelector('.exercise-inline-editor');
@@ -7376,29 +7471,30 @@ validateInlineConfiguration() {
             editor.remove();
         }
         
-        // Remover classe do body
-        document.body.classList.remove('editor-fullscreen');
+        // RESTAURAR VISIBILIDADE DOS ELEMENTOS
+        const container = document.querySelector('.container');
+        if (container) {
+            const children = container.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                if (!child.classList.contains('header')) {
+                    child.style.display = ''; // Restaurar display original
+                }
+            }
+        }
         
-        // Restaurar posição do scroll
+        // Restaurar posição do scroll se necessário
         if (this.currentScrollPosition !== undefined) {
             setTimeout(() => {
                 window.scrollTo(0, this.currentScrollPosition);
             }, 100);
         }
         
-        // NÃO RESETAR ÍNDICES IMEDIATAMENTE - deixar para depois da atualização
-        // this.currentWorkoutIndex = null;
-        // this.currentExerciseIndex = null;
-        
-        // Garantir que a tela de criação esteja visível
-        const planCreator = document.getElementById('planCreator');
-        if (planCreator && planCreator.style.display === 'none') {
-            planCreator.style.display = 'block';
-        }
-        
-        console.log('Editor inline fechado');
+        // Limpar índices
+        this.currentWorkoutIndex = null;
+        this.currentExerciseIndex = null;
     }
-
+    
     clearEditingIndices() {
         this.currentWorkoutIndex = null;
         this.currentExerciseIndex = null;
@@ -7892,6 +7988,7 @@ async showPlanList() {
                     console.log(`📊 Exibindo ${this.savedPlans.length} planos do usuário`);
                     
                     // Navegação
+                    document.getElementById('exerciseManager').style.display = 'none';
                     document.getElementById('planCreator').style.display = 'none';
                     document.getElementById('aiPlanCreator').style.display = 'none';
                     document.getElementById('planDetails').style.display = 'none';
@@ -8149,12 +8246,12 @@ async deactivateSharedPlanFixed(shareId, coreInstance) {
 
 async stopSharing(planId) {
     try {
-        // VERIFICAÇÃO DE AUTENTICAÇÃO
+        // Verificação de autenticação
         if (!this.canPerformAction()) return;
         
-        console.log(`🔒 Parando compartilhamento do plano: ${planId}`);
+        console.log(`Parando compartilhamento do plano: ${planId}`);
         
-        // Buscar plano NA LISTA DO USUÁRIO ATUAL
+        // Buscar plano na lista do usuário
         const plan = this.savedPlans.find(p => 
             p.id === planId && p.userId === this.currentUserId
         );
@@ -8173,50 +8270,97 @@ async stopSharing(planId) {
 
         this.showMessage('Removendo compartilhamento...', 'info');
 
-        // ========================================
-        // BUSCA INTELIGENTE DO CORE (CORRIGIDA)
-        // ========================================
-        let coreInstance = await this.CoreManager.getCore();
+        const oldShareId = plan.shareId;
+        const planName = plan.nome;
+        let operationSuccess = false;
+
+        // Obter core instance
+        const coreInstance = await this.CoreManager.getCore();
         
-        // Desativar no Firebase SE core disponível
         if (coreInstance && coreInstance.firebaseConnected) {
             try {
-                await this.deactivateSharedPlanFixed(plan.shareId, coreInstance);
-                console.log('✅ Compartilhamento desativado no Firebase');
-            } catch (fbError) {
-                console.warn('⚠️ Erro ao desativar no Firebase:', fbError);
+                // 1. Desativar na coleção shared_plans
+                await this.deactivateSharedPlanFixed(oldShareId, coreInstance);
+                console.log('Compartilhamento desativado no Firebase');
+
+                // 2. Remover shareId da coleção plans
+                await this.removeShareIdFromPlan(planId, coreInstance);
+                console.log('ShareId removido do documento principal');
+
+                operationSuccess = true;
+            } catch (error) {
+                console.error('Erro nas operações Firebase:', error);
             }
-        } else {
-            console.warn('⚠️ Core/Firebase indisponível - removendo apenas localmente');
         }
 
-        // Remover dados de compartilhamento do plano
-        const oldShareId = plan.shareId;
+        // 3. Atualizar dados locais sempre
         delete plan.shareId;
         delete plan.sharedAt;
         delete plan.sharedBy;
         plan.sharingStoppedAt = new Date().toISOString();
 
-        // Salvar alterações localmente
+        // 4. Salvar no localStorage
         await this.saveToUserLocalStorage();
-        
-        // Tentar atualizar no Firebase
-        if (coreInstance && coreInstance.firebaseConnected) {
-            try {
-                await coreInstance.savePlanToFirebase(plan);
-                console.log('✅ Plano atualizado no Firebase');
-            } catch (updateError) {
-                console.warn('⚠️ Erro ao atualizar plano no Firebase:', updateError);
-            }
-        }
 
-        // Atualizar interface
+        // 5. Atualizar interface
         this.renderPlanList();
-        this.showMessage(`Compartilhamento removido: "${plan.nome}"`, 'success');
+
+        // 6. Mostrar resultado
+        if (operationSuccess) {
+            this.showMessage(`Compartilhamento de "${planName}" removido completamente`, 'success');
+        } else {
+            this.showMessage(`Compartilhamento removido localmente (Firebase indisponível)`, 'warning');
+        }
         
     } catch (error) {
-        console.error('❌ Erro ao parar compartilhamento:', error);
+        console.error('Erro ao parar compartilhamento:', error);
         this.showMessage('Erro ao remover compartilhamento', 'error');
+        this.renderPlanList();
+    }
+}
+
+// Método auxiliar para remover shareId do documento principal
+async removeShareIdFromPlan(planId, coreInstance) {
+    const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    
+    const planRef = doc(window.db, 'plans', planId);
+    
+    await updateDoc(planRef, {
+        shareId: null,
+        sharedAt: null,
+        sharedBy: null,
+        sharingStoppedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    });
+}
+
+
+async removeShareIdFromPlan(planId, coreInstance) {
+    try {
+        console.log('🔄 Removendo shareId do documento principal no Firebase...');
+        
+        if (!coreInstance || !coreInstance.firebaseConnected) {
+            throw new Error('Firebase não conectado');
+        }
+
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        
+        const planRef = doc(window.db, 'plans', planId);
+        
+        await updateDoc(planRef, {
+            shareId: null,
+            sharedAt: null,
+            sharedBy: null,
+            sharingStoppedAt: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        });
+        
+        console.log('✅ ShareId removido do documento principal no Firebase');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Erro ao remover shareId do Firebase:', error);
+        throw error;
     }
 }
 
