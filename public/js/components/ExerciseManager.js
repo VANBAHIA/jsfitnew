@@ -115,11 +115,29 @@ class ExerciseManager {
     // ========================================
     setupEventListeners() {
         const groupFilter = document.getElementById('exerciseGroupFilterDB');
+        const searchInput = document.getElementById('exerciseSearch'); // NOVO
         
         if (groupFilter) {
             groupFilter.addEventListener('change', (e) => {
                 const searchInput = document.getElementById('exerciseSearch');
                 this.performSearch(searchInput?.value || '', e.target.value);
+            });
+        }
+        
+        // NOVO: Event listeners para busca por nome
+        if (searchInput) {
+            // Busca ao digitar (com debounce)
+            searchInput.addEventListener('input', (e) => {
+                this.debounceSearch(e.target.value);
+            });
+            
+            // Busca ao pressionar Enter
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const groupFilter = document.getElementById('exerciseGroupFilterDB');
+                    this.performSearch(e.target.value, groupFilter?.value || '');
+                }
             });
         }
     }
@@ -130,21 +148,25 @@ class ExerciseManager {
         }
         
         this.debounceTimer = setTimeout(() => {
-            this.performSearch(searchTerm);
+            // CORREÇÃO: Capturar o valor atual do filtro
+            const groupFilter = document.getElementById('exerciseGroupFilterDB');
+            const groupValue = groupFilter?.value || '';
+            console.log('⏰ Debounce executado - Grupo:', groupValue, 'Busca:', searchTerm);
+            this.performSearch(searchTerm, groupValue);
         }, 500);
     }
     
     performSearch(searchTerm = '', groupFilter = '') {
-        const trimmedSearch = searchTerm.trim();
+        const trimmedSearch = searchTerm.trim().toLowerCase();
         
         console.log(`Buscando: "${trimmedSearch}" | Grupo: "${groupFilter}"`);
         
         this.filteredExercises = this.exercises.filter(exercise => {
-            // Busca por texto
+            // Busca por texto no NOME do exercício
             const matchesSearch = !trimmedSearch || 
-                exercise.nome.toLowerCase().includes(trimmedSearch.toLowerCase());
+                exercise.nome.toLowerCase().includes(trimmedSearch);
             
-            // Filtro por grupo (CORRIGIR AQUI)
+            // Filtro por grupo
             const matchesGroup = !groupFilter || 
                 groupFilter === 'todos' || 
                 exercise.grupo.toLowerCase() === groupFilter.toLowerCase();
@@ -152,6 +174,7 @@ class ExerciseManager {
             return matchesSearch && matchesGroup;
         });
         
+        console.log(`${this.filteredExercises.length} exercícios encontrados`);
         this.renderSearchResults();
     }
     
